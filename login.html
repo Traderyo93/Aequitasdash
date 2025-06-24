@@ -54,16 +54,14 @@
 
         @keyframes float {
             0% { 
-                transform: translateY(120vh) rotate(0deg); 
+                transform: translateY(100vh) rotate(0deg); 
                 opacity: 0; 
             }
-            3% { 
+            2% { 
                 opacity: 0.15;
-                transform: translateY(100vh) rotate(10deg); 
             }
-            97% { 
+            98% { 
                 opacity: 0.15;
-                transform: translateY(-10vh) rotate(350deg); 
             }
             100% { 
                 transform: translateY(-20vh) rotate(360deg); 
@@ -461,7 +459,7 @@
     </div>
 
     <script>
-        // Create floating particles - start completely off screen
+        // Create floating particles - natural flow
         function createParticles() {
             const particlesContainer = document.getElementById('particles');
             const particleCount = 20;
@@ -478,14 +476,11 @@
                 // Random horizontal position
                 particle.style.left = Math.random() * 100 + '%';
                 
-                // Start completely off screen below
-                particle.style.top = '100vh';
-                
-                // Random animation delay (longer delays)
-                particle.style.animationDelay = Math.random() * 45 + 's';
+                // Random animation delay 
+                particle.style.animationDelay = Math.random() * 25 + 's';
                 
                 // Random animation duration
-                particle.style.animationDuration = (Math.random() * 20 + 30) + 's';
+                particle.style.animationDuration = (Math.random() * 15 + 20) + 's';
                 
                 particlesContainer.appendChild(particle);
             }
