@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Account Dashboard - Aequitas Capital Partners</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=DM+Serif+Display:ital,wght@0,400;1,400&family=Geist:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Geist:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -53,7 +53,7 @@
             transition: all 0.3s ease;
         }
 
-        /* Solid Color Icons - Using CSS masks with SVG data URLs */
+        /* Solid Color Icons */
         .icon {
             width: 20px;
             height: 20px;
@@ -256,11 +256,11 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 8px 12px;
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #fca5a5;
-            border-radius: 6px;
+            padding: 10px 16px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: var(--sidebar-text);
+            border-radius: 8px;
             cursor: pointer;
             font-size: 13px;
             font-weight: 500;
@@ -269,8 +269,9 @@
         }
 
         .logout-btn:hover {
-            background: rgba(239, 68, 68, 0.2);
-            color: white;
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
         }
 
         /* Main Content */
@@ -455,33 +456,15 @@
             margin-bottom: 16px;
         }
 
-        .tradingview-widget {
-            width: 100%;
+        .widget-placeholder {
             height: calc(100% - 40px);
-        }
-
-        /* Loading States */
-        .loading {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 200px;
             color: var(--text-secondary);
-        }
-
-        .spinner {
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--border-color);
-            border-top: 2px solid var(--accent);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-right: 12px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            font-style: italic;
         }
 
         /* Responsive */
@@ -524,7 +507,7 @@
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="logo-container">
-                <img src="https://i.ibb.co/8DfYwWdG/Aequitas-White-Logo.png" alt="Aequitas Capital Partners" class="logo">
+                <img src="https://i.ibb.co/8gDfYwWG/Aequitas-White-Logo.png" alt="Aequitas Capital Partners" class="logo">
             </div>
             <button class="theme-toggle" onclick="toggleTheme()">
                 <span class="icon icon-moon"></span>
@@ -595,111 +578,80 @@
         </div>
 
         <div class="dashboard-content">
-            <!-- Dashboard Content -->
-            <div id="dashboardContent">
-                <!-- Account Stats -->
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <div class="stat-label">Account Balance</div>
-                            <div class="stat-icon" style="background: rgba(59, 130, 246, 0.1);">
-                                <span class="icon icon-dollar" style="color: #3b82f6;"></span>
-                            </div>
-                        </div>
-                        <div class="stat-value" id="accountBalance">$0</div>
-                        <div class="stat-change" id="balanceChange">
-                            <span class="icon icon-trending-up"></span>
-                            <span>+0%</span>
+            <!-- Account Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-label">Account Balance</div>
+                        <div class="stat-icon" style="background: rgba(59, 130, 246, 0.1);">
+                            <span class="icon icon-dollar" style="color: #3b82f6;"></span>
                         </div>
                     </div>
-
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <div class="stat-label">Account Profit</div>
-                            <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1);">
-                                <span class="icon icon-trending-up" style="color: #10b981;"></span>
-                            </div>
-                        </div>
-                        <div class="stat-value" id="accountProfit">$0</div>
-                        <div class="stat-change" id="profitChange">
-                            <span class="icon icon-chart"></span>
-                            <span>Since inception</span>
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <div class="stat-label">Starting Balance</div>
-                            <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1);">
-                                <span class="icon icon-target" style="color: #f59e0b;"></span>
-                            </div>
-                        </div>
-                        <div class="stat-value" id="startingBalance">$0</div>
-                        <div class="stat-change stat-neutral">
-                            <span class="icon icon-document"></span>
-                            <span>Initial deposit</span>
-                        </div>
+                    <div class="stat-value" id="accountBalance">$0</div>
+                    <div class="stat-change" id="balanceChange">
+                        <span class="icon icon-trending-up"></span>
+                        <span>+0%</span>
                     </div>
                 </div>
 
-                <!-- Equity Curve Chart -->
-                <div class="chart-section">
-                    <div class="chart-header">
-                        <h2 class="chart-title">Account Equity Curve</h2>
-                        <div class="chart-filters">
-                            <button class="filter-btn active" onclick="updateChart('1M')">1M</button>
-                            <button class="filter-btn" onclick="updateChart('3M')">3M</button>
-                            <button class="filter-btn" onclick="updateChart('12M')">12M</button>
-                            <button class="filter-btn" onclick="updateChart('ALL')">ALL</button>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-label">Account Profit</div>
+                        <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1);">
+                            <span class="icon icon-trending-up" style="color: #10b981;"></span>
                         </div>
                     </div>
-                    <div class="chart-container">
-                        <canvas id="equityChart"></canvas>
+                    <div class="stat-value" id="accountProfit">$0</div>
+                    <div class="stat-change" id="profitChange">
+                        <span class="icon icon-chart"></span>
+                        <span>Since inception</span>
                     </div>
                 </div>
 
-                <!-- TradingView Widgets -->
-                <div class="widgets-grid">
-                    <div class="widget-card">
-                        <h3 class="widget-title">Market News</h3>
-                        <div class="tradingview-widget">
-                            <!-- TradingView Timeline Widget (News) -->
-                            <div class="tradingview-widget-container" style="height: 100%; width: 100%;">
-                                <div class="tradingview-widget-container__widget" style="height: calc(100% - 32px); width: 100%;"></div>
-                                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-timeline.js" async>
-                                {
-                                  "feedMode": "market",
-                                  "market": "stock",
-                                  "isTransparent": false,
-                                  "displayMode": "regular",
-                                  "width": "100%",
-                                  "height": "100%",
-                                  "colorTheme": "light",
-                                  "locale": "en"
-                                }
-                                </script>
-                            </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-label">Starting Balance</div>
+                        <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1);">
+                            <span class="icon icon-target" style="color: #f59e0b;"></span>
                         </div>
                     </div>
+                    <div class="stat-value" id="startingBalance">$0</div>
+                    <div class="stat-change stat-neutral">
+                        <span class="icon icon-document"></span>
+                        <span>Initial deposit</span>
+                    </div>
+                </div>
+            </div>
 
-                    <div class="widget-card">
-                        <h3 class="widget-title">Economic Calendar</h3>
-                        <div class="tradingview-widget">
-                            <!-- TradingView Economic Events Widget -->
-                            <div class="tradingview-widget-container" style="height: 100%; width: 100%;">
-                                <div class="tradingview-widget-container__widget" style="height: calc(100% - 32px); width: 100%;"></div>
-                                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-events.js" async>
-                                {
-                                  "colorTheme": "light",
-                                  "isTransparent": false,
-                                  "width": "100%",
-                                  "height": "100%",
-                                  "locale": "en",
-                                  "importanceFilter": "-1,0,1"
-                                }
-                                </script>
-                            </div>
-                        </div>
+            <!-- Equity Curve Chart -->
+            <div class="chart-section">
+                <div class="chart-header">
+                    <h2 class="chart-title">Account Equity Curve</h2>
+                    <div class="chart-filters">
+                        <button class="filter-btn active" onclick="updateChartPeriod('1M', this)">1M</button>
+                        <button class="filter-btn" onclick="updateChartPeriod('3M', this)">3M</button>
+                        <button class="filter-btn" onclick="updateChartPeriod('12M', this)">12M</button>
+                        <button class="filter-btn" onclick="updateChartPeriod('ALL', this)">ALL</button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="equityChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Widgets -->
+            <div class="widgets-grid">
+                <div class="widget-card">
+                    <h3 class="widget-title">Market News</h3>
+                    <div class="widget-placeholder">
+                        Market news widget blocked by browser security settings
+                    </div>
+                </div>
+
+                <div class="widget-card">
+                    <h3 class="widget-title">Economic Calendar</h3>
+                    <div class="widget-placeholder">
+                        Economic calendar widget blocked by browser security settings
                     </div>
                 </div>
             </div>
@@ -708,6 +660,7 @@
 
     <!-- Scripts -->
     <script>
+        // Global variables
         let currentTheme = 'light';
         let equityChart = null;
         let currentPeriod = '1M';
@@ -717,7 +670,11 @@
             const token = localStorage.getItem('aequitas_auth_token');
             const userData = localStorage.getItem('aequitas_user_data');
             
+            console.log('Auth check - Token:', token ? 'exists' : 'missing');
+            console.log('Auth check - User data:', userData ? 'exists' : 'missing');
+            
             if (!token || !userData) {
+                console.log('Redirecting to login - missing auth data');
                 window.location.href = '/login.html';
                 return false;
             }
@@ -734,7 +691,7 @@
             
             // Update chart theme
             if (equityChart) {
-                updateChartTheme();
+                createEquityChart();
             }
             
             localStorage.setItem('aequitas_theme', currentTheme);
@@ -750,10 +707,9 @@
             // Add active class to clicked item
             event.target.closest('.nav-item').classList.add('active');
             
-            // In a real app, you would navigate to different pages
-            console.log(`Navigating to: ${page}`);
+            console.log(`Navigation to: ${page}`);
             
-            // For demo, show coming soon
+            // For demo, show coming soon for non-dashboard pages
             if (page !== 'dashboard') {
                 alert(`${page.charAt(0).toUpperCase() + page.slice(1)} page coming soon!`);
             }
@@ -764,6 +720,7 @@
             if (confirm('Are you sure you want to logout?')) {
                 localStorage.removeItem('aequitas_auth_token');
                 localStorage.removeItem('aequitas_user_data');
+                console.log('Logged out, redirecting to login');
                 window.location.href = '/login.html';
             }
         }
@@ -798,8 +755,8 @@
             let currentValue = startValue;
             
             // Create realistic hedge fund performance pattern
-            const annualReturn = 0.15; // 15% annual target return
-            const volatility = 0.12; // 12% annual volatility
+            const annualReturn = 0.18; // 18% annual target return
+            const volatility = 0.15; // 15% annual volatility
             const dailyReturn = annualReturn / 252; // 252 trading days per year
             const dailyVol = volatility / Math.sqrt(252);
             
@@ -812,24 +769,24 @@
                     continue;
                 }
                 
-                // Generate realistic returns with some market cycles
-                const marketCycle = Math.sin((i / dataPoints) * 4 * Math.PI) * 0.3; // Market cycles
+                // Generate realistic returns with market cycles
+                const marketCycle = Math.sin((i / dataPoints) * 4 * Math.PI) * 0.3;
                 const randomComponent = (Math.random() - 0.5) * 2 * dailyVol;
                 const trendComponent = dailyReturn * (1 + marketCycle);
                 
                 // Add some drawdown periods (realistic hedge fund performance)
                 let drawdownFactor = 1;
                 if (i > dataPoints * 0.3 && i < dataPoints * 0.45) {
-                    drawdownFactor = 0.7; // 15% drawdown period
+                    drawdownFactor = 0.85; // 15% drawdown period
                 } else if (i > dataPoints * 0.7 && i < dataPoints * 0.75) {
-                    drawdownFactor = 0.9; // Smaller correction
+                    drawdownFactor = 0.95; // Smaller correction
                 }
                 
                 const dailyChange = (trendComponent + randomComponent) * drawdownFactor;
                 currentValue *= (1 + dailyChange);
                 
                 // Ensure we don't go below reasonable levels
-                currentValue = Math.max(currentValue, startValue * 0.75);
+                currentValue = Math.max(currentValue, startValue * 0.70);
                 
                 data.push({
                     date: date.toISOString().split('T')[0],
@@ -837,14 +794,17 @@
                 });
             }
             
+            console.log(`Generated ${data.length} data points for ${period}`);
             return data;
         }
 
-        // Update Chart
-        function updateChart(period) {
+        // Update Chart Period (Fixed function name)
+        function updateChartPeriod(period, element) {
+            console.log(`Updating chart to period: ${period}`);
+            
             // Update active filter button
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            element.classList.add('active');
             
             currentPeriod = period;
             createEquityChart();
@@ -852,8 +812,15 @@
 
         // Create Equity Chart
         function createEquityChart() {
-            const ctx = document.getElementById('equityChart').getContext('2d');
+            const ctx = document.getElementById('equityChart');
+            if (!ctx) {
+                console.error('Chart canvas not found');
+                return;
+            }
             
+            console.log('Creating equity chart for period:', currentPeriod);
+            
+            // Destroy existing chart
             if (equityChart) {
                 equityChart.destroy();
             }
@@ -929,23 +896,16 @@
                     }
                 }
             });
-        }
-
-        // Update chart theme when theme changes
-        function updateChartTheme() {
-            if (equityChart) {
-                createEquityChart();
-            }
+            
+            console.log('Chart created successfully');
         }
 
         // Format currency
         function formatCurrency(amount, short = false) {
             if (short && amount >= 1000000) {
-                return '
-                                 + (amount / 1000000).toFixed(1) + 'M';
+                return ' + (amount / 1000000).toFixed(1) + 'M';
             } else if (short && amount >= 1000) {
-                return '
-                                 + (amount / 1000).toFixed(0) + 'K';
+                return ' + (amount / 1000).toFixed(0) + 'K';
             }
             
             return new Intl.NumberFormat('en-US', {
@@ -958,28 +918,46 @@
 
         // Load dashboard data
         function loadDashboard() {
+            console.log('Loading dashboard data...');
+            
             try {
-                // Get user data
-                const userData = JSON.parse(localStorage.getItem('aequitas_user_data'));
+                // Get user data from localStorage
+                const userDataString = localStorage.getItem('aequitas_user_data');
+                console.log('Raw user data from localStorage:', userDataString);
                 
-                if (!userData) {
+                if (!userDataString) {
+                    console.error('No user data found in localStorage');
                     window.location.href = '/login.html';
                     return;
                 }
 
-                // Update user info
-                document.getElementById('userName').textContent = userData.firstName + ' ' + userData.lastName;
-                document.getElementById('userEmail').textContent = userData.email;
-                document.getElementById('topUserName').textContent = userData.firstName;
-                document.getElementById('userAvatar').textContent = userData.firstName.charAt(0);
+                const userData = JSON.parse(userDataString);
+                console.log('Parsed user data:', userData);
+
+                // Update user info in sidebar and top bar
+                const firstName = userData.firstName || 'User';
+                const lastName = userData.lastName || '';
+                const email = userData.email || 'user@example.com';
+                
+                document.getElementById('userName').textContent = firstName + ' ' + lastName;
+                document.getElementById('userEmail').textContent = email;
+                document.getElementById('topUserName').textContent = firstName;
+                document.getElementById('userAvatar').textContent = firstName.charAt(0).toUpperCase();
 
                 // Calculate account metrics
-                const startingBalance = 1000000; // Demo starting balance
-                const currentBalance = userData.accountValue;
+                const startingBalance = 1000000; // $1M Demo starting balance
+                const currentBalance = userData.accountValue || 2850000; // Use stored value or demo default
                 const profit = currentBalance - startingBalance;
                 const profitPercent = ((profit / startingBalance) * 100);
 
-                // Update account stats (remove availableCash reference)
+                console.log('Account metrics:', {
+                    startingBalance,
+                    currentBalance,
+                    profit,
+                    profitPercent
+                });
+
+                // Update account stats
                 document.getElementById('accountBalance').textContent = formatCurrency(currentBalance);
                 document.getElementById('accountProfit').textContent = formatCurrency(profit);
                 document.getElementById('startingBalance').textContent = formatCurrency(startingBalance);
@@ -988,18 +966,27 @@
                 const balanceChange = document.getElementById('balanceChange');
                 const profitChange = document.getElementById('profitChange');
                 
-                // Simulate daily change
-                const dailyChange = (Math.random() - 0.4) * 3; // Slight positive bias
-                balanceChange.innerHTML = dailyChange >= 0 ? 
-                    `<span class="icon icon-trending-up"></span><span class="stat-positive">+${dailyChange.toFixed(2)}%</span>` :
-                    `<span class="icon icon-trending-up" style="transform: rotate(180deg);"></span><span class="stat-negative">${dailyChange.toFixed(2)}%</span>`;
+                // Simulate daily change (slight positive bias for demo)
+                const dailyChange = (Math.random() - 0.3) * 2.5;
                 
-                profitChange.innerHTML = profit >= 0 ?
-                    `<span class="icon icon-trending-up"></span><span class="stat-positive">+${profitPercent.toFixed(1)}%</span>` :
-                    `<span class="icon icon-trending-up" style="transform: rotate(180deg);"></span><span class="stat-negative">${profitPercent.toFixed(1)}%</span>`;
+                if (dailyChange >= 0) {
+                    balanceChange.innerHTML = `<span class="icon icon-trending-up"></span><span class="stat-positive">+${dailyChange.toFixed(2)}%</span>`;
+                } else {
+                    balanceChange.innerHTML = `<span class="icon icon-trending-up" style="transform: rotate(180deg);"></span><span class="stat-negative">${dailyChange.toFixed(2)}%</span>`;
+                }
+                
+                if (profit >= 0) {
+                    profitChange.innerHTML = `<span class="icon icon-trending-up"></span><span class="stat-positive">+${profitPercent.toFixed(1)}%</span>`;
+                } else {
+                    profitChange.innerHTML = `<span class="icon icon-trending-up" style="transform: rotate(180deg);"></span><span class="stat-negative">${profitPercent.toFixed(1)}%</span>`;
+                }
 
                 // Create equity chart
-                createEquityChart();
+                setTimeout(() => {
+                    createEquityChart();
+                }, 100);
+
+                console.log('Dashboard loaded successfully');
 
             } catch (error) {
                 console.error('Dashboard load error:', error);
@@ -1009,24 +996,30 @@
 
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {
-            // Check authentication
+            console.log('DOM loaded, initializing dashboard...');
+            
+            // Check authentication first
             if (!checkAuth()) {
                 return;
             }
 
             // Load saved theme
             const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
+            console.log('Saved theme:', savedTheme);
+            
             if (savedTheme === 'dark') {
                 toggleTheme();
             }
 
-            // Load dashboard
+            // Load dashboard data
             loadDashboard();
 
             // Handle mobile sidebar
             if (window.innerWidth <= 1024) {
                 document.getElementById('sidebar').classList.remove('open');
             }
+            
+            console.log('Dashboard initialization complete');
         });
 
         // Mobile sidebar toggle
