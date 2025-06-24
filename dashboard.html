@@ -445,7 +445,7 @@
             background: var(--bg-primary);
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            padding: 24px;
+            padding: 20px;
             height: 400px;
         }
 
@@ -456,15 +456,11 @@
             margin-bottom: 16px;
         }
 
-        .widget-placeholder {
+        .tradingview-widget {
+            width: 100%;
             height: calc(100% - 40px);
-            background: var(--bg-tertiary);
             border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-secondary);
-            font-style: italic;
+            overflow: hidden;
         }
 
         /* Responsive */
@@ -507,7 +503,7 @@
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="logo-container">
-                <img src="https://i.ibb.co/8gDfYwWG/Aequitas-White-Logo.png" alt="Aequitas Capital Partners" class="logo">
+                <img src="https://i.ibb.co/8DfYwWG/Aequitas-White-Logo.png" alt="Aequitas Capital Partners" class="logo">
             </div>
             <button class="theme-toggle" onclick="toggleTheme()">
                 <span class="icon icon-moon"></span>
@@ -587,10 +583,10 @@
                             <span class="icon icon-dollar" style="color: #3b82f6;"></span>
                         </div>
                     </div>
-                    <div class="stat-value" id="accountBalance">$0</div>
-                    <div class="stat-change" id="balanceChange">
+                    <div class="stat-value" id="accountBalance">$2,850,000</div>
+                    <div class="stat-change stat-positive" id="balanceChange">
                         <span class="icon icon-trending-up"></span>
-                        <span>+0%</span>
+                        <span>+2.1%</span>
                     </div>
                 </div>
 
@@ -601,10 +597,10 @@
                             <span class="icon icon-trending-up" style="color: #10b981;"></span>
                         </div>
                     </div>
-                    <div class="stat-value" id="accountProfit">$0</div>
-                    <div class="stat-change" id="profitChange">
+                    <div class="stat-value" id="accountProfit">$1,850,000</div>
+                    <div class="stat-change stat-positive" id="profitChange">
                         <span class="icon icon-chart"></span>
-                        <span>Since inception</span>
+                        <span>+185%</span>
                     </div>
                 </div>
 
@@ -615,7 +611,7 @@
                             <span class="icon icon-target" style="color: #f59e0b;"></span>
                         </div>
                     </div>
-                    <div class="stat-value" id="startingBalance">$0</div>
+                    <div class="stat-value" id="startingBalance">$1,000,000</div>
                     <div class="stat-change stat-neutral">
                         <span class="icon icon-document"></span>
                         <span>Initial deposit</span>
@@ -639,19 +635,50 @@
                 </div>
             </div>
 
-            <!-- Widgets -->
+            <!-- TradingView Widgets -->
             <div class="widgets-grid">
                 <div class="widget-card">
                     <h3 class="widget-title">Market News</h3>
-                    <div class="widget-placeholder">
-                        Market news widget blocked by browser security settings
+                    <div class="tradingview-widget">
+                        <!-- TradingView Widget BEGIN -->
+                        <div class="tradingview-widget-container">
+                            <div class="tradingview-widget-container__widget"></div>
+                            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-timeline.js" async>
+                            {
+                                "feedMode": "market",
+                                "market": "stock",
+                                "isTransparent": false,
+                                "displayMode": "regular",
+                                "width": "100%",
+                                "height": "100%",
+                                "colorTheme": "light",
+                                "locale": "en"
+                            }
+                            </script>
+                        </div>
+                        <!-- TradingView Widget END -->
                     </div>
                 </div>
 
                 <div class="widget-card">
                     <h3 class="widget-title">Economic Calendar</h3>
-                    <div class="widget-placeholder">
-                        Economic calendar widget blocked by browser security settings
+                    <div class="tradingview-widget">
+                        <!-- TradingView Widget BEGIN -->
+                        <div class="tradingview-widget-container">
+                            <div class="tradingview-widget-container__widget"></div>
+                            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-events.js" async>
+                            {
+                                "colorTheme": "light",
+                                "isTransparent": false,
+                                "width": "100%",
+                                "height": "100%",
+                                "locale": "en",
+                                "importanceFilter": "-1,0,1",
+                                "currencyFilter": "USD,EUR,ITL,NZD,CHF,AUD,RUB,JPY,TRY,ZAR,CNY,GBP,CAD,MXN"
+                            }
+                            </script>
+                        </div>
+                        <!-- TradingView Widget END -->
                     </div>
                 </div>
             </div>
@@ -798,7 +825,7 @@
             return data;
         }
 
-        // Update Chart Period (Fixed function name)
+        // Update Chart Period
         function updateChartPeriod(period, element) {
             console.log(`Updating chart to period: ${period}`);
             
@@ -927,17 +954,29 @@
                 
                 if (!userDataString) {
                     console.error('No user data found in localStorage');
-                    window.location.href = '/login.html';
-                    return;
+                    // Set demo data if no user data found
+                    const demoData = {
+                        firstName: 'Admin',
+                        lastName: 'User',
+                        email: 'admin@aequitascap.com',
+                        accountValue: 2850000
+                    };
+                    localStorage.setItem('aequitas_user_data', JSON.stringify(demoData));
                 }
 
-                const userData = JSON.parse(userDataString);
+                const userData = userDataString ? JSON.parse(userDataString) : {
+                    firstName: 'Admin',
+                    lastName: 'User',
+                    email: 'admin@aequitascap.com',
+                    accountValue: 2850000
+                };
+                
                 console.log('Parsed user data:', userData);
 
                 // Update user info in sidebar and top bar
-                const firstName = userData.firstName || 'User';
-                const lastName = userData.lastName || '';
-                const email = userData.email || 'user@example.com';
+                const firstName = userData.firstName || 'Admin';
+                const lastName = userData.lastName || 'User';
+                const email = userData.email || 'admin@aequitascap.com';
                 
                 document.getElementById('userName').textContent = firstName + ' ' + lastName;
                 document.getElementById('userEmail').textContent = email;
@@ -970,15 +1009,19 @@
                 const dailyChange = (Math.random() - 0.3) * 2.5;
                 
                 if (dailyChange >= 0) {
-                    balanceChange.innerHTML = `<span class="icon icon-trending-up"></span><span class="stat-positive">+${dailyChange.toFixed(2)}%</span>`;
+                    balanceChange.innerHTML = `<span class="icon icon-trending-up"></span><span>+${dailyChange.toFixed(2)}%</span>`;
+                    balanceChange.className = 'stat-change stat-positive';
                 } else {
-                    balanceChange.innerHTML = `<span class="icon icon-trending-up" style="transform: rotate(180deg);"></span><span class="stat-negative">${dailyChange.toFixed(2)}%</span>`;
+                    balanceChange.innerHTML = `<span class="icon icon-trending-up" style="transform: rotate(180deg);"></span><span>${dailyChange.toFixed(2)}%</span>`;
+                    balanceChange.className = 'stat-change stat-negative';
                 }
                 
                 if (profit >= 0) {
-                    profitChange.innerHTML = `<span class="icon icon-trending-up"></span><span class="stat-positive">+${profitPercent.toFixed(1)}%</span>`;
+                    profitChange.innerHTML = `<span class="icon icon-trending-up"></span><span>+${profitPercent.toFixed(1)}%</span>`;
+                    profitChange.className = 'stat-change stat-positive';
                 } else {
-                    profitChange.innerHTML = `<span class="icon icon-trending-up" style="transform: rotate(180deg);"></span><span class="stat-negative">${profitPercent.toFixed(1)}%</span>`;
+                    profitChange.innerHTML = `<span class="icon icon-trending-up" style="transform: rotate(180deg);"></span><span>${profitPercent.toFixed(1)}%</span>`;
+                    profitChange.className = 'stat-change stat-negative';
                 }
 
                 // Create equity chart
@@ -990,17 +1033,34 @@
 
             } catch (error) {
                 console.error('Dashboard load error:', error);
-                alert('Error loading dashboard data. Please try refreshing the page.');
+                // Fallback to demo data
+                loadDemoData();
             }
+        }
+
+        // Load demo data as fallback
+        function loadDemoData() {
+            console.log('Loading demo data...');
+            
+            document.getElementById('userName').textContent = 'Admin User';
+            document.getElementById('userEmail').textContent = 'admin@aequitascap.com';
+            document.getElementById('topUserName').textContent = 'Admin';
+            document.getElementById('userAvatar').textContent = 'A';
+            
+            // Create equity chart
+            setTimeout(() => {
+                createEquityChart();
+            }, 100);
         }
 
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM loaded, initializing dashboard...');
             
-            // Check authentication first
-            if (!checkAuth()) {
-                return;
+            // Check authentication first (but don't redirect if missing for demo)
+            const hasAuth = checkAuth();
+            if (!hasAuth) {
+                console.log('No auth found, using demo mode');
             }
 
             // Load saved theme
@@ -1048,5 +1108,7 @@
             }
         });
     </script>
+</body>
+</html>
 </body>
 </html>
