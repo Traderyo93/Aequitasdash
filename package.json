@@ -1,0 +1,16 @@
+{
+  "name": "aequitas-client-portal",
+  "version": "1.0.0",
+  "description": "Aequitas Capital Partners Client Portal",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'Build complete'",
+    "start": "vercel dev"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "keywords": ["finance", "client-portal", "investment"],
+  "author": "Aequitas Capital Partners",
+  "license": "PRIVATE"
+}
