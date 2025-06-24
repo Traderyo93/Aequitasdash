@@ -54,16 +54,16 @@
 
         @keyframes float {
             0% { 
-                transform: translateY(100vh) rotate(0deg); 
+                transform: translateY(110vh) rotate(0deg); 
                 opacity: 0; 
             }
-            10% { 
+            5% { 
                 opacity: 0.15;
-                transform: translateY(90vh) rotate(36deg); 
+                transform: translateY(100vh) rotate(18deg); 
             }
-            90% { 
+            95% { 
                 opacity: 0.15;
-                transform: translateY(-10vh) rotate(324deg); 
+                transform: translateY(-10vh) rotate(342deg); 
             }
             100% { 
                 transform: translateY(-20vh) rotate(360deg); 
@@ -222,51 +222,31 @@
         .login-btn {
             width: 100%;
             padding: 0.875rem 1.25rem;
-            background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #1e40af 100%);
+            background: #1e293b;
             border: none;
             border-radius: 0.75rem;
             color: white;
-            font-weight: 600;
+            font-weight: 500;
             font-size: 1rem;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            letter-spacing: -0.01em;
             position: relative;
-            overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
-            box-shadow: 
-                0 4px 12px rgba(29, 78, 216, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
-        }
-
-        .login-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s ease;
-        }
-
-        .login-btn:hover::before {
-            left: 100%;
+            box-shadow: 0 2px 8px rgba(30, 41, 59, 0.3);
         }
 
         .login-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 
-                0 8px 25px rgba(29, 78, 216, 0.5),
-                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            background: #334155;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(30, 41, 59, 0.4);
         }
 
         .login-btn:active {
-            transform: translateY(-1px);
+            transform: translateY(0);
         }
 
         .login-btn.loading {
@@ -435,7 +415,7 @@
             
             <button type="submit" class="login-btn" id="loginBtn">
                 <span class="spinner"></span>
-                <span class="btn-text">Sign In Securely</span>
+                <span class="btn-text">Sign In</span>
             </button>
 
             <div class="security-badge">
@@ -598,7 +578,7 @@
             } catch (error) {
                 console.error('Login error:', error);
                 loginBtn.classList.remove('loading');
-                loginBtn.querySelector('.btn-text').textContent = 'Sign In Securely';
+                loginBtn.querySelector('.btn-text').textContent = 'Sign In';
                 errorMessage.textContent = error.message || 'Login failed. Please check your credentials and try again.';
                 errorMessage.style.display = 'block';
             }
