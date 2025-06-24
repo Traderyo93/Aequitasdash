@@ -503,7 +503,7 @@
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="logo-container">
-                <img src="https://i.ibb.co/8DfYwWG/Aequitas-White-Logo.png" alt="Aequitas Capital Partners" class="logo">
+                <img src="https://i.ibb.co/8DfYwWdG/Aequitas-White-Logo.png" alt="Aequitas Capital Partners" class="logo">
             </div>
             <button class="theme-toggle" onclick="toggleTheme()">
                 <span class="icon icon-moon"></span>
@@ -689,10 +689,9 @@
     <script>
         // Global variables
         let currentTheme = 'light';
-        let equityChart = null;
         let currentPeriod = '1M';
         
-        // Authentication check
+        // Authentication check - no redirect, just demo mode
         function checkAuth() {
             const token = localStorage.getItem('aequitas_auth_token');
             const userData = localStorage.getItem('aequitas_user_data');
@@ -700,11 +699,7 @@
             console.log('Auth check - Token:', token ? 'exists' : 'missing');
             console.log('Auth check - User data:', userData ? 'exists' : 'missing');
             
-            // Don't redirect for demo - just log the status
-            if (!token || !userData) {
-                console.log('No auth data found - continuing with demo mode');
-                return false;
-            }
+            // Always return true for demo mode
             return true;
         }
         
@@ -717,7 +712,7 @@
             themeToggle.className = currentTheme === 'light' ? 'icon icon-moon' : 'icon icon-sun';
             
             // Update chart theme
-            if (equityChart) {
+            if (window.equityChart) {
                 createEquityChart();
             }
             
@@ -839,23 +834,25 @@
 
         // Create Equity Chart
         function createEquityChart() {
+            console.log('createEquityChart function called');
+            
             const ctx = document.getElementById('equityChart');
             if (!ctx) {
                 console.error('Chart canvas not found');
                 return;
             }
             
-            console.log('Creating equity chart for period:', currentPeriod);
+            console.log('Chart canvas found, creating chart...');
             
             // Destroy existing chart
-            if (equityChart) {
-                equityChart.destroy();
+            if (window.equityChart) {
+                window.equityChart.destroy();
             }
             
             const data = generateEquityData(currentPeriod);
             const isDark = currentTheme === 'dark';
             
-            equityChart = new Chart(ctx, {
+            window.equityChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: data.map(d => d.date),
@@ -930,9 +927,9 @@
         // Format currency
         function formatCurrency(amount, short = false) {
             if (short && amount >= 1000000) {
-                return ' + (amount / 1000000).toFixed(1) + 'M';
+                return '$' + (amount / 1000000).toFixed(1) + 'M';
             } else if (short && amount >= 1000) {
-                return ' + (amount / 1000).toFixed(0) + 'K';
+                return '$' + (amount / 1000).toFixed(0) + 'K';
             }
             
             return new Intl.NumberFormat('en-US', {
@@ -948,23 +945,20 @@
             console.log('Loading dashboard data...');
             
             try {
-                // Get user data from localStorage
-                const userDataString = localStorage.getItem('aequitas_user_data');
-                console.log('Raw user data from localStorage:', userDataString);
-                
+                // Get user data from localStorage or use demo data
                 let userData;
+                const userDataString = localStorage.getItem('aequitas_user_data');
                 
-                if (!userDataString) {
-                    console.log('No user data found - using demo data');
-                    // Set demo data if no user data found
+                if (userDataString) {
+                    userData = JSON.parse(userDataString);
+                } else {
+                    // Use demo data like your original working version
                     userData = {
                         firstName: 'Admin',
-                        lastName: 'User',
+                        lastName: 'User', 
                         email: 'admin@aequitascap.com',
                         accountValue: 2850000
                     };
-                } else {
-                    userData = JSON.parse(userDataString);
                 }
                 
                 console.log('Using user data:', userData);
@@ -974,21 +968,20 @@
                 const lastName = userData.lastName || 'User';
                 const email = userData.email || 'admin@aequitascap.com';
                 
-                const userNameElement = document.getElementById('userName');
-                const userEmailElement = document.getElementById('userEmail');
-                const topUserNameElement = document.getElementById('topUserName');
-                const userAvatarElement = document.getElementById('userAvatar');
+                // Update elements safely
+                const userNameEl = document.getElementById('userName');
+                const userEmailEl = document.getElementById('userEmail'); 
+                const topUserNameEl = document.getElementById('topUserName');
+                const userAvatarEl = document.getElementById('userAvatar');
                 
-                if (userNameElement) userNameElement.textContent = firstName + ' ' + lastName;
-                if (userEmailElement) userEmailElement.textContent = email;
-                if (topUserNameElement) topUserNameElement.textContent = firstName;
-                if (userAvatarElement) userAvatarElement.textContent = firstName.charAt(0).toUpperCase();
-
-                console.log('User info updated successfully');
+                if (userNameEl) userNameEl.textContent = firstName + ' ' + lastName;
+                if (userEmailEl) userEmailEl.textContent = email;
+                if (topUserNameEl) topUserNameEl.textContent = firstName;
+                if (userAvatarEl) userAvatarEl.textContent = firstName.charAt(0).toUpperCase();
 
                 // Calculate account metrics
                 const startingBalance = 1000000; // $1M Demo starting balance
-                const currentBalance = userData.accountValue || 2850000; // Use stored value or demo default
+                const currentBalance = userData.accountValue || 2850000;
                 const profit = currentBalance - startingBalance;
                 const profitPercent = ((profit / startingBalance) * 100);
 
@@ -1000,13 +993,13 @@
                 });
 
                 // Update account stats
-                const accountBalanceElement = document.getElementById('accountBalance');
-                const accountProfitElement = document.getElementById('accountProfit');
-                const startingBalanceElement = document.getElementById('startingBalance');
+                const accountBalanceEl = document.getElementById('accountBalance');
+                const accountProfitEl = document.getElementById('accountProfit');
+                const startingBalanceEl = document.getElementById('startingBalance');
                 
-                if (accountBalanceElement) accountBalanceElement.textContent = formatCurrency(currentBalance);
-                if (accountProfitElement) accountProfitElement.textContent = formatCurrency(profit);
-                if (startingBalanceElement) startingBalanceElement.textContent = formatCurrency(startingBalance);
+                if (accountBalanceEl) accountBalanceEl.textContent = formatCurrency(currentBalance);
+                if (accountProfitEl) accountProfitEl.textContent = formatCurrency(profit);
+                if (startingBalanceEl) startingBalanceEl.textContent = formatCurrency(startingBalance);
 
                 // Update change indicators
                 const balanceChange = document.getElementById('balanceChange');
@@ -1039,34 +1032,23 @@
 
             } catch (error) {
                 console.error('Dashboard load error:', error);
-                // Fallback to demo data
-                loadDemoData();
+                // Set basic demo data on error
+                const userNameEl = document.getElementById('userName');
+                const userEmailEl = document.getElementById('userEmail');
+                const topUserNameEl = document.getElementById('topUserName');
+                const userAvatarEl = document.getElementById('userAvatar');
+                
+                if (userNameEl) userNameEl.textContent = 'Admin User';
+                if (userEmailEl) userEmailEl.textContent = 'admin@aequitascap.com';
+                if (topUserNameEl) topUserNameEl.textContent = 'Admin';
+                if (userAvatarEl) userAvatarEl.textContent = 'A';
             }
-        }
-
-        // Load demo data as fallback
-        function loadDemoData() {
-            console.log('Loading demo data...');
-            
-            document.getElementById('userName').textContent = 'Admin User';
-            document.getElementById('userEmail').textContent = 'admin@aequitascap.com';
-            document.getElementById('topUserName').textContent = 'Admin';
-            document.getElementById('userAvatar').textContent = 'A';
-            
-            // Create equity chart
-            setTimeout(() => {
-                createEquityChart();
-            }, 100);
         }
 
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM loaded, initializing dashboard...');
             
-            // Check authentication first (but don't redirect if missing for demo)
-            const hasAuth = checkAuth();
-            console.log('Has auth:', hasAuth);
-
             // Load saved theme
             const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
             console.log('Saved theme:', savedTheme);
@@ -1075,18 +1057,19 @@
                 toggleTheme();
             }
 
-            // Load dashboard data
+            // Load dashboard data first
             loadDashboard();
 
-            // Create equity chart after a short delay to ensure DOM is ready
+            // Create chart after everything is loaded (like your original)
             setTimeout(() => {
-                console.log('Creating chart...');
+                console.log('Creating equity chart...');
                 createEquityChart();
             }, 500);
 
             // Handle mobile sidebar
             if (window.innerWidth <= 1024) {
-                document.getElementById('sidebar').classList.remove('open');
+                const sidebar = document.getElementById('sidebar');
+                if (sidebar) sidebar.classList.remove('open');
             }
             
             console.log('Dashboard initialization complete');
