@@ -54,16 +54,16 @@
 
         @keyframes float {
             0% { 
-                transform: translateY(110vh) rotate(0deg); 
+                transform: translateY(120vh) rotate(0deg); 
                 opacity: 0; 
             }
-            5% { 
+            3% { 
                 opacity: 0.15;
-                transform: translateY(100vh) rotate(18deg); 
+                transform: translateY(100vh) rotate(10deg); 
             }
-            95% { 
+            97% { 
                 opacity: 0.15;
-                transform: translateY(-10vh) rotate(342deg); 
+                transform: translateY(-10vh) rotate(350deg); 
             }
             100% { 
                 transform: translateY(-20vh) rotate(360deg); 
@@ -222,31 +222,51 @@
         .login-btn {
             width: 100%;
             padding: 0.875rem 1.25rem;
-            background: #1e293b;
+            background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #1e40af 100%);
             border: none;
             border-radius: 0.75rem;
             color: white;
-            font-weight: 500;
+            font-weight: 700;
             font-size: 1rem;
             cursor: pointer;
-            transition: all 0.3s ease;
-            letter-spacing: -0.01em;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 0.75px;
             position: relative;
+            overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
-            box-shadow: 0 2px 8px rgba(30, 41, 59, 0.3);
+            box-shadow: 
+                0 4px 12px rgba(29, 78, 216, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .login-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .login-btn:hover::before {
+            left: 100%;
         }
 
         .login-btn:hover {
-            background: #334155;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(30, 41, 59, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 
+                0 8px 25px rgba(29, 78, 216, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
         }
 
         .login-btn:active {
-            transform: translateY(0);
+            transform: translateY(-1px);
         }
 
         .login-btn.loading {
@@ -387,7 +407,7 @@
             <div class="logo">
                 <img src="https://i.ibb.co/8DfYwWdG/Aequitas-White-Logo.png" alt="Aequitas Capital Partners" class="logo-image">
             </div>
-            <p class="login-subtitle">Access your Aequitas Capital Account</p>
+            <p class="login-subtitle">Access your <strong>Aequitas Capital</strong> Account</p>
         </div>
         
         <form id="loginForm">
@@ -415,7 +435,7 @@
             
             <button type="submit" class="login-btn" id="loginBtn">
                 <span class="spinner"></span>
-                <span class="btn-text">Sign In</span>
+                <span class="btn-text">Sign In Securely</span>
             </button>
 
             <div class="security-badge">
@@ -441,10 +461,10 @@
     </div>
 
     <script>
-        // Create floating particles - fewer bubbles
+        // Create floating particles - start completely off screen
         function createParticles() {
             const particlesContainer = document.getElementById('particles');
-            const particleCount = 20; // Reduced from 50
+            const particleCount = 20;
 
             for (let i = 0; i < particleCount; i++) {
                 const particle = document.createElement('div');
@@ -458,11 +478,14 @@
                 // Random horizontal position
                 particle.style.left = Math.random() * 100 + '%';
                 
-                // Random animation delay
-                particle.style.animationDelay = Math.random() * 30 + 's';
+                // Start completely off screen below
+                particle.style.top = '100vh';
+                
+                // Random animation delay (longer delays)
+                particle.style.animationDelay = Math.random() * 45 + 's';
                 
                 // Random animation duration
-                particle.style.animationDuration = (Math.random() * 15 + 25) + 's';
+                particle.style.animationDuration = (Math.random() * 20 + 30) + 's';
                 
                 particlesContainer.appendChild(particle);
             }
@@ -578,7 +601,7 @@
             } catch (error) {
                 console.error('Login error:', error);
                 loginBtn.classList.remove('loading');
-                loginBtn.querySelector('.btn-text').textContent = 'Sign In';
+                loginBtn.querySelector('.btn-text').textContent = 'Sign In Securely';
                 errorMessage.textContent = error.message || 'Login failed. Please check your credentials and try again.';
                 errorMessage.style.display = 'block';
             }
