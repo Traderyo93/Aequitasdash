@@ -706,16 +706,16 @@
         }
 
         .step:not(:last-child)::after {
-            content: '';
-            position: absolute;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: calc(100% - 40px);
-            height: 2px;
-            background: var(--border-color);
-            z-index: 0;
-        }
+    content: '';
+    position: absolute;
+    left: 50px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: calc(100% - 100px);
+    height: 2px;
+    background: var(--border-color);
+    z-index: 0;
+}
 
         .step.completed:not(:last-child)::after {
             background: var(--success);
