@@ -674,28 +674,28 @@
                 </div>
             </div>
 
-            <!-- Equity Curve Chart -->
-            <div class="chart-section" id="chartSection">
-                <div class="chart-header" onclick="toggleChart()">
-                    <div class="chart-header-left">
-                        <button class="chart-collapse-btn" id="chartCollapseBtn">
-                            <span class="icon icon-chevron-up"></span>
-                        </button>
-                        <h2 class="chart-title">Account Equity Curve</h2>
-                    </div>
-                    <div class="chart-filters">
-                        <button class="filter-btn active" onclick="updateChartPeriod('1M', this)">1M</button>
-                        <button class="filter-btn" onclick="updateChartPeriod('3M', this)">3M</button>
-                        <button class="filter-btn" onclick="updateChartPeriod('12M', this)">12M</button>
-                        <button class="filter-btn" onclick="updateChartPeriod('ALL', this)">ALL</button>
-                    </div>
-                </div>
-                <div class="chart-content" id="chartContent">
-                    <div class="chart-container">
-                        <canvas id="equityChart"></canvas>
-                    </div>
-                </div>
-            </div>
+           <!-- Equity Curve Chart -->
+<div class="chart-section" id="chartSection">
+    <div class="chart-header">
+        <div class="chart-header-left" onclick="toggleChart()">
+            <button class="chart-collapse-btn" id="chartCollapseBtn">
+                <span class="icon icon-chevron-up"></span>
+            </button>
+            <h2 class="chart-title">Account Equity Curve</h2>
+        </div>
+        <div class="chart-filters">
+            <button class="filter-btn active" onclick="updateChartPeriod('1M', this)">1M</button>
+            <button class="filter-btn" onclick="updateChartPeriod('3M', this)">3M</button>
+            <button class="filter-btn" onclick="updateChartPeriod('12M', this)">12M</button>
+            <button class="filter-btn" onclick="updateChartPeriod('ALL', this)">ALL</button>
+        </div>
+    </div>
+    <div class="chart-content" id="chartContent">
+        <div class="chart-container">
+            <canvas id="equityChart"></canvas>
+        </div>
+    </div>
+</div>
 
             <!-- TradingView Widgets -->
             <div class="widgets-grid">
@@ -875,32 +875,34 @@
             return data;
         }
 
-        // Update Chart Period - FIXED VERSION
-       function updateChartPeriod(period, element) {
-           console.log(`Updating chart to period: ${period}`);
-           
-           // Always ensure chart is expanded when using filters
-           const chartSection = document.getElementById('chartSection');
-           const chartContent = document.getElementById('chartContent');
-           const collapseBtn = document.getElementById('chartCollapseBtn');
-           
-           if (chartCollapsed) {
-               chartCollapsed = false;
-               chartSection.classList.remove('collapsed');
-               collapseBtn.innerHTML = '<span class="icon icon-chevron-up"></span>';
-           }
-           
-           // Update active filter button
-           document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-           element.classList.add('active');
-           
-           currentPeriod = period;
-           
-           // Create chart with slight delay to ensure expansion animation completes
-           setTimeout(() => {
-               createEquityChart();
-           }, 100);
-       }
+       // Update Chart Period - FIXED VERSION
+        function updateChartPeriod(period, element) {
+            console.log(`Updating chart to period: ${period}`);
+            
+            // Prevent the event from bubbling up to the chart header click
+            event.stopPropagation();
+            
+            // Always ensure chart is expanded when using filters
+            const chartSection = document.getElementById('chartSection');
+            const collapseBtn = document.getElementById('chartCollapseBtn');
+            
+            if (chartCollapsed) {
+                chartCollapsed = false;
+                chartSection.classList.remove('collapsed');
+                collapseBtn.innerHTML = '<span class="icon icon-chevron-up"></span>';
+            }
+            
+            // Update active filter button
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+            
+            currentPeriod = period;
+            
+            // Create chart with slight delay to ensure expansion animation completes
+            setTimeout(() => {
+                createEquityChart();
+            }, 100);
+        }
 
         // Create Equity Chart - FIXED VERSION
         function createEquityChart() {
