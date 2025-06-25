@@ -705,17 +705,18 @@
             position: relative;
         }
 
-        .step:not(:last-child)::after {
+.step:not(:last-child)::after {
     content: '';
     position: absolute;
-    left: 50px;
+    left: 50px;               /* offset from left edge of .step */
+    right: 50px;              /* offset from right edge of .step */
     top: 50%;
     transform: translateY(-50%);
-    width: calc(100% - 100px);
-    height: 2px;
+    height: 2px;              /* no width at all—will auto-stretch */
     background: var(--border-color);
     z-index: 0;
 }
+
 
         .step.completed:not(:last-child)::after {
             background: var(--success);
