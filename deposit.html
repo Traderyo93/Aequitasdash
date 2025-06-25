@@ -675,6 +675,15 @@
             font-weight: 500;
         }
 
+        .status-rejected {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error);
+}
+
+.icon-x {
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12'/%3E%3C/svg%3E");
+}
+
         .status-completed {
             background: rgba(16, 185, 129, 0.1);
             color: var(--success);
@@ -1554,15 +1563,15 @@ function downloadDepositForm() {
             }
         }
 
-        function getStatusIcon(status) {
-            switch(status) {
-                case 'completed': return 'check';
-                case 'approved': return 'check';
-                case 'pending': return 'clock';
-                case 'rejected': return 'clock';
-                default: return 'clock';
-            }
-        }
+       function getStatusIcon(status) {
+    switch(status) {
+        case 'completed': return 'check';
+        case 'approved': return 'check';
+        case 'pending': return 'clock';
+        case 'rejected': return 'x';
+        default: return 'clock';
+    }
+}
 
         // Download document functionality
         function downloadDocument(docId) {
