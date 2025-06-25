@@ -8,7 +8,9 @@
     "build": "echo 'Build complete'",
     "start": "vercel dev"
   },
-  "dependencies": {},
+  "dependencies": {
+    "uploadthing": "^6.0.2"
+  },
   "devDependencies": {},
   "keywords": ["finance", "client-portal", "investment"],
   "author": "Aequitas Capital Partners",
