@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -812,7 +813,7 @@
         }
     </style>
 </head>
-    <body>
+<body>
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -899,10 +900,8 @@
         <div class="deposit-content">
             <!-- Progress Steps -->
             <div class="steps">
-                <div class="step completed" id="step1">
-                    <div class="step-circle">
-                        <span class="icon icon-check"></span>
-                    </div>
+                <div class="step" id="step1">
+                    <div class="step-circle">1</div>
                     <div class="step-label">Enter Amount</div>
                 </div>
                 <div class="step" id="step2">
@@ -973,7 +972,7 @@
                                     <div style="font-weight: 500; font-size: 14px;">Source of Funds Declaration</div>
                                     <div style="font-size: 12px; color: var(--text-secondary);">Required for all deposits</div>
                                 </div>
-                                <button type="button" class="btn btn-outline" id="downloadSourceBtn" onclick="downloadSourceOfFundsForm()">
+                                <button type="button" class="btn btn-outline" id="downloadSourceBtn" onclick="downloadSourceOfFundsForm()" disabled>
                                     <span class="icon icon-download"></span>
                                     Download
                                 </button>
@@ -984,7 +983,7 @@
                                     <div style="font-weight: 500; font-size: 14px;">Deposit Request Form</div>
                                     <div style="font-size: 12px; color: var(--text-secondary);">Internal processing form</div>
                                 </div>
-                                <button type="button" class="btn btn-outline" id="downloadDepositBtn" onclick="downloadDepositForm()">
+                                <button type="button" class="btn btn-outline" id="downloadDepositBtn" onclick="downloadDepositForm()" disabled>
                                     <span class="icon icon-download"></span>
                                     Download
                                 </button>
@@ -1002,7 +1001,6 @@
                     <div class="uploaded-files" id="uploadedForms"></div>
                 </div>
             </div>
-
             <!-- Bank Details -->
             <div class="card">
                 <div class="card-header">
@@ -1151,7 +1149,7 @@
             </div>
         </div>
     </div>
-        <!-- Complete Working JavaScript -->
+    <!-- Complete Working JavaScript -->
     <script>
         let currentTheme = 'light';
         let uploadedFiles = {
@@ -1231,249 +1229,6 @@
             }).catch(() => {
                 showNotification('Failed to copy', 'error');
             });
-        }
-
-        // REAL Form Downloads with user data pre-populated
-        function downloadSourceOfFundsForm() {
-            const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
-            const depositAmount = document.getElementById('depositAmount').value;
-            const depositPurpose = document.getElementById('depositPurpose').value;
-            
-            if (!depositAmount || !depositPurpose) {
-                showNotification('Please enter deposit amount and purpose first.', 'warning');
-                return;
-            }
-            
-            // Create the actual form content with user data pre-filled
-            const formContent = `CARBON CAPITAL FUND USALDUSFOND
-SOURCE OF FUNDS DECLARATION FORM
-
-==========================================
-
-CLIENT INFORMATION (Pre-filled):
-Full Name: ${userData.firstName || ''} ${userData.lastName || ''}
-Address: ${userData.address || '_'.repeat(50)}
-Contact Number: ${userData.phone || '_'.repeat(20)}
-Email Address: ${userData.email || ''}
-
-DEPOSIT DETAILS (Pre-filled):
-Deposit Amount: $${parseFloat(depositAmount).toLocaleString()}
-Purpose: ${depositPurpose}
-Date: ${new Date().toLocaleDateString()}
-
-==========================================
-
-SECTION 1: EMPLOYMENT INCOME (If applicable)
-Employer's Name: _________________________________
-Employer's Address: _________________________________
-Nature of Business: _________________________________
-Annual Salary (Last 2 years): _________________________________
-Bonuses Received (Last 2 years): _________________________________
-Most Recent Payslip: [ ] Attached
-Employer Confirmation of Salary: [ ] Attached
-Self-employed? [ ] Yes [ ] No
-
-SECTION 2: SAVINGS / DEPOSITS (If applicable)
-Bank Name: _________________________________
-Account Number (last four digits only): __________
-Statement Attached? [ ] Yes [ ] No
-Duration of account held: _________________________________
-Explanation of Source of Wealth: _________________________________
-
-SECTION 3: PROPERTY SALE (If applicable)
-Property Address: _________________________________
-Date of Sale: _________________________________
-Sale Value: _________________________________
-Buyer's Name: _________________________________
-Contract of Sale Attached? [ ] Yes [ ] No
-Title Deed Attached? [ ] Yes [ ] No
-
-SECTION 4: SALE OF SHARES / INVESTMENTS (If applicable)
-Company Name: _________________________________
-Stock Exchange Name: _________________________________
-Sale Date: _________________________________
-Sale Value: _________________________________
-Contract of Sale Attached? [ ] Yes [ ] No
-Shareholder Certificate Attached? [ ] Yes [ ] No
-Broker/Agent Statement Attached? [ ] Yes [ ] No
-
-SECTION 5: LOAN (If applicable)
-Loan Amount: _________________________________
-Date of Loan: _________________________________
-Purpose of Loan: _________________________________
-Lender's Name & Address: _________________________________
-Loan Agreement Attached? [ ] Yes [ ] No
-
-SECTION 6: COMPANY SALE (If applicable)
-Company Name: _________________________________
-Company Address: _________________________________
-Nature of Business: _________________________________
-Sale Date: _________________________________
-Sale Value: _________________________________
-Share Participation: _________________________________
-Sale Contract Attached? [ ] Yes [ ] No
-Company Registry Search Attached? [ ] Yes [ ] No
-
-SECTION 7: COMPANY PROFITS / DIVIDENDS (If applicable)
-Company Name: _________________________________
-Amount Received: _________________________________
-Date Received: _________________________________
-Financial Statements Attached? [ ] Yes [ ] No
-Tax Declaration Attached? [ ] Yes [ ] No
-
-SECTION 8: INHERITANCE (If applicable)
-Deceased's Name: _________________________________
-Date of Death: _________________________________
-Amount Inherited: _________________________________
-Will Attached? [ ] Yes [ ] No
-Grant of Probate Attached? [ ] Yes [ ] No
-
-SECTION 9: GIFT (If applicable)
-Donor's Name: _________________________________
-Donor's Address: _________________________________
-Amount of Gift: _________________________________
-Date of Gift: _________________________________
-Gift Letter Attached? [ ] Yes [ ] No
-Donor's Bank Statement Attached? [ ] Yes [ ] No
-
-SECTION 10: MATURITY / SURRENDER OF LIFE POLICY (If applicable)
-Insurance Company: _________________________________
-Policy Number: _________________________________
-Maturity/Surrender Value: _________________________________
-Date of Maturity/Surrender: _________________________________
-Policy Document Attached? [ ] Yes [ ] No
-
-SECTION 11: OTHER INCOME SOURCES (If applicable)
-Source: _________________________________
-Amount: _________________________________
-Date: _________________________________
-Supporting Documentation Attached? [ ] Yes [ ] No
-
-==========================================
-
-DECLARATION:
-I, ${userData.firstName || ''} ${userData.lastName || ''}, confirm that the above information is accurate and complete. I understand that providing false or misleading information may result in further verification or rejection of my deposit.
-
-I authorize Carbon Capital Fund Usaldusfond and its representatives to verify the information provided and to contact any relevant third parties for this purpose.
-
-Signature: _________________________ Date: ${new Date().toLocaleDateString()}
-
-Print Name: ${userData.firstName || ''} ${userData.lastName || ''}
-
-==========================================
-
-FOR OFFICE USE ONLY:
-Verified by: _________________________
-Date: _________________________
-Approved: [ ] Yes [ ] No
-Comments: _________________________________
-_________________________________`;
-            
-            // Create and download the file
-            const blob = new Blob([formContent], { type: 'text/plain' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Source_of_Funds_Declaration_${userData.firstName || 'Client'}_${Date.now()}.txt`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-            
-            showNotification('Source of Funds Declaration downloaded! Please complete all applicable sections.', 'success');
-            
-            // Track download
-            trackFormDownload('source_of_funds', depositAmount);
-        }
-
-        function downloadDepositForm() {
-            const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
-            const depositAmount = document.getElementById('depositAmount').value;
-            const depositPurpose = document.getElementById('depositPurpose').value;
-            const reference = document.getElementById('accountReference').textContent;
-            
-            if (!currentDeposit) {
-                showNotification('Please submit deposit request first to generate your reference number.', 'warning');
-                return;
-            }
-            
-            const formContent = `AEQUITAS CAPITAL PARTNERS
-DEPOSIT REQUEST FORM
-
-==========================================
-
-CLIENT INFORMATION (Pre-filled):
-Name: ${userData.firstName || ''} ${userData.lastName || ''}
-Email: ${userData.email || ''}
-Phone: ${userData.phone || 'Not provided'}
-Address: ${userData.address || 'Not provided'}
-
-DEPOSIT DETAILS (Pre-filled):
-Amount: $${parseFloat(depositAmount).toLocaleString()}
-Purpose: ${depositPurpose}
-Reference Number: ${reference}
-Request Date: ${new Date().toLocaleDateString()}
-
-==========================================
-
-BANKING INSTRUCTIONS:
-Please transfer the above amount to:
-
-Recipient: Bilderlings Pay Limited
-Registration Number: 09908958
-Address: 13 Regent Street, London, SW1Y 4LR
-Country: United Kingdom
-
-Bank Name: iFAST Global Bank Limited
-Account Number: 00 0407 89
-IBAN: GB83 EZYR 0436 3000 0407 89
-Sort Code: 04 36 30
-SWIFT Code: EZYRGB3L
-Bank Address: Sierra Quebec Bravo 77 Marsh Wall London, E14 9SH, UK
-Bank Country: United Kingdom
-
-IMPORTANT: Payment Reference: ${reference}
-
-==========================================
-
-INSTRUCTIONS:
-1. Please ensure you include the reference number "${reference}" in your bank transfer
-2. Allow 2-5 business days for international transfers
-3. Upload proof of transfer once completed
-4. Contact support if you need assistance: support@aequitascap.com
-
-==========================================
-
-DECLARATION:
-I confirm that I am authorized to make this transfer and that the funds originate from legitimate sources as declared in my Source of Funds Declaration.
-
-Client Signature: _________________________ Date: ${new Date().toLocaleDateString()}
-
-Print Name: ${userData.firstName || ''} ${userData.lastName || ''}
-
-==========================================
-
-FOR OFFICE USE ONLY:
-Received by: _________________________
-Date Received: _________________________
-Amount Received: _________________________
-Allocated to Account: [ ] Yes [ ] No
-Comments: _________________________________`;
-            
-            const blob = new Blob([formContent], { type: 'text/plain' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Deposit_Request_Form_${reference}.txt`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-            
-            showNotification('Deposit Request Form downloaded! Use this for your bank transfer.', 'success');
-            
-            // Track download
-            trackFormDownload('deposit_request', depositAmount);
         }
 
         // Track form downloads
@@ -1593,8 +1348,23 @@ Comments: _________________________________`;
             const i = Math.floor(Math.log(bytes) / Math.log(k));
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
+        function updateProgressSteps(activeStep) {
+            const steps = document.querySelectorAll('.step');
+            
+            steps.forEach((step, index) => {
+                step.classList.remove('active', 'completed');
+                
+                if (index < activeStep - 1) {
+                    step.classList.add('completed');
+                    step.querySelector('.step-circle').innerHTML = '<span class="icon icon-check"></span>';
+                } else if (index === activeStep - 1) {
+                    step.classList.add('active');
+                } else {
+                    step.querySelector('.step-circle').textContent = index + 1;
+                }
+            });
+        }
 
-        // Enhanced Deposit form submission
         document.getElementById('depositForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -1630,7 +1400,7 @@ Comments: _________________________________`;
             depositHistory.push(currentDeposit);
             localStorage.setItem('aequitas_deposits', JSON.stringify(depositHistory));
             
-            // Update progress steps
+            // Update progress steps - STEP 1 COMPLETED, STEP 2 ACTIVE
             updateProgressSteps(2);
             localStorage.setItem('aequitas_deposit_progress', '2');
             
@@ -1644,52 +1414,56 @@ Comments: _________________________________`;
             showNotification(`Deposit request for $${parseFloat(amount).toLocaleString()} submitted successfully! Your reference is: ${reference}`, 'success');
         });
 
-        // Update progress steps with visual feedback
-        function updateProgressSteps(activeStep) {
-            const steps = document.querySelectorAll('.step');
+        function downloadSourceOfFundsForm() {
+            const depositAmount = document.getElementById('depositAmount').value;
+            const depositPurpose = document.getElementById('depositPurpose').value;
             
-            steps.forEach((step, index) => {
-                step.classList.remove('active', 'completed');
-                
-                if (index < activeStep - 1) {
-                    step.classList.add('completed');
-                    step.querySelector('.step-circle').innerHTML = '<span class="icon icon-check"></span>';
-                } else if (index === activeStep - 1) {
-                    step.classList.add('active');
-                } else {
-                    step.querySelector('.step-circle').textContent = index + 1;
-                }
-            });
+            if (!depositAmount || !depositPurpose) {
+                showNotification('Please enter deposit amount and purpose first.', 'warning');
+                return;
+            }
+            
+            // Download the actual PDF from forms folder
+            const link = document.createElement('a');
+            link.href = 'forms/Source_of_Funds_Declaration.pdf';
+            link.download = 'Source_of_Funds_Declaration.pdf';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification('Source of Funds Declaration downloaded! Please complete and upload.', 'success');
+            
+            // Track download
+            trackFormDownload('source_of_funds', depositAmount);
         }
 
-        // Update deposit timeline with real data
+        function downloadDepositForm() {
+            const reference = document.getElementById('accountReference').textContent;
+            
+            if (!currentDeposit) {
+                showNotification('Please submit deposit request first to generate your reference number.', 'warning');
+                return;
+            }
+            
+            // Download the actual PDF from forms folder
+            const link = document.createElement('a');
+            link.href = 'forms/Deposit_Request_Form.pdf';
+            link.download = `Deposit_Request_Form_${reference}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification('Deposit Request Form downloaded! Complete with your reference: ' + reference, 'success');
+            
+            // Track download
+            trackFormDownload('deposit_request', currentDeposit.amount);
+        }
+
         function updateDepositTimeline() {
             const timeline = document.getElementById('depositTimeline');
             
-            // Static demo deposits
-            const demoDeposits = [
-                {
-                    id: 'demo_1',
-                    title: 'Initial Deposit Request',
-                    description: 'Source of funds form submitted and approved for initial $1,000,000 deposit.',
-                    date: '2024-01-15',
-                    status: 'completed',
-                    amount: 1000000,
-                    showDownload: true
-                },
-                {
-                    id: 'demo_2',
-                    title: 'Funds Received',
-                    description: '$1,000,000 successfully received and allocated to trading account.',
-                    date: '2024-01-18',
-                    status: 'completed',
-                    amount: 1000000,
-                    showDownload: true
-                }
-            ];
-            
-            // Combine demo and real deposits
-            const allDeposits = [...demoDeposits, ...depositHistory.map(d => ({
+            // Only show real user deposits - no demo data
+            const allDeposits = depositHistory.map(d => ({
                 id: d.id,
                 title: `Deposit Request - ${d.reference}`,
                 description: `$${d.amount.toLocaleString()} deposit for ${d.purpose} - ${getStatusDescription(d.status)}`,
@@ -1697,7 +1471,17 @@ Comments: _________________________________`;
                 status: d.status,
                 amount: d.amount,
                 showDownload: d.status === 'completed'
-            }))];
+            }));
+            
+            if (allDeposits.length === 0) {
+                timeline.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                        <div style="font-size: 18px; margin-bottom: 8px;">No deposits yet</div>
+                        <div style="font-size: 14px;">Your deposit history will appear here once you submit a request.</div>
+                    </div>
+                `;
+                return;
+            }
             
             timeline.innerHTML = allDeposits.map(deposit => `
                 <div class="timeline-item ${deposit.status}">
@@ -1776,7 +1560,6 @@ For questions, contact: support@aequitascap.com`;
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
         }
-
         // Enhanced notification system
         function showNotification(message, type = 'info') {
             const existingNotifications = document.querySelectorAll('.notification');
@@ -1921,5 +1704,3 @@ For questions, contact: support@aequitascap.com`;
     </script>
 </body>
 </html>
-        
-        
