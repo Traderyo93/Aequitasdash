@@ -708,10 +708,10 @@
 .step:not(:last-child)::after {
     content: '';
     position: absolute;
-    left: 44px;
+    left: 160px;
     top: 50%;
     transform: translateY(-50%);
-    width: calc(100% - 88px);
+    right: 60px;
     height: 2px;
     background: var(--border-color);
     z-index: 0;
@@ -1422,18 +1422,54 @@ function downloadDepositForm() {
         return;
     }
     
-    // Download the actual PDF from forms folder
     const link = document.createElement('a');
-    link.href = './forms/deposit-request-form.pdf';
+    link.href = 'forms/deposit-request-form.pdf';
     link.download = 'deposit-request-form.pdf';
+    link.style.display = 'none';
     document.body.appendChild(link);
+    
+    // Handle download failure
+    link.onerror = function() {
+        showNotification('Error downloading file. Please contact support.', 'error');
+    };
+    
     link.click();
     document.body.removeChild(link);
     
-    showNotification('Deposit Request Form downloaded! Complete with your reference: ' + currentDeposit.reference, 'success');
+    showNotification('Deposit Request Form downloaded! CRITICAL: Include KC5230 in your bank transfer reference.', 'success');
     
     // Track download
     trackFormDownload('deposit_request', currentDeposit.amount);
+}
+
+        function downloadSourceOfFundsForm() {
+    const depositAmount = document.getElementById('depositAmount').value;
+    const depositPurpose = document.getElementById('depositPurpose').value;
+    
+    if (!depositAmount || !depositPurpose) {
+        showNotification('Please enter deposit amount and purpose first.', 'warning');
+        return;
+    }
+    
+    // Try different path formats
+    const link = document.createElement('a');
+    link.href = 'forms/source-of-funds-declaration.pdf';
+    link.download = 'source-of-funds-declaration.pdf';
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    
+    // Handle download failure
+    link.onerror = function() {
+        showNotification('Error downloading file. Please contact support.', 'error');
+    };
+    
+    link.click();
+    document.body.removeChild(link);
+    
+    showNotification('Source of Funds Declaration downloaded! Please complete and upload.', 'success');
+    
+    // Track download
+    trackFormDownload('source_of_funds', depositAmount);
 }
 
 function downloadDepositForm() {
