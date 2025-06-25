@@ -2394,6 +2394,10 @@ For questions, contact: admin@aequitascap.com`;
            if (topUserNameEl) topUserNameEl.textContent = firstName;
            if (userAvatarEl) userAvatarEl.textContent = firstName.charAt(0).toUpperCase();
 
+           // Show admin section since this is the admin page
+const adminSection = document.getElementById('adminSection');
+if (adminSection) adminSection.style.display = 'block';
+
            // Initialize data and render
            initializeData();
            renderClientsTable();
