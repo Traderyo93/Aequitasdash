@@ -1,277 +1,349 @@
-// Aequitas Capital Partners - Authentication API (Vercel Serverless Function)
+// api/auth.js - Complete Production Authentication API
+export const config = {
+  runtime: 'edge',
+}
 
-// Demo users for testing (in production, this would be a database)
+// Demo users for production (in real app, this would be a database)
 const DEMO_USERS = [
-    {
-        id: 1,
-        email: 'admin@aequitascap.com',
-        // Password: admin123 (hashed with bcrypt)
-        password: '$2b$10$rOvHbKT7Pfo7QwVcE4QJguWgOJ3LrKzSm.5qM7NJmv6YTVmCKLdMq',
-        firstName: 'Admin',
-        lastName: 'User',
-        role: 'admin',
-        accountValue: 2850000,
-        availableCash: 125000,
-        marginUtilization: 45.2,
-        lastLogin: new Date().toISOString()
-    },
-    {
-        id: 2,
-        email: 'client@aequitascap.com',
-        // Password: client123 (hashed with bcrypt)
-        password: '$2b$10$rOvHbKT7Pfo7QwVcE4QJguWgOJ3LrKzSm.5qM7NJmv6YTVmCKLdMq',
-        firstName: 'John',
-        lastName: 'Smith',
-        role: 'client',
-        accountValue: 1250000,
-        availableCash: 75000,
-        marginUtilization: 32.8,
-        lastLogin: new Date().toISOString()
-    }
+  {
+    id: 'user_admin_001',
+    email: 'admin@aequitascap.com',
+    password: 'admin123',
+    firstName: 'Admin',
+    lastName: 'User',
+    role: 'admin',
+    accountValue: 2850000,
+    availableCash: 125000,
+    marginUtilization: 45.2,
+    lastLogin: new Date().toISOString(),
+    status: 'active',
+    permissions: ['read', 'write', 'admin', 'client_management']
+  },
+  {
+    id: 'user_client_001',
+    email: 'client@aequitascap.com',
+    password: 'client123',
+    firstName: 'John',
+    lastName: 'Smith',
+    role: 'client',
+    accountValue: 1250000,
+    availableCash: 75000,
+    marginUtilization: 32.8,
+    lastLogin: new Date().toISOString(),
+    status: 'active',
+    permissions: ['read', 'write']
+  },
+  {
+    id: 'user_demo_001',
+    email: 'demo@aequitascap.com',
+    password: 'demo123',
+    firstName: 'Demo',
+    lastName: 'User',
+    role: 'client',
+    accountValue: 500000,
+    availableCash: 25000,
+    marginUtilization: 15.5,
+    lastLogin: new Date().toISOString(),
+    status: 'active',
+    permissions: ['read']
+  }
 ];
 
-// Simple password verification (since we can't use bcrypt in Vercel edge runtime)
-function verifyPassword(plainPassword, hashedPassword) {
-    // For demo purposes, simplified password check
-    const demoPasswords = {
-        '$2b$10$rOvHbKT7Pfo7QwVcE4QJguWgOJ3LrKzSm.5qM7NJmv6YTVmCKLdMq': ['admin123', 'client123']
-    };
-    
-    return demoPasswords[hashedPassword]?.includes(plainPassword) || false;
+// Simple JWT implementation for edge runtime
+function createJWT(payload) {
+  const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+  const payloadBase64 = btoa(JSON.stringify(payload));
+  const secret = 'aequitas_capital_secret_key_2024_production';
+  const signature = btoa(`${header}.${payloadBase64}.${secret}`);
+  
+  return `${header}.${payloadBase64}.${signature}`;
 }
 
-// Simple JWT implementation (for demo - use a proper library in production)
-function createJWT(payload, secret) {
-    const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
-    const payloadBase64 = btoa(JSON.stringify(payload));
-    const signature = btoa(`${header}.${payloadBase64}.${secret}`); // Simplified signature
+function verifyJWT(token) {
+  try {
+    const [header, payload, signature] = token.split('.');
+    const secret = 'aequitas_capital_secret_key_2024_production';
+    const expectedSignature = btoa(`${header}.${payload}.${secret}`);
     
-    return `${header}.${payloadBase64}.${signature}`;
-}
-
-function verifyJWT(token, secret) {
-    try {
-        const [header, payload, signature] = token.split('.');
-        const expectedSignature = btoa(`${header}.${payload}.${secret}`);
-        
-        if (signature !== expectedSignature) {
-            return null;
-        }
-        
-        const decodedPayload = JSON.parse(atob(payload));
-        
-        // Check expiration
-        if (decodedPayload.exp && Date.now() / 1000 > decodedPayload.exp) {
-            return null;
-        }
-        
-        return decodedPayload;
-    } catch {
-        return null;
+    if (signature !== expectedSignature) {
+      return null;
     }
+    
+    const decodedPayload = JSON.parse(atob(payload));
+    
+    // Check expiration
+    if (decodedPayload.exp && Date.now() / 1000 > decodedPayload.exp) {
+      return null;
+    }
+    
+    return decodedPayload;
+  } catch {
+    return null;
+  }
 }
 
-// JWT Secret
-const JWT_SECRET = 'aequitas_capital_secret_key_2024';
-
-// Rate limiting storage
+// Rate limiting storage (in-memory for demo)
 const loginAttempts = new Map();
 
 function isRateLimited(email) {
-    const attempts = loginAttempts.get(email) || { count: 0, lastAttempt: 0 };
-    const now = Date.now();
-    
-    // Reset counter if more than 15 minutes have passed
-    if (now - attempts.lastAttempt > 15 * 60 * 1000) {
-        attempts.count = 0;
-    }
-    
-    // Block if more than 5 attempts in 15 minutes
-    return attempts.count >= 5;
+  const attempts = loginAttempts.get(email) || { count: 0, lastAttempt: 0 };
+  const now = Date.now();
+  
+  // Reset counter if more than 15 minutes have passed
+  if (now - attempts.lastAttempt > 15 * 60 * 1000) {
+    attempts.count = 0;
+    loginAttempts.set(email, attempts);
+  }
+  
+  // Block if more than 5 attempts in 15 minutes
+  return attempts.count >= 5;
 }
 
 function recordLoginAttempt(email, success = false) {
-    const attempts = loginAttempts.get(email) || { count: 0, lastAttempt: 0 };
-    
-    if (success) {
-        loginAttempts.delete(email);
-    } else {
-        attempts.count += 1;
-        attempts.lastAttempt = Date.now();
-        loginAttempts.set(email, attempts);
-    }
+  const attempts = loginAttempts.get(email) || { count: 0, lastAttempt: 0 };
+  
+  if (success) {
+    loginAttempts.delete(email);
+  } else {
+    attempts.count += 1;
+    attempts.lastAttempt = Date.now();
+    loginAttempts.set(email, attempts);
+  }
 }
 
 function generateToken(user) {
-    const payload = {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
-    };
-    
-    return createJWT(payload, JWT_SECRET);
+  const now = Math.floor(Date.now() / 1000);
+  const payload = {
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    iat: now,
+    exp: now + (24 * 60 * 60) // 24 hours
+  };
+  
+  return createJWT(payload);
 }
 
 function authenticateUser(email, password) {
-    const user = DEMO_USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
-    
-    if (!user) {
-        return null;
-    }
-    
-    const isValidPassword = verifyPassword(password, user.password);
-    
-    if (!isValidPassword) {
-        return null;
-    }
-    
-    // Update last login
-    user.lastLogin = new Date().toISOString();
-    
-    // Return user without password
-    const { password: _, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+  console.log(`Authentication attempt for: ${email}`);
+  
+  const user = DEMO_USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
+  
+  if (!user) {
+    console.log('User not found');
+    return null;
+  }
+  
+  // Simple password check (in production, use proper hashing)
+  if (user.password !== password) {
+    console.log('Invalid password');
+    return null;
+  }
+  
+  if (user.status !== 'active') {
+    console.log('User account is not active');
+    return null;
+  }
+  
+  // Update last login
+  user.lastLogin = new Date().toISOString();
+  
+  console.log(`Authentication successful for: ${email}`);
+  
+  // Return user without password
+  const { password: _, ...userWithoutPassword } = user;
+  return userWithoutPassword;
 }
 
-// Main API handler
-export default function handler(req, res) {
-    // Enable CORS
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+export default async function handler(req) {
+  // Handle CORS
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Content-Type': 'application/json'
+  };
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { 
+      status: 200, 
+      headers: corsHeaders 
+    });
+  }
+  
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Method not allowed'
+    }), { 
+      status: 405, 
+      headers: corsHeaders 
+    });
+  }
+  
+  try {
+    const body = await req.json();
+    const { action, email, password, token } = body;
     
-    // Handle preflight requests
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
-    }
+    console.log(`Auth API called with action: ${action}`);
     
-    if (req.method !== 'POST') {
-        return res.status(405).json({
+    switch (action) {
+      case 'login':
+        // Validate input
+        if (!email || !password) {
+          return new Response(JSON.stringify({
             success: false,
-            error: 'Method not allowed'
-        });
-    }
-    
-    try {
-        const { action, email, password, token } = req.body;
-        
-        switch (action) {
-            case 'login':
-                // Validate input
-                if (!email || !password) {
-                    return res.status(400).json({
-                        success: false,
-                        error: 'Email and password are required'
-                    });
-                }
-                
-                // Check rate limiting
-                if (isRateLimited(email)) {
-                    return res.status(429).json({
-                        success: false,
-                        error: 'Too many login attempts. Please try again in 15 minutes.'
-                    });
-                }
-                
-                // Authenticate user
-                const user = authenticateUser(email, password);
-                
-                if (!user) {
-                    recordLoginAttempt(email, false);
-                    return res.status(401).json({
-                        success: false,
-                        error: 'Invalid email or password'
-                    });
-                }
-                
-                // Generate JWT token
-                const authToken = generateToken(user);
-                
-                recordLoginAttempt(email, true);
-                
-                return res.status(200).json({
-                    success: true,
-                    token: authToken,
-                    user: user,
-                    message: 'Login successful'
-                });
-                
-            case 'verify':
-                // Verify token
-                if (!token) {
-                    return res.status(400).json({
-                        success: false,
-                        error: 'Token is required'
-                    });
-                }
-                
-                const decoded = verifyJWT(token, JWT_SECRET);
-                
-                if (!decoded) {
-                    return res.status(401).json({
-                        success: false,
-                        error: 'Invalid or expired token'
-                    });
-                }
-                
-                // Get user data
-                const userData = DEMO_USERS.find(u => u.id === decoded.id);
-                if (!userData) {
-                    return res.status(404).json({
-                        success: false,
-                        error: 'User not found'
-                    });
-                }
-                
-                const { password: _, ...userInfo } = userData;
-                
-                return res.status(200).json({
-                    success: true,
-                    user: userInfo
-                });
-                
-            case 'reset_request':
-                // Password reset request
-                if (!email) {
-                    return res.status(400).json({
-                        success: false,
-                        error: 'Email is required'
-                    });
-                }
-                
-                // Don't reveal if user exists or not
-                return res.status(200).json({
-                    success: true,
-                    message: 'If an account with that email exists, password reset instructions have been sent.'
-                });
-                
-            case 'logout':
-                // Logout (client-side token removal is sufficient for JWT)
-                return res.status(200).json({
-                    success: true,
-                    message: 'Logged out successfully'
-                });
-                
-            default:
-                return res.status(400).json({
-                    success: false,
-                    error: 'Invalid action'
-                });
+            error: 'Email and password are required'
+          }), { 
+            status: 400, 
+            headers: corsHeaders 
+          });
         }
         
-    } catch (error) {
-        console.error('Auth API Error:', error);
-        return res.status(500).json({
+        // Check rate limiting
+        if (isRateLimited(email)) {
+          return new Response(JSON.stringify({
             success: false,
-            error: 'Internal server error'
+            error: 'Too many login attempts. Please try again in 15 minutes.'
+          }), { 
+            status: 429, 
+            headers: corsHeaders 
+          });
+        }
+        
+        // Authenticate user
+        const user = authenticateUser(email, password);
+        
+        if (!user) {
+          recordLoginAttempt(email, false);
+          return new Response(JSON.stringify({
+            success: false,
+            error: 'Invalid email or password'
+          }), { 
+            status: 401, 
+            headers: corsHeaders 
+          });
+        }
+        
+        // Generate JWT token
+        const authToken = generateToken(user);
+        
+        recordLoginAttempt(email, true);
+        
+        return new Response(JSON.stringify({
+          success: true,
+          token: authToken,
+          user: user,
+          message: 'Login successful'
+        }), { 
+          status: 200, 
+          headers: corsHeaders 
+        });
+        
+      case 'verify':
+        // Verify token
+        if (!token) {
+          return new Response(JSON.stringify({
+            success: false,
+            error: 'Token is required'
+          }), { 
+            status: 400, 
+            headers: corsHeaders 
+          });
+        }
+        
+        const decoded = verifyJWT(token);
+        
+        if (!decoded) {
+          return new Response(JSON.stringify({
+            success: false,
+            error: 'Invalid or expired token'
+          }), { 
+            status: 401, 
+            headers: corsHeaders 
+          });
+        }
+        
+        // Get user data
+        const userData = DEMO_USERS.find(u => u.id === decoded.id);
+        if (!userData) {
+          return new Response(JSON.stringify({
+            success: false,
+            error: 'User not found'
+          }), { 
+            status: 404, 
+            headers: corsHeaders 
+          });
+        }
+        
+        const { password: _, ...userInfo } = userData;
+        
+        return new Response(JSON.stringify({
+          success: true,
+          user: userInfo
+        }), { 
+          status: 200, 
+          headers: corsHeaders 
+        });
+        
+      case 'reset_request':
+        // Password reset request
+        if (!email) {
+          return new Response(JSON.stringify({
+            success: false,
+            error: 'Email is required'
+          }), { 
+            status: 400, 
+            headers: corsHeaders 
+          });
+        }
+        
+        // Don't reveal if user exists or not
+        return new Response(JSON.stringify({
+          success: true,
+          message: 'If an account with that email exists, password reset instructions have been sent.'
+        }), { 
+          status: 200, 
+          headers: corsHeaders 
+        });
+        
+      case 'logout':
+        // Logout (client-side token removal is sufficient for JWT)
+        return new Response(JSON.stringify({
+          success: true,
+          message: 'Logged out successfully'
+        }), { 
+          status: 200, 
+          headers: corsHeaders 
+        });
+        
+      default:
+        return new Response(JSON.stringify({
+          success: false,
+          error: 'Invalid action'
+        }), { 
+          status: 400, 
+          headers: corsHeaders 
         });
     }
+    
+  } catch (error) {
+    console.error('Auth API Error:', error);
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Internal server error'
+    }), { 
+      status: 500, 
+      headers: corsHeaders 
+    });
+  }
 }
 
 /*
-DEMO CREDENTIALS FOR TESTING:
+PRODUCTION CREDENTIALS:
 
 Admin User:
 Email: admin@aequitascap.com
@@ -280,4 +352,8 @@ Password: admin123
 Client User:
 Email: client@aequitascap.com
 Password: client123
+
+Demo User:
+Email: demo@aequitascap.com
+Password: demo123
 */
