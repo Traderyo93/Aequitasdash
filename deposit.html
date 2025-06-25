@@ -1293,44 +1293,67 @@ function cleanupProcessedFiles() {
         }
 
         // REAL File Upload with tracking and validation
-        function handleFileUpload(event, type) {
-            const files = Array.from(event.target.files);
-            const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
+async function handleFileUpload(event, type) {
+    const files = Array.from(event.target.files);
+    const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
+    
+    if (!currentDeposit) {
+        showNotification('Please submit deposit request first before uploading files.', 'warning');
+        event.target.value = '';
+        return;
+    }
+    
+    for (const file of files) {
+        // Validate file type and size
+        if (file.type !== 'application/pdf') {
+            showNotification(`${file.name} is not a PDF file. Only PDF files are allowed.`, 'error');
+            continue;
+        }
+        
+        if (file.size > 10 * 1024 * 1024) { // 10MB limit
+            showNotification(`${file.name} is too large. Maximum file size is 10MB.`, 'error');
+            continue;
+        }
+        
+        try {
+            showNotification('Uploading file...', 'info');
             
-            if (!currentDeposit) {
-                showNotification('Please submit deposit request first before uploading files.', 'warning');
-                event.target.value = ''; // Clear the input
-                return;
-            }
+            // Convert file to base64 for upload
+            const fileData = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsDataURL(file);
+            });
             
-            files.forEach(file => {
-                // Validate file type and size
-                if (file.type !== 'application/pdf') {
-                    showNotification(`${file.name} is not a PDF file. Only PDF files are allowed.`, 'error');
-                    return;
-                }
-                
-                if (file.size > 10 * 1024 * 1024) { // 10MB limit
-                    showNotification(`${file.name} is too large. Maximum file size is 10MB.`, 'error');
-                    return;
-                }
-                
-                // Create file object with metadata
+            // Upload to backend
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    fileName: file.name,
+                    fileData: fileData,
+                    depositId: currentDeposit.id,
+                    userId: userData.id || 'demo'
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // Add to local storage for UI
                 const fileObj = {
-                    id: 'file_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                    id: result.file.id,
                     name: file.name,
                     size: formatFileSize(file.size),
-                    rawSize: file.size,
-                    type: type,
                     uploadDate: new Date().toISOString(),
                     depositId: currentDeposit.id,
-                    userId: userData.id || 'demo',
+                    url: result.file.url, // Real download URL!
                     status: 'uploaded'
                 };
                 
                 uploadedFiles[type].push(fileObj);
-                
-                // Save to localStorage
                 localStorage.setItem('aequitas_uploaded_files', JSON.stringify(uploadedFiles));
                 
                 showNotification(`${file.name} uploaded successfully!`, 'success');
@@ -1340,11 +1363,19 @@ function cleanupProcessedFiles() {
                     updateProgressSteps(3);
                     localStorage.setItem('aequitas_deposit_progress', '3');
                 }
-            });
+            } else {
+                throw new Error(result.error || 'Upload failed');
+            }
             
-            renderUploadedFiles(type);
-            event.target.value = ''; // Clear the input for next upload
+        } catch (error) {
+            console.error('Upload error:', error);
+            showNotification(`Upload failed: ${error.message}`, 'error');
         }
+    }
+    
+    renderUploadedFiles(type);
+    event.target.value = ''; // Clear the input for next upload
+}
 
         // Render uploaded files with enhanced display
         function renderUploadedFiles(type) {
