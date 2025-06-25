@@ -2094,10 +2094,43 @@ function viewDeposit(depositId) {
     
     openModal('depositModal');
 }
+function downloadUploadedFile(fileId, fileName) {
+    try {
+        // Get the file from localStorage
+        const uploadedFiles = JSON.parse(localStorage.getItem('aequitas_uploaded_files') || '{}');
+        let file = null;
+        
+        // Find the file
+        if (uploadedFiles.forms) {
+            file = uploadedFiles.forms.find(f => f.id === fileId);
+        }
+        
+        if (file && file.url) {
+            // Real file download!
+            const link = document.createElement('a');
+            link.href = file.url;
+            link.download = fileName;
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification(`Downloaded ${fileName}`, 'success');
+        } else {
+            // Fallback to placeholder if no real file
+            downloadPlaceholderFile(fileId, fileName);
+        }
+        
+    } catch (error) {
+        console.error('Download error:', error);
+        showNotification(`Download failed: ${error.message}`, 'error');
+        // Fallback to placeholder
+        downloadPlaceholderFile(fileId, fileName);
+    }
+}
 
-        function downloadUploadedFile(fileId, fileName) {
-    // Since we can't actually download the real file content from localStorage,
-    // we'll create a placeholder file that indicates this was uploaded
+// Keep the placeholder function as fallback
+function downloadPlaceholderFile(fileId, fileName) {
     const fileContent = `UPLOADED DOCUMENT PLACEHOLDER
 
 File: ${fileName}
@@ -2105,13 +2138,13 @@ File ID: ${fileId}
 Upload Date: ${new Date().toLocaleDateString()}
 
 This is a placeholder for the actual uploaded document.
+The backend server may not be running or the file may not be available.
+
 In a real system, this would be the actual file content.
-
 The user uploaded this file as part of their deposit request.
-This serves as proof that the document was submitted.
 
-For actual document review, the real file would need to be
-retrieved from secure storage.`;
+For actual document review, ensure the backend server is running
+and the file exists in the uploads directory.`;
 
     const blob = new Blob([fileContent], { type: 'text/plain' });
     const url = window.URL.createObjectURL(blob);
@@ -2123,7 +2156,7 @@ retrieved from secure storage.`;
     window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
     
-    showNotification(`Downloaded placeholder for ${fileName}`, 'info');
+    showNotification(`Downloaded placeholder for ${fileName} (backend unavailable)`, 'warning');
 }
         
 function approveDeposit() {
