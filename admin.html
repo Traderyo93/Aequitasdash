@@ -2014,57 +2014,80 @@
         });
 
         // Deposit management
-        function viewDeposit(depositId) {
-            const deposit = deposits.find(d => d.id === depositId);
-            if (!deposit) return;
-            
-            viewingDepositId = depositId;
-            
-            document.getElementById('depositDetailsBody').innerHTML = `
-                <div class="modal-form-grid">
-                    <div class="modal-form-group">
-                        <label>Reference Number</label>
-                        <div style="font-weight: 500;">${deposit.reference}</div>
-                    </div>
-                    <div class="modal-form-group">
-                        <label>Status</label>
-                        <span class="status ${deposit.status}">${deposit.status}</span>
-                    </div>
-                    <div class="modal-form-group">
-                        <label>Client Name</label>
-                        <div>${deposit.clientName}</div>
-                    </div>
-                    <div class="modal-form-group">
-                        <label>Amount</label>
-                        <div style="font-weight: 600; color: var(--success);">$${deposit.amount.toLocaleString()}</div>
-                    </div>
-                    <div class="modal-form-group">
-                        <label>Purpose</label>
-                        <div style="text-transform: capitalize;">${deposit.purpose}</div>
-                    </div>
-                    <div class="modal-form-group">
-                        <label>Date Submitted</label>
-                        <div>${deposit.date}</div>
-                    </div>
-                    <div class="modal-form-group full-width">
-                        <label>Documents (${deposit.documents.length})</label>
-                        <div style="margin-top: 8px;">
-                            ${deposit.documents.length > 0 ? deposit.documents.map(doc => `
-                                <div style="padding: 8px; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 4px;">
-                                    <span class="icon icon-document"></span> ${doc}
+function viewDeposit(depositId) {
+    const deposit = deposits.find(d => d.id === depositId);
+    if (!deposit) return;
+    
+    viewingDepositId = depositId;
+    
+    // Get uploaded files for this deposit
+    const uploadedFiles = JSON.parse(localStorage.getItem('aequitas_uploaded_files') || '{}');
+    const depositFiles = uploadedFiles.forms ? uploadedFiles.forms.filter(f => f.depositId === deposit.id) : [];
+    
+    document.getElementById('depositDetailsBody').innerHTML = `
+        <div class="modal-form-grid">
+            <div class="modal-form-group">
+                <label>Reference Number</label>
+                <div style="font-weight: 500;">${deposit.reference}</div>
+            </div>
+            <div class="modal-form-group">
+                <label>Status</label>
+                <span class="status ${deposit.status}">${deposit.status}</span>
+            </div>
+            <div class="modal-form-group">
+                <label>Client Name</label>
+                <div>${deposit.clientName}</div>
+            </div>
+            <div class="modal-form-group">
+                <label>Amount</label>
+                <div style="font-weight: 600; color: var(--success);">$${deposit.amount.toLocaleString()}</div>
+            </div>
+            <div class="modal-form-group">
+                <label>Purpose</label>
+                <div style="text-transform: capitalize;">${deposit.purpose}</div>
+            </div>
+            <div class="modal-form-group">
+                <label>Date Submitted</label>
+                <div>${deposit.date}</div>
+            </div>
+            <div class="modal-form-group full-width">
+                <label>Uploaded Documents (${depositFiles.length})</label>
+                <div style="margin-top: 8px;">
+                    ${depositFiles.length > 0 ? depositFiles.map(file => `
+                        <div style="padding: 12px; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="icon icon-document"></span>
+                                <div>
+                                    <div style="font-weight: 500;">${file.name}</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">${file.size} • Uploaded ${new Date(file.uploadDate).toLocaleDateString()}</div>
                                 </div>
-                            `).join('') : '<div style="color: var(--text-secondary);">No documents uploaded</div>'}
+                            </div>
+                            <span class="status active">
+                                <span class="icon icon-check"></span>
+                                Uploaded
+                            </span>
                         </div>
-                    </div>
+                    `).join('') : '<div style="color: var(--text-secondary); padding: 20px; text-align: center; background: var(--bg-secondary); border-radius: 6px;">No documents uploaded yet</div>'}
                 </div>
-            `;
-            
-            // Show/hide action buttons based on status
-            document.getElementById('approveBtn').style.display = deposit.status === 'pending' ? 'inline-flex' : 'none';
-            document.getElementById('rejectBtn').style.display = deposit.status === 'pending' ? 'inline-flex' : 'none';
-            
-            openModal('depositModal');
-        }
+            </div>
+            <div class="modal-form-group full-width">
+                <label>Bank Transfer Reference</label>
+                <div style="padding: 12px; background: var(--bg-secondary); border-radius: 6px; font-family: monospace; font-weight: 600;">
+                    KC5230
+                </div>
+                <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+                    Client must include this reference in their bank transfer
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Show/hide action buttons based on status
+    document.getElementById('approveBtn').style.display = deposit.status === 'pending' ? 'inline-flex' : 'none';
+    document.getElementById('rejectBtn').style.display = deposit.status === 'pending' ? 'inline-flex' : 'none';
+    
+    openModal('depositModal');
+}
 
 function approveDeposit() {
     if (!viewingDepositId) return;
@@ -2073,7 +2096,7 @@ function approveDeposit() {
     if (depositIndex !== -1) {
         deposits[depositIndex].status = 'approved';
         
-        // IMPORTANT: Update the main deposits storage that deposit page uses
+        // Update main deposits storage
         const mainDeposits = JSON.parse(localStorage.getItem('aequitas_deposits') || '[]');
         const mainDepositIndex = mainDeposits.findIndex(d => d.id === viewingDepositId);
         if (mainDepositIndex !== -1) {
@@ -2081,23 +2104,41 @@ function approveDeposit() {
             localStorage.setItem('aequitas_deposits', JSON.stringify(mainDeposits));
         }
         
+        // Archive uploaded files (move to processed storage)
+        const uploadedFiles = JSON.parse(localStorage.getItem('aequitas_uploaded_files') || '{}');
+        const processedFiles = JSON.parse(localStorage.getItem('aequitas_processed_files') || '[]');
+        
+        if (uploadedFiles.forms) {
+            const depositFiles = uploadedFiles.forms.filter(f => f.depositId === viewingDepositId);
+            depositFiles.forEach(file => {
+                file.processedAt = new Date().toISOString();
+                file.processedBy = 'admin';
+                processedFiles.push(file);
+            });
+            
+            // Remove from uploaded files
+            uploadedFiles.forms = uploadedFiles.forms.filter(f => f.depositId !== viewingDepositId);
+            localStorage.setItem('aequitas_uploaded_files', JSON.stringify(uploadedFiles));
+            localStorage.setItem('aequitas_processed_files', JSON.stringify(processedFiles));
+        }
+        
         saveData();
         closeModal('depositModal');
         renderDepositsTable();
         updateStats();
-        showNotification('Deposit approved successfully!', 'success');
+        showNotification('Deposit approved and files processed successfully!', 'success');
     }
 }
-
+        
 function rejectDeposit() {
     if (!viewingDepositId) return;
     
-    if (confirm('Are you sure you want to reject this deposit request?')) {
+    if (confirm('Are you sure you want to reject this deposit request? Uploaded files will be archived.')) {
         const depositIndex = deposits.findIndex(d => d.id === viewingDepositId);
         if (depositIndex !== -1) {
             deposits[depositIndex].status = 'rejected';
             
-            // IMPORTANT: Update the main deposits storage that deposit page uses
+            // Update main deposits storage
             const mainDeposits = JSON.parse(localStorage.getItem('aequitas_deposits') || '[]');
             const mainDepositIndex = mainDeposits.findIndex(d => d.id === viewingDepositId);
             if (mainDepositIndex !== -1) {
@@ -2105,15 +2146,32 @@ function rejectDeposit() {
                 localStorage.setItem('aequitas_deposits', JSON.stringify(mainDeposits));
             }
             
+            // Archive uploaded files
+            const uploadedFiles = JSON.parse(localStorage.getItem('aequitas_uploaded_files') || '{}');
+            const rejectedFiles = JSON.parse(localStorage.getItem('aequitas_rejected_files') || '[]');
+            
+            if (uploadedFiles.forms) {
+                const depositFiles = uploadedFiles.forms.filter(f => f.depositId === viewingDepositId);
+                depositFiles.forEach(file => {
+                    file.rejectedAt = new Date().toISOString();
+                    file.rejectedBy = 'admin';
+                    rejectedFiles.push(file);
+                });
+                
+                // Remove from uploaded files
+                uploadedFiles.forms = uploadedFiles.forms.filter(f => f.depositId !== viewingDepositId);
+                localStorage.setItem('aequitas_uploaded_files', JSON.stringify(uploadedFiles));
+                localStorage.setItem('aequitas_rejected_files', JSON.stringify(rejectedFiles));
+            }
+            
             saveData();
             closeModal('depositModal');
             renderDepositsTable();
             updateStats();
-            showNotification('Deposit rejected.', 'warning');
+            showNotification('Deposit rejected and files archived.', 'warning');
         }
     }
 }
-
 function approveDepositQuick(depositId) {
     const depositIndex = deposits.findIndex(d => d.id === depositId);
     if (depositIndex !== -1) {
