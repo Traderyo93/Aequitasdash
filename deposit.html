@@ -708,11 +708,11 @@
 .step:not(:last-child)::after {
     content: '';
     position: absolute;
-    left: 50px;               /* offset from left edge of .step */
-    right: 50px;              /* offset from right edge of .step */
+    left: 44px;
     top: 50%;
     transform: translateY(-50%);
-    height: 2px;              /* no width at all—will auto-stretch */
+    width: calc(100% - 88px);
+    height: 2px;
     background: var(--border-color);
     z-index: 0;
 }
@@ -1117,7 +1117,7 @@
                     <div class="bank-detail-item">
                         <div class="bank-detail-label">Payment Reference</div>
                         <div class="bank-detail-value">
-                            <span id="accountReference">To be advised</span>
+                            <span id="accountReference">KC5230</span>
                             <button class="copy-btn" onclick="copyToClipboard(document.getElementById('accountReference').textContent)">
                                 <span class="icon icon-copy"></span>
                             </button>
@@ -1131,9 +1131,10 @@
                         <strong style="color: var(--warning);">Important</strong>
                     </div>
                     <p style="font-size: 14px; color: var(--text-secondary);">
-                        Your account identification number will be provided once your deposit request is approved. 
-                        Please include this number in your bank transfer reference to ensure proper allocation of funds.
-                    </p>
+    <strong>CRITICAL:</strong> You MUST include the payment reference KC5230 in your bank transfer. 
+    Failure to include this reference will result in delays or rejection of your deposit. 
+    This reference is essential for proper allocation of your funds to your account.
+</p>
                 </div>
             </div>
 
@@ -1384,7 +1385,7 @@
             
             // Generate reference number
             const reference = 'ACP' + Date.now().toString().slice(-6);
-            document.getElementById('accountReference').textContent = reference;
+            
             
             // Create deposit object
             currentDeposit = {
@@ -1415,50 +1416,45 @@
             showNotification(`Deposit request for $${parseFloat(amount).toLocaleString()} submitted successfully! Your reference is: ${reference}`, 'success');
         });
 
-        function downloadSourceOfFundsForm() {
-            const depositAmount = document.getElementById('depositAmount').value;
-            const depositPurpose = document.getElementById('depositPurpose').value;
-            
-            if (!depositAmount || !depositPurpose) {
-                showNotification('Please enter deposit amount and purpose first.', 'warning');
-                return;
-            }
-            
-            // Download the actual PDF from forms folder
-            const link = document.createElement('a');
-            link.href = 'forms/Source_of_Funds_Declaration.pdf';
-            link.download = 'Source_of_Funds_Declaration.pdf';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            showNotification('Source of Funds Declaration downloaded! Please complete and upload.', 'success');
-            
-            // Track download
-            trackFormDownload('source_of_funds', depositAmount);
-        }
+function downloadDepositForm() {
+    if (!currentDeposit) {
+        showNotification('Please submit deposit request first to generate your reference number.', 'warning');
+        return;
+    }
+    
+    // Download the actual PDF from forms folder
+    const link = document.createElement('a');
+    link.href = './forms/deposit-request-form.pdf';
+    link.download = 'deposit-request-form.pdf';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showNotification('Deposit Request Form downloaded! Complete with your reference: ' + currentDeposit.reference, 'success');
+    
+    // Track download
+    trackFormDownload('deposit_request', currentDeposit.amount);
+}
 
-        function downloadDepositForm() {
-            const reference = document.getElementById('accountReference').textContent;
-            
-            if (!currentDeposit) {
-                showNotification('Please submit deposit request first to generate your reference number.', 'warning');
-                return;
-            }
-            
-            // Download the actual PDF from forms folder
-            const link = document.createElement('a');
-            link.href = 'forms/Deposit_Request_Form.pdf';
-            link.download = `Deposit_Request_Form_${reference}.pdf`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            showNotification('Deposit Request Form downloaded! Complete with your reference: ' + reference, 'success');
-            
-            // Track download
-            trackFormDownload('deposit_request', currentDeposit.amount);
-        }
+function downloadDepositForm() {
+    if (!currentDeposit) {
+        showNotification('Please submit deposit request first to generate your reference number.', 'warning');
+        return;
+    }
+    
+    // Download the actual PDF from forms folder
+    const link = document.createElement('a');
+    link.href = './forms/deposit-request-form.pdf';
+    link.download = 'deposit-request-form.pdf';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showNotification('Deposit Request Form downloaded! Complete with your reference: ' + currentDeposit.reference, 'success');
+    
+    // Track download
+    trackFormDownload('deposit_request', currentDeposit.amount);
+}
 
         function updateDepositTimeline() {
             const timeline = document.getElementById('depositTimeline');
