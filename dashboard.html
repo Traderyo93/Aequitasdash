@@ -116,6 +116,14 @@
             mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'/%3E%3C/svg%3E");
         }
 
+        .icon-chevron-down {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+        }
+
+        .icon-chevron-up {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M18 15l-6-6-6 6'/%3E%3C/svg%3E");
+        }
+
         /* Sidebar */
         .sidebar {
             position: fixed;
@@ -301,7 +309,7 @@
         .top-user-info {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 6px; /* FIXED: Reduced gap from 12px to 6px */
             color: var(--text-secondary);
             font-size: 14px;
             font-weight: 500;
@@ -391,6 +399,11 @@
             border-radius: 12px;
             padding: 24px;
             margin-bottom: 32px;
+            transition: all 0.3s ease;
+        }
+
+        .chart-section.collapsed .chart-content {
+            display: none;
         }
 
         .chart-header {
@@ -398,6 +411,31 @@
             align-items: center;
             justify-content: space-between;
             margin-bottom: 24px;
+            cursor: pointer;
+        }
+
+        .chart-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .chart-collapse-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chart-collapse-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
         }
 
         .chart-title {
@@ -429,9 +467,22 @@
             border-color: var(--accent);
         }
 
+        .chart-content {
+            transition: all 0.3s ease;
+        }
+
         .chart-container {
             height: 400px;
+            width: 100%;
             position: relative;
+            overflow: hidden;
+        }
+
+        .chart-container canvas {
+            width: 100% !important;
+            height: 400px !important;
+            max-width: 100%;
+            max-height: 400px;
         }
 
         /* Widgets Grid */
@@ -494,6 +545,10 @@
 
             .dashboard-content {
                 padding: 16px;
+            }
+
+            .chart-filters {
+                flex-wrap: wrap;
             }
         }
     </style>
@@ -568,7 +623,7 @@
         <div class="top-bar">
             <h1 class="page-title">Account Overview</h1>
             <div class="top-user-info">
-                <span>Welcome back, </span>
+                <span>Welcome back,</span>
                 <span id="topUserName">Loading...</span>
             </div>
         </div>
@@ -620,9 +675,14 @@
             </div>
 
             <!-- Equity Curve Chart -->
-            <div class="chart-section">
-                <div class="chart-header">
-                    <h2 class="chart-title">Account Equity Curve</h2>
+            <div class="chart-section" id="chartSection">
+                <div class="chart-header" onclick="toggleChart()">
+                    <div class="chart-header-left">
+                        <button class="chart-collapse-btn" id="chartCollapseBtn">
+                            <span class="icon icon-chevron-up"></span>
+                        </button>
+                        <h2 class="chart-title">Account Equity Curve</h2>
+                    </div>
                     <div class="chart-filters">
                         <button class="filter-btn active" onclick="updateChartPeriod('1M', this)">1M</button>
                         <button class="filter-btn" onclick="updateChartPeriod('3M', this)">3M</button>
@@ -630,8 +690,10 @@
                         <button class="filter-btn" onclick="updateChartPeriod('ALL', this)">ALL</button>
                     </div>
                 </div>
-                <div class="chart-container">
-                    <canvas id="equityChart"></canvas>
+                <div class="chart-content" id="chartContent">
+                    <div class="chart-container">
+                        <canvas id="equityChart"></canvas>
+                    </div>
                 </div>
             </div>
 
@@ -641,20 +703,8 @@
                     <h3 class="widget-title">Market News</h3>
                     <div class="tradingview-widget">
                         <!-- TradingView Widget BEGIN -->
-                        <div class="tradingview-widget-container">
+                        <div class="tradingview-widget-container" id="marketNewsWidget">
                             <div class="tradingview-widget-container__widget"></div>
-                            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-timeline.js" async>
-                            {
-                                "feedMode": "market",
-                                "market": "stock",
-                                "isTransparent": false,
-                                "displayMode": "regular",
-                                "width": "100%",
-                                "height": "100%",
-                                "colorTheme": "light",
-                                "locale": "en"
-                            }
-                            </script>
                         </div>
                         <!-- TradingView Widget END -->
                     </div>
@@ -664,19 +714,8 @@
                     <h3 class="widget-title">Economic Calendar</h3>
                     <div class="tradingview-widget">
                         <!-- TradingView Widget BEGIN -->
-                        <div class="tradingview-widget-container">
+                        <div class="tradingview-widget-container" id="economicCalendarWidget">
                             <div class="tradingview-widget-container__widget"></div>
-                            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-events.js" async>
-                            {
-                                "colorTheme": "light",
-                                "isTransparent": false,
-                                "width": "100%",
-                                "height": "100%",
-                                "locale": "en",
-                                "importanceFilter": "-1,0,1",
-                                "currencyFilter": "USD,EUR,ITL,NZD,CHF,AUD,RUB,JPY,TRY,ZAR,CNY,GBP,CAD,MXN"
-                            }
-                            </script>
                         </div>
                         <!-- TradingView Widget END -->
                     </div>
@@ -690,18 +729,7 @@
         // Global variables
         let currentTheme = 'light';
         let currentPeriod = '1M';
-        
-        // Authentication check - no redirect, just demo mode
-        function checkAuth() {
-            const token = localStorage.getItem('aequitas_auth_token');
-            const userData = localStorage.getItem('aequitas_user_data');
-            
-            console.log('Auth check - Token:', token ? 'exists' : 'missing');
-            console.log('Auth check - User data:', userData ? 'exists' : 'missing');
-            
-            // Always return true for demo mode
-            return true;
-        }
+        let chartCollapsed = false;
         
         // Theme Toggle
         function toggleTheme() {
@@ -716,7 +744,34 @@
                 createEquityChart();
             }
             
+            // FIXED: Update TradingView widgets theme
+            updateTradingViewTheme();
+            
             localStorage.setItem('aequitas_theme', currentTheme);
+        }
+
+        // Chart Toggle
+        function toggleChart() {
+            const chartSection = document.getElementById('chartSection');
+            const chartContent = document.getElementById('chartContent');
+            const collapseBtn = document.getElementById('chartCollapseBtn');
+            
+            chartCollapsed = !chartCollapsed;
+            
+            if (chartCollapsed) {
+                chartSection.classList.add('collapsed');
+                collapseBtn.innerHTML = '<span class="icon icon-chevron-down"></span>';
+            } else {
+                chartSection.classList.remove('collapsed');
+                collapseBtn.innerHTML = '<span class="icon icon-chevron-up"></span>';
+                
+                // Recreate chart when expanding
+                setTimeout(() => {
+                    if (window.equityChart) {
+                        createEquityChart();
+                    }
+                }, 300);
+            }
         }
 
         // Navigation
@@ -832,9 +887,9 @@
             createEquityChart();
         }
 
-        // Create Equity Chart
+        // Create Equity Chart - FIXED VERSION
         function createEquityChart() {
-            console.log('createEquityChart function called');
+            console.log('createEquityChart function called for period:', currentPeriod);
             
             const ctx = document.getElementById('equityChart');
             if (!ctx) {
@@ -844,10 +899,19 @@
             
             console.log('Chart canvas found, creating chart...');
             
-            // Destroy existing chart
-            if (window.equityChart) {
+            // FIXED: Properly check if chart exists before destroying
+            if (window.equityChart && typeof window.equityChart.destroy === 'function') {
+                console.log('Destroying existing chart');
                 window.equityChart.destroy();
+                window.equityChart = null;
             }
+            
+            // Force canvas sizing
+            const container = ctx.parentElement;
+            container.style.height = '400px';
+            container.style.width = '100%';
+            ctx.style.width = '100%';
+            ctx.style.height = '400px';
             
             const data = generateEquityData(currentPeriod);
             const isDark = currentTheme === 'dark';
@@ -870,7 +934,7 @@
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false,
+                    maintainAspectRatio: false, // KEY FIX for full area
                     plugins: {
                         legend: {
                             display: false
@@ -924,6 +988,50 @@
             console.log('Chart created successfully');
         }
 
+        // FIXED: Update TradingView widgets theme
+        function updateTradingViewTheme() {
+            const colorTheme = currentTheme === 'dark' ? 'dark' : 'light';
+            
+            // Update Market News Widget
+            const marketNewsContainer = document.getElementById('marketNewsWidget');
+            marketNewsContainer.innerHTML = '<div class="tradingview-widget-container__widget"></div>';
+            
+            const marketNewsScript = document.createElement('script');
+            marketNewsScript.type = 'text/javascript';
+            marketNewsScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-timeline.js';
+            marketNewsScript.async = true;
+            marketNewsScript.innerHTML = JSON.stringify({
+                "feedMode": "market",
+                "market": "stock",
+                "isTransparent": false,
+                "displayMode": "regular",
+                "width": "100%",
+                "height": "100%",
+                "colorTheme": colorTheme,
+                "locale": "en"
+            });
+            marketNewsContainer.appendChild(marketNewsScript);
+            
+            // Update Economic Calendar Widget
+            const economicCalendarContainer = document.getElementById('economicCalendarWidget');
+            economicCalendarContainer.innerHTML = '<div class="tradingview-widget-container__widget"></div>';
+            
+            const economicCalendarScript = document.createElement('script');
+            economicCalendarScript.type = 'text/javascript';
+            economicCalendarScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-events.js';
+            economicCalendarScript.async = true;
+            economicCalendarScript.innerHTML = JSON.stringify({
+                "colorTheme": colorTheme,
+                "isTransparent": false,
+                "width": "100%",
+                "height": "100%",
+                "locale": "en",
+                "importanceFilter": "-1,0,1",
+                "currencyFilter": "USD,EUR,ITL,NZD,CHF,AUD,RUB,JPY,TRY,ZAR,CNY,GBP,CAD,MXN"
+            });
+            economicCalendarContainer.appendChild(economicCalendarScript);
+        }
+
         // Format currency
         function formatCurrency(amount, short = false) {
             if (short && amount >= 1000000) {
@@ -939,7 +1047,6 @@
                 maximumFractionDigits: 0
             }).format(amount);
         }
-
         // Load dashboard data
         function loadDashboard() {
             console.log('Loading dashboard data...');
@@ -952,7 +1059,7 @@
                 if (userDataString) {
                     userData = JSON.parse(userDataString);
                 } else {
-                    // Use demo data like your original working version
+                    // Use demo data
                     userData = {
                         firstName: 'Admin',
                         lastName: 'User', 
@@ -1045,6 +1152,46 @@
             }
         }
 
+        // Initialize TradingView Widgets
+        function initializeTradingViewWidgets() {
+            const colorTheme = currentTheme === 'dark' ? 'dark' : 'light';
+            
+            // Initialize Market News Widget
+            const marketNewsContainer = document.getElementById('marketNewsWidget');
+            const marketNewsScript = document.createElement('script');
+            marketNewsScript.type = 'text/javascript';
+            marketNewsScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-timeline.js';
+            marketNewsScript.async = true;
+            marketNewsScript.innerHTML = JSON.stringify({
+                "feedMode": "market",
+                "market": "stock",
+                "isTransparent": false,
+                "displayMode": "regular",
+                "width": "100%",
+                "height": "100%",
+                "colorTheme": colorTheme,
+                "locale": "en"
+            });
+            marketNewsContainer.appendChild(marketNewsScript);
+            
+            // Initialize Economic Calendar Widget
+            const economicCalendarContainer = document.getElementById('economicCalendarWidget');
+            const economicCalendarScript = document.createElement('script');
+            economicCalendarScript.type = 'text/javascript';
+            economicCalendarScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-events.js';
+            economicCalendarScript.async = true;
+            economicCalendarScript.innerHTML = JSON.stringify({
+                "colorTheme": colorTheme,
+                "isTransparent": false,
+                "width": "100%",
+                "height": "100%",
+                "locale": "en",
+                "importanceFilter": "-1,0,1",
+                "currencyFilter": "USD,EUR,ITL,NZD,CHF,AUD,RUB,JPY,TRY,ZAR,CNY,GBP,CAD,MXN"
+            });
+            economicCalendarContainer.appendChild(economicCalendarScript);
+        }
+
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM loaded, initializing dashboard...');
@@ -1054,50 +1201,46 @@
             console.log('Saved theme:', savedTheme);
             
             if (savedTheme === 'dark') {
-                toggleTheme();
+                currentTheme = 'dark';
+                document.documentElement.setAttribute('data-theme', 'dark');
+                const themeToggle = document.querySelector('.theme-toggle .icon');
+                themeToggle.className = 'icon icon-sun';
             }
-
+            
             // Load dashboard data first
             loadDashboard();
 
-            // Create chart after everything is loaded (like your original)
+            // Initialize TradingView widgets
+            initializeTradingViewWidgets();
+
+            // Create chart after everything is loaded - FIXED TIMING
             setTimeout(() => {
                 console.log('Creating equity chart...');
                 createEquityChart();
-            }, 500);
-
-            // Handle mobile sidebar
-            if (window.innerWidth <= 1024) {
-                const sidebar = document.getElementById('sidebar');
-                if (sidebar) sidebar.classList.remove('open');
-            }
+            }, 200);
             
             console.log('Dashboard initialization complete');
         });
 
-        // Mobile sidebar toggle
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('open');
-        }
+        // Handle window resize - re-render chart
+        window.addEventListener('resize', function() {
+            if (window.equityChart) {
+                setTimeout(() => {
+                    window.equityChart.resize();
+                }, 100);
+            }
+        });
 
         // Close sidebar when clicking outside on mobile
         document.addEventListener('click', function(event) {
             if (window.innerWidth <= 1024) {
                 const sidebar = document.getElementById('sidebar');
                 const isClickInsideSidebar = sidebar.contains(event.target);
-                const isClickOnToggle = event.target.closest('.sidebar-toggle');
+                const isClickOnToggle = event.target.closest('.mobile-menu-btn') || event.target.closest('.sidebar-toggle');
                 
-                if (!isClickInsideSidebar && !isClickOnToggle && sidebar.classList.contains('open')) {
-                    sidebar.classList.remove('open');
+                if (!isClickInsideSidebar && !isClickOnToggle && !sidebar.classList.contains('collapsed')) {
+                    sidebar.classList.add('collapsed');
                 }
-            }
-        });
-
-        // Handle window resize
-        window.addEventListener('resize', function() {
-            if (window.innerWidth > 1024) {
-                document.getElementById('sidebar').classList.remove('open');
             }
         });
     </script>
