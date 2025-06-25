@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Geist:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* Same theme variables as before */
+            /* Light Theme */
             --bg-primary: #ffffff;
             --bg-secondary: #f8fafc;
             --bg-tertiary: #f1f5f9;
@@ -25,9 +25,11 @@
             --success: #10b981;
             --error: #ef4444;
             --warning: #f59e0b;
+            --info: #06b6d4;
         }
 
         [data-theme="dark"] {
+            /* Dark Theme */
             --bg-primary: #0f172a;
             --bg-secondary: #1e293b;
             --bg-tertiary: #334155;
@@ -51,7 +53,7 @@
             transition: all 0.3s ease;
         }
 
-        /* Same icons as before */
+        /* Icons */
         .icon {
             width: 20px;
             height: 20px;
@@ -62,286 +64,90 @@
             mask-position: center;
         }
 
-        /* All your existing icon CSS... keeping same for consistency */
-
-        /* Admin-specific styles */
-        .admin-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 24px;
-            margin-bottom: 24px;
+        .icon-dashboard {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2'/%3E%3C/svg%3E");
         }
 
-        .deposits-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: var(--bg-primary);
-            border-radius: 8px;
-            overflow: hidden;
-            margin-top: 16px;
+        .icon-document {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'/%3E%3C/svg%3E");
         }
 
-        .deposits-table th,
-        .deposits-table td {
-            padding: 12px 16px;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
+        .icon-money {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z'/%3E%3C/svg%3E");
         }
 
-        .deposits-table th {
-            background: var(--bg-secondary);
-            font-weight: 600;
-            color: var(--text-primary);
-            font-size: 14px;
+        .icon-bank {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4'/%3E%3C/svg%3E");
         }
 
-        .deposits-table td {
-            font-size: 13px;
+        .icon-user {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'/%3E%3C/svg%3E");
         }
 
-        .status-pending { 
-            color: var(--warning); 
-            background: rgba(245, 158, 11, 0.1);
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-        .status-approved { 
-            color: var(--accent); 
-            background: rgba(59, 130, 246, 0.1);
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-        .status-completed { 
-            color: var(--success); 
-            background: rgba(16, 185, 129, 0.1);
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-        .status-rejected { 
-            color: var(--error); 
-            background: rgba(239, 68, 68, 0.1);
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 500;
+        .icon-users {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a4 4 0 11-8 0 4 4 0 018 0z'/%3E%3C/svg%3E");
         }
 
-        .deposit-actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
+        .icon-chat {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z'/%3E%3C/svg%3E");
         }
 
-        .btn-small {
-            padding: 6px 12px;
-            font-size: 12px;
-            border-radius: 6px;
+        .icon-moon {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z'/%3E%3C/svg%3E");
         }
 
-        .notifications-panel {
-            background: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 20px;
-            max-height: 600px;
-            overflow-y: auto;
+        .icon-sun {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z'/%3E%3C/svg%3E");
         }
 
-        .notification-item {
-            padding: 12px;
-            border-left: 3px solid var(--accent);
-            background: var(--bg-secondary);
-            border-radius: 4px;
-            margin-bottom: 12px;
+        .icon-logout {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1'/%3E%3C/svg%3E");
         }
 
-        .notification-item.unread {
-            border-left-color: var(--warning);
-            background: rgba(245, 158, 11, 0.05);
+        .icon-search {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m21 21-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'/%3E%3C/svg%3E");
         }
 
-        .notification-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 4px;
+        .icon-filter {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z'/%3E%3C/svg%3E");
         }
 
-        .notification-title {
-            font-weight: 600;
-            font-size: 14px;
+        .icon-edit {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7m-1.5-9.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 8.5-8.5z'/%3E%3C/svg%3E");
         }
 
-        .notification-time {
-            font-size: 12px;
-            color: var(--text-secondary);
+        .icon-trash {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m19 7-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16'/%3E%3C/svg%3E");
         }
 
-        .notification-message {
-            font-size: 13px;
-            color: var(--text-secondary);
+        .icon-eye {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M15 12a3 3 0 11-6 0 3 3 0 016 0z'/%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z'/%3E%3C/svg%3E");
         }
 
-        /* Modal styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 10000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            backdrop-filter: blur(4px);
+        .icon-check {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 13l4 4L19 7'/%3E%3C/svg%3E");
         }
 
-        .modal-content {
-            background-color: var(--bg-primary);
-            margin: 2% auto;
-            padding: 24px;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 800px;
-            max-height: 90vh;
-            overflow-y: auto;
-            border: 1px solid var(--border-color);
+        .icon-x {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12'/%3E%3C/svg%3E");
         }
 
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--border-color);
+        .icon-plus {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 5v14m-7-7h14'/%3E%3C/svg%3E");
         }
 
-        .modal-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--text-primary);
+        .icon-download {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4'/%3E%3C/svg%3E");
         }
 
-        .close {
-            color: var(--text-secondary);
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-            background: none;
-            border: none;
-            padding: 4px;
-            border-radius: 4px;
-            transition: all 0.2s ease;
+        .icon-mail {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z'/%3E%3Cpolyline stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' points='22,6 12,13 2,6'/%3E%3C/svg%3E");
         }
 
-        .close:hover {
-            color: var(--text-primary);
-            background: var(--bg-tertiary);
+        .icon-phone {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z'/%3E%3C/svg%3E");
         }
-
-        .files-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 16px;
-            margin-top: 20px;
-        }
-
-        .file-card {
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 16px;
-            background: var(--bg-secondary);
-        }
-
-        .file-card h4 {
-            margin-bottom: 8px;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .file-meta {
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-bottom: 12px;
-        }
-
-        .client-info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .info-field {
-            padding: 12px;
-            background: var(--bg-secondary);
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-
-        .info-label {
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
-        }
-
-        .info-value {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .status-update-section {
-            background: var(--bg-tertiary);
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
-        }
-
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text-primary);
-        }
-
-        .form-input, .form-select, .form-textarea {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            font-size: 14px;
-            transition: all 0.2s ease;
-        }
-
-        .form-input:focus, .form-select:focus, .form-textarea:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        .form-textarea {
-            min-height: 80px;
-            resize: vertical;
-        }
-
-        /* Same sidebar and basic styles as deposit.html */
+        /* Sidebar Styles */
         .sidebar {
             position: fixed;
             left: 0;
@@ -355,11 +161,951 @@
             z-index: 1000;
         }
 
-        /* Rest of the CSS from deposit.html for consistency... */
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo {
+            max-width: 140px;
+            height: auto;
+            filter: brightness(1.1);
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--sidebar-text);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .theme-toggle:hover {
+            background: var(--sidebar-hover);
+            color: var(--sidebar-text-active);
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 20px 0;
+            overflow-y: auto;
+        }
+
+        .nav-section {
+            margin-bottom: 24px;
+        }
+
+        .nav-section-title {
+            color: var(--accent);
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0 20px 12px 20px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .nav-item:hover {
+            background: var(--sidebar-hover);
+            color: var(--sidebar-text-active);
+        }
+
+        .nav-item.active {
+            background: var(--sidebar-active);
+            color: var(--accent);
+            border-right: 3px solid var(--accent);
+        }
+
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .user-details h4 {
+            color: var(--sidebar-text-active);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .user-details p {
+            color: var(--sidebar-text);
+            font-size: 12px;
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: var(--sidebar-text);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .top-user-info {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .admin-content {
+            padding: 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card-title-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .card-icon {
+            width: 24px;
+            height: 24px;
+            color: var(--accent);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent), var(--info));
+        }
+
+        .stat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .stat-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .stat-icon {
+            width: 24px;
+            height: 24px;
+            color: var(--accent);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .stat-change {
+            font-size: 12px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stat-change.positive {
+            color: var(--success);
+        }
+
+        .stat-change.negative {
+            color: var(--error);
+        }
+
+        .stat-change.neutral {
+            color: var(--text-tertiary);
+        }
+
+        /* Search and Filters */
+        .search-filters {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 300px;
+            position: relative;
+        }
+
+        .search-input input {
+            width: 100%;
+            padding: 12px 16px 12px 44px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .search-input input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .search-input .icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        .filter-select {
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Button Styles */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #d97706;
+        }
+
+        .btn-danger {
+            background: var(--error);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid transparent;
+        }
+
+        .btn-ghost:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .btn-sm {
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        /* Data Table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-primary);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .data-table thead {
+            background: var(--bg-tertiary);
+        }
+
+        .data-table th {
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 14px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .data-table td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .data-table tbody tr:hover {
+            background: var(--bg-secondary);
+        }
+
+        .data-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Status Badges */
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: capitalize;
+        }
+
+        .status.active {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .status.inactive {
+            background: rgba(156, 163, 175, 0.1);
+            color: var(--text-tertiary);
+        }
+
+        .status.pending {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .status.approved {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent);
+        }
+
+        .status.rejected {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: var(--bg-primary);
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal.show .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            margin-bottom: 24px;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* Form Grid for Modal */
+        .modal-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .modal-form-group {
+            margin-bottom: 16px;
+        }
+
+        .modal-form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .pagination-info {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .pagination-btn {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 6px 8px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .action-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .action-btn.edit:hover {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent);
+        }
+
+        .action-btn.delete:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+        }
+
+        .action-btn.view:hover {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        /* Client Avatar */
+        .client-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        /* Form Styles for Admin */
+        .admin-form {
+            display: grid;
+            gap: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-field.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-field label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .form-field input,
+        .form-field select,
+        .form-field textarea {
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .form-field input:focus,
+        .form-field select:focus,
+        .form-field textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-field textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 24px;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            border: none;
+            background: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .tab:hover {
+            color: var(--text-primary);
+        }
+
+        .tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Loading States */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border-color);
+            border-top: 2px solid var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 12px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Empty States */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 16px;
+            color: var(--text-tertiary);
+        }
+
+        .empty-state-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .empty-state-description {
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            }
+
+            .search-filters {
+                flex-direction: column;
+            }
+
+            .search-input {
+                min-width: auto;
+            }
+
+            .modal-form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .admin-content {
+                padding: 16px;
+            }
+
+            .card {
+                padding: 16px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .data-table {
+                font-size: 12px;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 8px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .modal-content {
+                margin: 20px;
+                width: calc(100% - 40px);
+            }
+
+            .tabs {
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+
+            .pagination {
+                flex-direction: column;
+                gap: 16px;
+                align-items: stretch;
+            }
+
+            .pagination-controls {
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .top-bar {
+                padding: 12px 16px;
+            }
+
+            .page-title {
+                font-size: 20px;
+            }
+
+            .btn {
+                padding: 10px 16px;
+                font-size: 13px;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 6px;
+            }
+        }
     </style>
 </head>
 <body>
-    <!-- Same sidebar as deposit.html but with Admin active -->
+    <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="logo-container">
@@ -396,14 +1142,23 @@
             </div>
 
             <div class="nav-section">
-                <div class="nav-section-title">Admin</div>
-                <button class="nav-item active">
+                <div class="nav-section-title">Settings</div>
+                <button class="nav-item" onclick="navigateTo('profile')">
                     <span class="icon icon-user"></span>
-                    <span>Client Management</span>
+                    <span>Profile</span>
                 </button>
-                <button class="nav-item" onclick="navigateTo('settings')">
+                <button class="nav-item" onclick="navigateTo('support')">
                     <span class="icon icon-chat"></span>
-                    <span>Settings</span>
+                    <span>Support</span>
+                </button>
+            </div>
+
+            <!-- Admin Section -->
+            <div class="nav-section" id="adminSection">
+                <div class="nav-section-title">Admin</div>
+                <button class="nav-item active" onclick="navigateTo('admin')">
+                    <span class="icon icon-users"></span>
+                    <span>Client Management</span>
                 </button>
             </div>
         </nav>
@@ -426,98 +1181,464 @@
     <!-- Main Content -->
     <div class="main-content">
         <div class="top-bar">
-            <h1 class="page-title">Client Deposit Management</h1>
+            <h1 class="page-title">Admin Dashboard</h1>
             <div class="top-user-info">
-                <span>Admin Dashboard</span>
+                <span>Welcome back,</span>
+                <span id="topUserName">Admin</span>
             </div>
         </div>
 
-        <div class="deposit-content">
-            <div class="admin-grid">
-                <!-- Client Deposits Management -->
-                <div class="card">
-                    <div class="card-header">
-                        <span class="icon icon-bank card-icon"></span>
-                        <h2 class="card-title">Client Deposit Requests</h2>
+        <div class="admin-content">
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Total Clients</span>
+                        <span class="icon icon-users stat-icon"></span>
+                    </div>
+                    <div class="stat-value" id="totalClients">247</div>
+                    <div class="stat-change positive">
+                        <span class="icon icon-check"></span>
+                        <span>+12 this month</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Active Deposits</span>
+                        <span class="icon icon-money stat-icon"></span>
+                    </div>
+                    <div class="stat-value" id="activeDeposits">$47.2M</div>
+                    <div class="stat-change positive">
+                        <span class="icon icon-check"></span>
+                        <span>+8.2% vs last month</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Pending Requests</span>
+                        <span class="icon icon-document stat-icon"></span>
+                    </div>
+                    <div class="stat-value" id="pendingRequests">23</div>
+                    <div class="stat-change neutral">
+                        <span class="icon icon-check"></span>
+                        <span>5 awaiting review</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">System Status</span>
+                        <span class="icon icon-check stat-icon"></span>
+                    </div>
+                    <div class="stat-value" id="systemStatus">Online</div>
+                    <div class="stat-change positive">
+                        <span class="icon icon-check"></span>
+                        <span>All systems operational</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Admin Panel -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title-section">
+                        <span class="icon icon-users card-icon"></span>
+                        <h2 class="card-title">Client Management</h2>
+                    </div>
+                    <button class="btn btn-primary" onclick="openAddClientModal()">
+                        <span class="icon icon-plus"></span>
+                        Add New Client
+                    </button>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tabs">
+                    <button class="tab active" data-tab="clients" onclick="switchTab('clients')">All Clients</button>
+                    <button class="tab" data-tab="deposits" onclick="switchTab('deposits')">Deposit Requests</button>
+                    <button class="tab" data-tab="reports" onclick="switchTab('reports')">Reports</button>
+                </div>
+
+                <!-- Clients Tab -->
+                <div class="tab-content active" id="clients-tab">
+                    <!-- Search and Filters -->
+                    <div class="search-filters">
+                        <div class="search-input">
+                            <span class="icon icon-search"></span>
+                            <input type="text" placeholder="Search clients..." id="clientSearch" onkeyup="filterClients()">
+                        </div>
+                        <select class="filter-select" id="statusFilter" onchange="filterClients()">
+                            <option value="">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="pending">Pending</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="exportClients()">
+                            <span class="icon icon-download"></span>
+                            Export
+                        </button>
                     </div>
 
-                    <div style="margin-bottom: 16px; display: flex; gap: 12px; align-items: center;">
-                        <select id="statusFilter" class="form-select" style="width: auto;" onchange="filterDeposits()">
-                            <option value="all">All Status</option>
-                            <option value="pending">Pending Review</option>
+                    <!-- Clients Table -->
+                    <div style="overflow-x: auto;">
+                        <table class="data-table" id="clientsTable">
+                            <thead>
+                                <tr>
+                                    <th>Client</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Total Deposits</th>
+                                    <th>Status</th>
+                                    <th>Joined</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="clientsTableBody">
+                                <!-- Dynamic content -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="pagination">
+                        <div class="pagination-info" id="paginationInfo">
+                            Showing 1-10 of 247 clients
+                        </div>
+                        <div class="pagination-controls" id="paginationControls">
+                            <!-- Dynamic pagination buttons -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deposits Tab -->
+                <div class="tab-content" id="deposits-tab">
+                    <div class="search-filters">
+                        <div class="search-input">
+                            <span class="icon icon-search"></span>
+                            <input type="text" placeholder="Search deposits..." id="depositSearch" onkeyup="filterDeposits()">
+                        </div>
+                        <select class="filter-select" id="depositStatusFilter" onchange="filterDeposits()">
+                            <option value="">All Status</option>
+                            <option value="pending">Pending</option>
                             <option value="approved">Approved</option>
                             <option value="completed">Completed</option>
                             <option value="rejected">Rejected</option>
                         </select>
-                        <button class="btn btn-secondary" onclick="refreshDeposits()">
-                            <span class="icon icon-refresh"></span>
-                            Refresh
+                    </div>
+
+                    <div style="overflow-x: auto;">
+                        <table class="data-table" id="depositsTable">
+                            <thead>
+                                <tr>
+                                    <th>Reference</th>
+                                    <th>Client</th>
+                                    <th>Amount</th>
+                                    <th>Purpose</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="depositsTableBody">
+                                <!-- Dynamic content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Reports Tab -->
+                <div class="tab-content" id="reports-tab">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-title">Monthly Deposits</span>
+                                <span class="icon icon-money stat-icon"></span>
+                            </div>
+                            <div class="stat-value">$12.4M</div>
+                            <div class="stat-change positive">
+                                <span class="icon icon-check"></span>
+                                <span>+15.2% vs last month</span>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-title">New Clients</span>
+                                <span class="icon icon-users stat-icon"></span>
+                            </div>
+                            <div class="stat-value">34</div>
+                            <div class="stat-change positive">
+                                <span class="icon icon-check"></span>
+                                <span>+22% vs last month</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 24px;">
+                        <button class="btn btn-primary" onclick="generateReport()">
+                            <span class="icon icon-download"></span>
+                            Generate Full Report
                         </button>
                     </div>
-
-                    <table class="deposits-table">
-                        <thead>
-                            <tr>
-                                <th>Client</th>
-                                <th>Amount</th>
-                                <th>Reference</th>
-                                <th>Status</th>
-                                <th>Files</th>
-                                <th>Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="depositsTableBody">
-                            <!-- Populated by JavaScript -->
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Recent Activity Panel -->
-                <div class="card">
-                    <div class="card-header">
-                        <span class="icon icon-chat card-icon"></span>
-                        <h2 class="card-title">Recent Activity</h2>
-                    </div>
-
-                    <div class="notifications-panel" id="notificationsPanel">
-                        <!-- Populated by JavaScript -->
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Deposit Detail Modal -->
-    <div id="depositModal" class="modal">
+    <!-- Add/Edit Client Modal -->
+    <div class="modal" id="clientModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title" id="modalTitle">Deposit Details</h2>
-                <button class="close" onclick="closeModal()">&times;</button>
+                <h3 class="modal-title" id="modalTitle">Add New Client</h3>
+                <button class="modal-close" onclick="closeModal('clientModal')">
+                    <span class="icon icon-x"></span>
+                </button>
             </div>
-            <div id="modalContent">
-                <!-- Populated by JavaScript -->
+            <div class="modal-body">
+                <form id="clientForm" class="admin-form">
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label for="firstName">First Name</label>
+                            <input type="text" id="firstName" name="firstName" required>
+                        </div>
+                        <div class="form-field">
+                            <label for="lastName">Last Name</label>
+                            <input type="text" id="lastName" name="lastName" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-field">
+                            <label for="phone">Phone</label>
+                            <input type="tel" id="phone" name="phone">
+                        </div>
+                    </div>
+
+                    <div class="form-field full-width">
+                        <label for="address">Address</label>
+                        <textarea id="address" name="address" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label for="initialDeposit">Initial Deposit</label>
+                            <input type="number" id="initialDeposit" name="initialDeposit" min="1000" step="0.01">
+                        </div>
+                        <div class="form-field">
+                            <label for="clientStatus">Status</label>
+                            <select id="clientStatus" name="status">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="pending">Pending</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <input type="hidden" id="clientId" name="id">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('clientModal')">Cancel</button>
+                <button type="submit" form="clientForm" class="btn btn-primary" id="saveClientBtn">Save Client</button>
             </div>
         </div>
     </div>
-<!-- Complete Admin JavaScript -->
+
+    <!-- View Client Details Modal -->
+    <div class="modal" id="viewClientModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Client Details</h3>
+                <button class="modal-close" onclick="closeModal('viewClientModal')">
+                    <span class="icon icon-x"></span>
+                </button>
+            </div>
+            <div class="modal-body" id="clientDetailsBody">
+                <!-- Dynamic content -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('viewClientModal')">Close</button>
+                <button type="button" class="btn btn-primary" onclick="editClientFromView()">Edit Client</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deposit Details Modal -->
+    <div class="modal" id="depositModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Deposit Request Details</h3>
+                <button class="modal-close" onclick="closeModal('depositModal')">
+                    <span class="icon icon-x"></span>
+                </button>
+            </div>
+            <div class="modal-body" id="depositDetailsBody">
+                <!-- Dynamic content -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('depositModal')">Close</button>
+                <button type="button" class="btn btn-success" onclick="approveDeposit()" id="approveBtn">Approve</button>
+                <button type="button" class="btn btn-danger" onclick="rejectDeposit()" id="rejectBtn">Reject</button>
+            </div>
+        </div>
+    </div>
+    <!-- Complete Working JavaScript -->
     <script>
         let currentTheme = 'light';
-        let allDeposits = [];
-        let filteredDeposits = [];
+        let clients = [];
+        let deposits = [];
+        let currentPage = 1;
+        let itemsPerPage = 10;
+        let currentTab = 'clients';
+        let editingClientId = null;
+        let viewingDepositId = null;
 
-        // Check admin access
-        function checkAdminAccess() {
-            const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
-            if (userData.role !== 'admin') {
-                alert('Access denied. Admin privileges required.');
-                window.location.href = 'dashboard.html';
-                return false;
+        // Sample client data
+        const sampleClients = [
+            {
+                id: 'client_1',
+                firstName: 'John',
+                lastName: 'Smith',
+                email: 'john.smith@email.com',
+                phone: '+1 (555) 123-4567',
+                address: '123 Main Street, New York, NY 10001',
+                status: 'active',
+                joinDate: '2024-01-15',
+                totalDeposits: 2500000,
+                lastActive: '2024-06-20'
+            },
+            {
+                id: 'client_2',
+                firstName: 'Sarah',
+                lastName: 'Johnson',
+                email: 'sarah.johnson@email.com',
+                phone: '+1 (555) 987-6543',
+                address: '456 Oak Avenue, Los Angeles, CA 90210',
+                status: 'active',
+                joinDate: '2024-02-03',
+                totalDeposits: 1800000,
+                lastActive: '2024-06-22'
+            },
+            {
+                id: 'client_3',
+                firstName: 'Michael',
+                lastName: 'Brown',
+                email: 'michael.brown@email.com',
+                phone: '+1 (555) 456-7890',
+                address: '789 Pine Road, Chicago, IL 60601',
+                status: 'pending',
+                joinDate: '2024-06-15',
+                totalDeposits: 500000,
+                lastActive: '2024-06-15'
+            },
+            {
+                id: 'client_4',
+                firstName: 'Emily',
+                lastName: 'Davis',
+                email: 'emily.davis@email.com',
+                phone: '+1 (555) 321-0987',
+                address: '321 Elm Street, Miami, FL 33101',
+                status: 'active',
+                joinDate: '2024-03-20',
+                totalDeposits: 3200000,
+                lastActive: '2024-06-21'
+            },
+            {
+                id: 'client_5',
+                firstName: 'Robert',
+                lastName: 'Wilson',
+                email: 'robert.wilson@email.com',
+                phone: '+1 (555) 654-3210',
+                address: '654 Maple Drive, Seattle, WA 98101',
+                status: 'inactive',
+                joinDate: '2024-01-08',
+                totalDeposits: 1200000,
+                lastActive: '2024-05-10'
             }
-            return true;
+        ];
+
+        // Sample deposit data
+        const sampleDeposits = [
+            {
+                id: 'dep_1',
+                reference: 'ACP123456',
+                clientId: 'client_1',
+                clientName: 'John Smith',
+                amount: 500000,
+                purpose: 'additional',
+                status: 'pending',
+                date: '2024-06-20',
+                documents: ['source_of_funds.pdf', 'bank_statement.pdf']
+            },
+            {
+                id: 'dep_2',
+                reference: 'ACP789012',
+                clientId: 'client_2',
+                clientName: 'Sarah Johnson',
+                amount: 300000,
+                purpose: 'reinvestment',
+                status: 'approved',
+                date: '2024-06-19',
+                documents: ['deposit_form.pdf']
+            },
+            {
+                id: 'dep_3',
+                reference: 'ACP345678',
+                clientId: 'client_4',
+                clientName: 'Emily Davis',
+                amount: 750000,
+                purpose: 'initial',
+                status: 'completed',
+                date: '2024-06-18',
+                documents: ['source_of_funds.pdf', 'id_verification.pdf']
+            }
+        ];
+
+        // Initialize data
+        function initializeData() {
+            // Load from localStorage or use sample data
+            const savedClients = localStorage.getItem('aequitas_admin_clients');
+            const savedDeposits = localStorage.getItem('aequitas_admin_deposits');
+
+            clients = savedClients ? JSON.parse(savedClients) : sampleClients;
+            deposits = savedDeposits ? JSON.parse(savedDeposits) : sampleDeposits;
+
+            // Load user deposits from main app
+            const userDeposits = localStorage.getItem('aequitas_deposits');
+            if (userDeposits) {
+                const userDepositData = JSON.parse(userDeposits);
+                userDepositData.forEach(deposit => {
+                    if (!deposits.find(d => d.id === deposit.id)) {
+                        deposits.push({
+                            id: deposit.id,
+                            reference: deposit.reference,
+                            clientId: deposit.userId || 'client_demo',
+                            clientName: 'Demo User',
+                            amount: deposit.amount,
+                            purpose: deposit.purpose,
+                            status: deposit.status,
+                            date: new Date(deposit.createdAt).toLocaleDateString(),
+                            documents: []
+                        });
+                    }
+                });
+            }
+
+            saveData();
         }
 
-        // Theme toggle
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('aequitas_admin_clients', JSON.stringify(clients));
+            localStorage.setItem('aequitas_admin_deposits', JSON.stringify(deposits));
+        }
+
+        // Theme Toggle
         function toggleTheme() {
             currentTheme = currentTheme === 'light' ? 'dark' : 'light';
             document.documentElement.setAttribute('data-theme', currentTheme);
@@ -530,11 +1651,13 @@
 
         // Navigation
         function navigateTo(page) {
+            console.log(`Navigation to: ${page}`);
+            
             if (page === 'dashboard') {
                 window.location.href = 'dashboard.html';
             } else if (page === 'deposit') {
                 window.location.href = 'deposit.html';
-            } else {
+            } else if (page !== 'admin') {
                 alert(`${page.charAt(0).toUpperCase() + page.slice(1)} page coming soon!`);
             }
         }
@@ -548,121 +1671,115 @@
             }
         }
 
-        // Load all client deposits (combines real data with demo data)
-        function loadDeposits() {
-            // Get real deposits from localStorage
-            const realDeposits = JSON.parse(localStorage.getItem('aequitas_deposits') || '[]');
+        // Tab switching
+        function switchTab(tabName) {
+            currentTab = tabName;
             
-            // Demo deposits for display
-            const demoDeposits = [
-                {
-                    id: 'demo_001',
-                    userId: 'demo_user_1',
-                    amount: 250000,
-                    purpose: 'additional',
-                    reference: 'ACP789123',
-                    status: 'pending',
-                    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
-                    clientName: 'John Smith',
-                    clientEmail: 'john.smith@email.com',
-                    uploadedFiles: 2
-                },
-                {
-                    id: 'demo_002',
-                    userId: 'demo_user_2',
-                    amount: 500000,
-                    purpose: 'initial',
-                    reference: 'ACP654789',
-                    status: 'approved',
-                    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
-                    clientName: 'Sarah Johnson',
-                    clientEmail: 'sarah.j@company.com',
-                    uploadedFiles: 3,
-                    adminNotes: 'All documentation verified. Approved for transfer.'
-                },
-                {
-                    id: 'demo_003',
-                    userId: 'demo_user_3',
-                    amount: 150000,
-                    purpose: 'reinvestment',
-                    reference: 'ACP321456',
-                    status: 'completed',
-                    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 1 week ago
-                    clientName: 'Michael Brown',
-                    clientEmail: 'mbrown@investment.com',
-                    uploadedFiles: 2,
-                    adminNotes: 'Funds received and allocated to trading account.'
-                }
-            ];
-
-            // Combine and enhance real deposits with demo data
-            const enhancedRealDeposits = realDeposits.map(deposit => {
-                const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
-                const uploadedFiles = JSON.parse(localStorage.getItem('aequitas_uploaded_files') || '{"forms": []}');
-                
-                return {
-                    ...deposit,
-                    clientName: `${userData.firstName || 'Client'} ${userData.lastName || 'User'}`,
-                    clientEmail: userData.email || 'client@example.com',
-                    uploadedFiles: uploadedFiles.forms ? uploadedFiles.forms.length : 0
-                };
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
             });
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            // Load tab data
+            if (tabName === 'clients') {
+                renderClientsTable();
+            } else if (tabName === 'deposits') {
+                renderDepositsTable();
+            }
+        }
 
-            allDeposits = [...demoDeposits, ...enhancedRealDeposits];
-            filteredDeposits = [...allDeposits];
-            renderDepositsTable();
-            updateNotifications();
+        // Render clients table
+        function renderClientsTable() {
+            const tbody = document.getElementById('clientsTableBody');
+            const searchTerm = document.getElementById('clientSearch').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            
+            let filteredClients = clients.filter(client => {
+                const matchesSearch = client.firstName.toLowerCase().includes(searchTerm) ||
+                                    client.lastName.toLowerCase().includes(searchTerm) ||
+                                    client.email.toLowerCase().includes(searchTerm);
+                const matchesStatus = !statusFilter || client.status === statusFilter;
+                return matchesSearch && matchesStatus;
+            });
+            
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const paginatedClients = filteredClients.slice(startIndex, endIndex);
+            
+            tbody.innerHTML = paginatedClients.map(client => `
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div class="client-avatar">${client.firstName.charAt(0)}</div>
+                            <div>
+                                <div style="font-weight: 500;">${client.firstName} ${client.lastName}</div>
+                                <div style="font-size: 12px; color: var(--text-tertiary);">ID: ${client.id}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${client.email}</td>
+                    <td>${client.phone || 'Not provided'}</td>
+                    <td>$${client.totalDeposits.toLocaleString()}</td>
+                    <td><span class="status ${client.status}">${client.status}</span></td>
+                    <td>${new Date(client.joinDate).toLocaleDateString()}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn view" onclick="viewClient('${client.id}')" title="View Details">
+                                <span class="icon icon-eye"></span>
+                            </button>
+                            <button class="action-btn edit" onclick="editClient('${client.id}')" title="Edit">
+                                <span class="icon icon-edit"></span>
+                            </button>
+                            <button class="action-btn delete" onclick="deleteClient('${client.id}')" title="Delete">
+                                <span class="icon icon-trash"></span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+            
+            updatePagination(filteredClients.length);
         }
 
         // Render deposits table
         function renderDepositsTable() {
             const tbody = document.getElementById('depositsTableBody');
+            const searchTerm = document.getElementById('depositSearch').value.toLowerCase();
+            const statusFilter = document.getElementById('depositStatusFilter').value;
             
-            if (filteredDeposits.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: var(--text-secondary);">No deposits found</td></tr>';
-                return;
-            }
+            let filteredDeposits = deposits.filter(deposit => {
+                const matchesSearch = deposit.reference.toLowerCase().includes(searchTerm) ||
+                                    deposit.clientName.toLowerCase().includes(searchTerm);
+                const matchesStatus = !statusFilter || deposit.status === statusFilter;
+                return matchesSearch && matchesStatus;
+            });
             
             tbody.innerHTML = filteredDeposits.map(deposit => `
                 <tr>
                     <td>
-                        <div style="font-weight: 500;">${deposit.clientName}</div>
-                        <div style="font-size: 12px; color: var(--text-secondary);">${deposit.clientEmail}</div>
+                        <div style="font-weight: 500;">${deposit.reference}</div>
+                        <div style="font-size: 12px; color: var(--text-tertiary);">${deposit.id}</div>
                     </td>
-                    <td>$${parseFloat(deposit.amount).toLocaleString()}</td>
+                    <td>${deposit.clientName}</td>
+                    <td>$${deposit.amount.toLocaleString()}</td>
+                    <td style="text-transform: capitalize;">${deposit.purpose}</td>
+                    <td><span class="status ${deposit.status}">${deposit.status}</span></td>
+                    <td>${deposit.date}</td>
                     <td>
-                        <code style="background: var(--bg-secondary); padding: 2px 6px; border-radius: 4px; font-size: 12px;">
-                            ${deposit.reference}
-                        </code>
-                    </td>
-                    <td>
-                        <span class="status-${deposit.status}">
-                            ${deposit.status.charAt(0).toUpperCase() + deposit.status.slice(1)}
-                        </span>
-                    </td>
-                    <td>
-                        <span style="font-size: 12px; color: var(--text-secondary);">
-                            ${deposit.uploadedFiles || 0} files
-                        </span>
-                    </td>
-                    <td>${new Date(deposit.createdAt).toLocaleDateString()}</td>
-                    <td>
-                        <div class="deposit-actions">
-                            <button class="btn btn-primary btn-small" onclick="viewDepositDetails('${deposit.id}')">
-                                <span class="icon icon-document"></span>
-                                View
+                        <div class="action-buttons">
+                            <button class="action-btn view" onclick="viewDeposit('${deposit.id}')" title="View Details">
+                                <span class="icon icon-eye"></span>
                             </button>
                             ${deposit.status === 'pending' ? `
-                                <button class="btn btn-success btn-small" onclick="updateDepositStatus('${deposit.id}', 'approved')">
-                                    Approve
-                                </button>
-                                <button class="btn btn-error btn-small" onclick="updateDepositStatus('${deposit.id}', 'rejected')">
-                                    Reject
-                                </button>
-                            ` : ''}
-                            ${deposit.status === 'approved' ? `
-                                <button class="btn btn-success btn-small" onclick="updateDepositStatus('${deposit.id}', 'completed')">
-                                    Complete
+                                <button class="action-btn edit" onclick="approveDepositQuick('${deposit.id}')" title="Quick Approve">
+                                    <span class="icon icon-check"></span>
                                 </button>
                             ` : ''}
                         </div>
@@ -671,372 +1788,415 @@
             `).join('');
         }
 
-        // Filter deposits
-        function filterDeposits() {
-            const statusFilter = document.getElementById('statusFilter').value;
+        // Update pagination
+        function updatePagination(totalItems) {
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            const paginationInfo = document.getElementById('paginationInfo');
+            const paginationControls = document.getElementById('paginationControls');
             
-            if (statusFilter === 'all') {
-                filteredDeposits = [...allDeposits];
-            } else {
-                filteredDeposits = allDeposits.filter(deposit => deposit.status === statusFilter);
+            const startItem = (currentPage - 1) * itemsPerPage + 1;
+            const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+            
+            paginationInfo.textContent = `Showing ${startItem}-${endItem} of ${totalItems} items`;
+            
+            let paginationHTML = '';
+            
+            // Previous button
+            paginationHTML += `
+                <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">
+                    Previous
+                </button>
+            `;
+            
+            // Page numbers
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                    paginationHTML += `
+                        <button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">
+                            ${i}
+                        </button>
+                    `;
+                } else if (i === currentPage - 3 || i === currentPage + 3) {
+                    paginationHTML += '<span style="padding: 8px;">...</span>';
+                }
             }
             
+            // Next button
+            paginationHTML += `
+                <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">
+                    Next
+                </button>
+            `;
+            
+            paginationControls.innerHTML = paginationHTML;
+        }
+
+        // Change page
+        function changePage(page) {
+            currentPage = page;
+            if (currentTab === 'clients') {
+                renderClientsTable();
+            } else if (currentTab === 'deposits') {
+                renderDepositsTable();
+            }
+        }
+
+        // Filter functions
+        function filterClients() {
+            currentPage = 1;
+            renderClientsTable();
+        }
+
+        function filterDeposits() {
+            currentPage = 1;
             renderDepositsTable();
         }
 
-        // Refresh deposits
-        function refreshDeposits() {
-            showNotification('Refreshing deposit data...', 'info');
-            loadDeposits();
-            showNotification('Deposit data refreshed successfully!', 'success');
+        // Modal functions
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('show');
         }
 
-        // View deposit details in modal
-        function viewDepositDetails(depositId) {
-            const deposit = allDeposits.find(d => d.id === depositId);
-            if (!deposit) {
-                showNotification('Deposit not found', 'error');
-                return;
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+            if (modalId === 'clientModal') {
+                document.getElementById('clientForm').reset();
+                editingClientId = null;
             }
+        }
+
+        // Client management functions
+        function openAddClientModal() {
+            editingClientId = null;
+            document.getElementById('modalTitle').textContent = 'Add New Client';
+            document.getElementById('saveClientBtn').textContent = 'Save Client';
+            document.getElementById('clientForm').reset();
+            openModal('clientModal');
+        }
+
+        function editClient(clientId) {
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
             
-            const modal = document.getElementById('depositModal');
-            const modalTitle = document.getElementById('modalTitle');
-            const modalContent = document.getElementById('modalContent');
+            editingClientId = clientId;
+            document.getElementById('modalTitle').textContent = 'Edit Client';
+            document.getElementById('saveClientBtn').textContent = 'Update Client';
             
-            modalTitle.textContent = `Deposit #${deposit.reference}`;
+            // Populate form
+            document.getElementById('firstName').value = client.firstName;
+            document.getElementById('lastName').value = client.lastName;
+            document.getElementById('email').value = client.email;
+            document.getElementById('phone').value = client.phone || '';
+            document.getElementById('address').value = client.address || '';
+            document.getElementById('initialDeposit').value = client.totalDeposits;
+            document.getElementById('clientStatus').value = client.status;
+            document.getElementById('clientId').value = client.id;
             
-            // Get uploaded files for this deposit
-            const uploadedFiles = getUploadedFilesForDeposit(depositId);
+            openModal('clientModal');
+        }
+
+        function viewClient(clientId) {
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
             
-            modalContent.innerHTML = `
-                <div class="client-info-grid">
-                    <div class="info-field">
-                        <div class="info-label">Client Name</div>
-                        <div class="info-value">${deposit.clientName}</div>
+            const clientDeposits = deposits.filter(d => d.clientId === clientId);
+            
+            document.getElementById('clientDetailsBody').innerHTML = `
+                <div class="modal-form-grid">
+                    <div class="modal-form-group">
+                        <label>Full Name</label>
+                        <div style="font-weight: 500;">${client.firstName} ${client.lastName}</div>
                     </div>
-                    <div class="info-field">
-                        <div class="info-label">Email</div>
-                        <div class="info-value">${deposit.clientEmail}</div>
+                    <div class="modal-form-group">
+                        <label>Status</label>
+                        <span class="status ${client.status}">${client.status}</span>
                     </div>
-                    <div class="info-field">
-                        <div class="info-label">Amount</div>
-                        <div class="info-value">$${parseFloat(deposit.amount).toLocaleString()}</div>
+                    <div class="modal-form-group">
+                        <label>Email</label>
+                        <div>${client.email}</div>
                     </div>
-                    <div class="info-field">
-                        <div class="info-label">Purpose</div>
-                        <div class="info-value">${deposit.purpose.charAt(0).toUpperCase() + deposit.purpose.slice(1)}</div>
+                    <div class="modal-form-group">
+                        <label>Phone</label>
+                        <div>${client.phone || 'Not provided'}</div>
                     </div>
-                    <div class="info-field">
-                        <div class="info-label">Status</div>
-                        <div class="info-value">
-                            <span class="status-${deposit.status}">
-                                ${deposit.status.charAt(0).toUpperCase() + deposit.status.slice(1)}
-                            </span>
-                        </div>
+                    <div class="modal-form-group full-width">
+                        <label>Address</label>
+                        <div>${client.address || 'Not provided'}</div>
                     </div>
-                    <div class="info-field">
-                        <div class="info-label">Date Submitted</div>
-                        <div class="info-value">${new Date(deposit.createdAt).toLocaleDateString()}</div>
+                    <div class="modal-form-group">
+                        <label>Join Date</label>
+                        <div>${new Date(client.joinDate).toLocaleDateString()}</div>
                     </div>
-                </div>
-                
-                ${deposit.adminNotes ? `
-                    <div style="margin: 20px 0;">
-                        <h3 style="margin-bottom: 8px;">Admin Notes</h3>
-                        <div style="background: var(--bg-secondary); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
-                            ${deposit.adminNotes}
-                        </div>
+                    <div class="modal-form-group">
+                        <label>Total Deposits</label>
+                        <div style="font-weight: 600; color: var(--success);">$${client.totalDeposits.toLocaleString()}</div>
                     </div>
-                ` : ''}
-                
-                <div class="status-update-section">
-                    <h3 style="margin-bottom: 16px;">Status Management</h3>
-                    <div class="form-group">
-                        <label class="form-label" for="statusSelect">Update Status</label>
-                        <select id="statusSelect" class="form-select">
-                            <option value="pending" ${deposit.status === 'pending' ? 'selected' : ''}>Pending</option>
-                            <option value="approved" ${deposit.status === 'approved' ? 'selected' : ''}>Approved</option>
-                            <option value="completed" ${deposit.status === 'completed' ? 'selected' : ''}>Completed</option>
-                            <option value="rejected" ${deposit.status === 'rejected' ? 'selected' : ''}>Rejected</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="adminNotes">Admin Notes</label>
-                        <textarea id="adminNotes" class="form-textarea" placeholder="Add notes about this deposit...">${deposit.adminNotes || ''}</textarea>
-                    </div>
-                    <button class="btn btn-primary" onclick="updateDepositStatusFromModal('${deposit.id}')">
-                        Update Status
-                    </button>
-                </div>
-                
-                <div style="margin-top: 24px;">
-                    <h3 style="margin-bottom: 16px;">Uploaded Documents (${uploadedFiles.length})</h3>
-                    ${uploadedFiles.length > 0 ? `
-                        <div class="files-grid">
-                            ${uploadedFiles.map(file => `
-                                <div class="file-card">
-                                    <h4>${file.name}</h4>
-                                    <div class="file-meta">
-                                        <div>Size: ${file.size}</div>
-                                        <div>Uploaded: ${new Date(file.uploadDate).toLocaleDateString()}</div>
+                    <div class="modal-form-group full-width">
+                        <label>Recent Deposits (${clientDeposits.length})</label>
+                        <div style="margin-top: 8px;">
+                            ${clientDeposits.length > 0 ? clientDeposits.map(d => `
+                                <div style="padding: 8px; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 8px;">
+                                    <div style="display: flex; justify-content: space-between;">
+                                        <span style="font-weight: 500;">${d.reference}</span>
+                                        <span class="status ${d.status}">${d.status}</span>
                                     </div>
-                                    <button class="btn btn-outline btn-small" onclick="downloadClientFile('${file.id}')">
-                                        <span class="icon icon-download"></span>
-                                        View File
-                                    </button>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">
+                                        $${d.amount.toLocaleString()} • ${d.date}
+                                    </div>
                                 </div>
-                            `).join('')}
+                            `).join('') : '<div style="color: var(--text-secondary);">No deposits yet</div>'}
                         </div>
-                    ` : `
-                        <div style="text-align: center; padding: 40px; color: var(--text-secondary); background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color);">
-                            <span class="icon icon-document" style="width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5;"></span>
-                            <div>No documents uploaded yet</div>
-                            <div style="font-size: 12px; margin-top: 8px;">Client needs to upload required forms</div>
-                        </div>
-                    `}
+                    </div>
                 </div>
             `;
             
-            modal.style.display = 'block';
+            editingClientId = clientId;
+            openModal('viewClientModal');
         }
 
-        // Get uploaded files for specific deposit
-        function getUploadedFilesForDeposit(depositId) {
-            const allUploadedFiles = JSON.parse(localStorage.getItem('aequitas_uploaded_files') || '{"forms": []}');
-            
-            // For demo deposits, return mock files
-            if (depositId.startsWith('demo_')) {
-                const demoFiles = [
-                    {
-                        id: 'demo_file_1',
-                        name: 'Source_of_Funds_Declaration.pdf',
-                        size: '245 KB',
-                        uploadDate: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-                    },
-                    {
-                        id: 'demo_file_2',
-                        name: 'Deposit_Request_Form.pdf',
-                        size: '189 KB',
-                        uploadDate: new Date(Date.now() - 23 * 60 * 60 * 1000).toISOString()
-                    }
-                ];
-                return depositId === 'demo_001' ? [demoFiles[0]] : depositId === 'demo_002' ? demoFiles : depositId === 'demo_003' ? [demoFiles[1]] : [];
-            }
-            
-            // For real deposits, return actual uploaded files
-            return allUploadedFiles.forms ? allUploadedFiles.forms.filter(file => file.depositId === depositId) : [];
+        function editClientFromView() {
+            closeModal('viewClientModal');
+            editClient(editingClientId);
         }
 
-        // Download client file
-        function downloadClientFile(fileId) {
-            if (fileId.startsWith('demo_')) {
-                // For demo files, show notification
-                showNotification('Demo file download - in production this would download the actual client document', 'info');
-                return;
-            }
+        function deleteClient(clientId) {
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
             
-            // For real files, show the file would be downloaded
-            showNotification('File download initiated - in production this would download the actual uploaded document', 'success');
-        }
-
-        // Update deposit status
-        function updateDepositStatus(depositId, newStatus) {
-            const confirmMessage = `Are you sure you want to ${newStatus} this deposit?`;
-            if (!confirm(confirmMessage)) return;
-            
-            // Find and update the deposit
-            const depositIndex = allDeposits.findIndex(d => d.id === depositId);
-            if (depositIndex === -1) {
-                showNotification('Deposit not found', 'error');
-                return;
-            }
-            
-            allDeposits[depositIndex].status = newStatus;
-            allDeposits[depositIndex].adminNotes = getDefaultStatusNote(newStatus);
-            allDeposits[depositIndex].updatedAt = new Date().toISOString();
-            
-            // Update localStorage for real deposits
-            if (!depositId.startsWith('demo_')) {
-                const realDeposits = JSON.parse(localStorage.getItem('aequitas_deposits') || '[]');
-                const realDepositIndex = realDeposits.findIndex(d => d.id === depositId);
-                if (realDepositIndex !== -1) {
-                    realDeposits[realDepositIndex].status = newStatus;
-                    realDeposits[realDepositIndex].adminNotes = getDefaultStatusNote(newStatus);
-                    localStorage.setItem('aequitas_deposits', JSON.stringify(realDeposits));
-                }
-            }
-            
-            // Refresh displays
-            filterDeposits();
-            updateNotifications();
-            addActivityNotification(depositId, newStatus);
-            
-            showNotification(`Deposit ${newStatus} successfully!`, 'success');
-        }
-
-        // Update status from modal
-        function updateDepositStatusFromModal(depositId) {
-            const newStatus = document.getElementById('statusSelect').value;
-            const adminNotes = document.getElementById('adminNotes').value;
-            
-            // Find and update the deposit
-            const depositIndex = allDeposits.findIndex(d => d.id === depositId);
-            if (depositIndex === -1) {
-                showNotification('Deposit not found', 'error');
-                return;
-            }
-            
-            allDeposits[depositIndex].status = newStatus;
-            allDeposits[depositIndex].adminNotes = adminNotes;
-            allDeposits[depositIndex].updatedAt = new Date().toISOString();
-            
-            // Update localStorage for real deposits
-            if (!depositId.startsWith('demo_')) {
-                const realDeposits = JSON.parse(localStorage.getItem('aequitas_deposits') || '[]');
-                const realDepositIndex = realDeposits.findIndex(d => d.id === depositId);
-                if (realDepositIndex !== -1) {
-                    realDeposits[realDepositIndex].status = newStatus;
-                    realDeposits[realDepositIndex].adminNotes = adminNotes;
-                    localStorage.setItem('aequitas_deposits', JSON.stringify(realDeposits));
-                }
-            }
-            
-            // Close modal and refresh
-            closeModal();
-            filterDeposits();
-            updateNotifications();
-            addActivityNotification(depositId, newStatus);
-            
-            showNotification(`Deposit status updated to ${newStatus}!`, 'success');
-        }
-
-        // Get default status note
-        function getDefaultStatusNote(status) {
-            switch(status) {
-                case 'approved': return 'Documentation verified and approved. Client may proceed with bank transfer.';
-                case 'completed': return 'Funds received and allocated to trading account.';
-                case 'rejected': return 'Documentation incomplete or requires additional verification.';
-                case 'pending': return 'Awaiting document review and verification.';
-                default: return '';
+            if (confirm(`Are you sure you want to delete client ${client.firstName} ${client.lastName}? This action cannot be undone.`)) {
+                clients = clients.filter(c => c.id !== clientId);
+                deposits = deposits.filter(d => d.clientId !== clientId);
+                saveData();
+                renderClientsTable();
+                updateStats();
+                showNotification(`Client ${client.firstName} ${client.lastName} has been deleted.`, 'success');
             }
         }
 
-        // Close modal
-        function closeModal() {
-            document.getElementById('depositModal').style.display = 'none';
-        }
-
-        // Update notifications panel
-        function updateNotifications() {
-            const panel = document.getElementById('notificationsPanel');
-            const activities = getRecentActivities();
+        // Form submission
+        document.getElementById('clientForm').addEventListener('submit', function(e) {
+            e.preventDefault();
             
-            if (activities.length === 0) {
-                panel.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-secondary);">No recent activity</div>';
-                return;
-            }
-            
-            panel.innerHTML = activities.map(activity => `
-                <div class="notification-item ${activity.isNew ? 'unread' : ''}">
-                    <div class="notification-header">
-                        <div class="notification-title">${activity.title}</div>
-                        <div class="notification-time">${activity.timeAgo}</div>
-                    </div>
-                    <div class="notification-message">${activity.message}</div>
-                    ${activity.reference ? `
-                        <div style="margin-top: 8px;">
-                            <code style="background: var(--bg-tertiary); padding: 2px 6px; border-radius: 4px; font-size: 11px;">
-                                ${activity.reference}
-                            </code>
-                        </div>
-                    ` : ''}
-                </div>
-            `).join('');
-        }
-
-        // Get recent activities
-        function getRecentActivities() {
-            const activities = JSON.parse(localStorage.getItem('aequitas_admin_activities') || '[]');
-            
-            // Add some demo activities
-            const demoActivities = [
-                {
-                    id: 'activity_1',
-                    title: 'New Deposit Request',
-                    message: 'John Smith submitted a new deposit request for $250,000',
-                    reference: 'ACP789123',
-                    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-                    isNew: true
-                },
-                {
-                    id: 'activity_2',
-                    title: 'Document Uploaded',
-                    message: 'Sarah Johnson uploaded Source of Funds declaration',
-                    reference: 'ACP654789',
-                    timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-                    isNew: false
-                },
-                {
-                    id: 'activity_3',
-                    title: 'Deposit Completed',
-                    message: 'Michael Brown\'s deposit has been marked as completed',
-                    reference: 'ACP321456',
-                    timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-                    isNew: false
-                }
-            ];
-            
-            return [...demoActivities, ...activities]
-                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-                .slice(0, 10)
-                .map(activity => ({
-                    ...activity,
-                    timeAgo: formatTimeAgo(activity.timestamp)
-                }));
-        }
-
-        // Add activity notification
-        function addActivityNotification(depositId, action) {
-            const deposit = allDeposits.find(d => d.id === depositId);
-            if (!deposit) return;
-            
-            const activities = JSON.parse(localStorage.getItem('aequitas_admin_activities') || '[]');
-            
-            const newActivity = {
-                id: 'activity_' + Date.now(),
-                title: `Deposit ${action.charAt(0).toUpperCase() + action.slice(1)}`,
-                message: `${deposit.clientName}'s deposit request has been ${action}`,
-                reference: deposit.reference,
-                timestamp: new Date().toISOString(),
-                isNew: true
+            const formData = new FormData(e.target);
+            const clientData = {
+                firstName: formData.get('firstName'),
+                lastName: formData.get('lastName'),
+                email: formData.get('email'),
+                phone: formData.get('phone'),
+                address: formData.get('address'),
+                status: formData.get('status'),
+                totalDeposits: parseFloat(formData.get('initialDeposit')) || 0
             };
             
-            activities.unshift(newActivity);
-            localStorage.setItem('aequitas_admin_activities', JSON.stringify(activities.slice(0, 50))); // Keep only 50 recent activities
+            if (editingClientId) {
+                // Update existing client
+                const clientIndex = clients.findIndex(c => c.id === editingClientId);
+                if (clientIndex !== -1) {
+                    clients[clientIndex] = { ...clients[clientIndex], ...clientData };
+                    showNotification('Client updated successfully!', 'success');
+                }
+            } else {
+                // Add new client
+                const newClient = {
+                    id: 'client_' + Date.now(),
+                    ...clientData,
+                    joinDate: new Date().toISOString().split('T')[0],
+                    lastActive: new Date().toISOString().split('T')[0]
+                };
+                clients.push(newClient);
+                showNotification('Client added successfully!', 'success');
+            }
+            
+            saveData();
+            closeModal('clientModal');
+            renderClientsTable();
+            updateStats();
+        });
+
+        // Deposit management
+        function viewDeposit(depositId) {
+            const deposit = deposits.find(d => d.id === depositId);
+            if (!deposit) return;
+            
+            viewingDepositId = depositId;
+            
+            document.getElementById('depositDetailsBody').innerHTML = `
+                <div class="modal-form-grid">
+                    <div class="modal-form-group">
+                        <label>Reference Number</label>
+                        <div style="font-weight: 500;">${deposit.reference}</div>
+                    </div>
+                    <div class="modal-form-group">
+                        <label>Status</label>
+                        <span class="status ${deposit.status}">${deposit.status}</span>
+                    </div>
+                    <div class="modal-form-group">
+                        <label>Client Name</label>
+                        <div>${deposit.clientName}</div>
+                    </div>
+                    <div class="modal-form-group">
+                        <label>Amount</label>
+                        <div style="font-weight: 600; color: var(--success);">$${deposit.amount.toLocaleString()}</div>
+                    </div>
+                    <div class="modal-form-group">
+                        <label>Purpose</label>
+                        <div style="text-transform: capitalize;">${deposit.purpose}</div>
+                    </div>
+                    <div class="modal-form-group">
+                        <label>Date Submitted</label>
+                        <div>${deposit.date}</div>
+                    </div>
+                    <div class="modal-form-group full-width">
+                        <label>Documents (${deposit.documents.length})</label>
+                        <div style="margin-top: 8px;">
+                            ${deposit.documents.length > 0 ? deposit.documents.map(doc => `
+                                <div style="padding: 8px; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 4px;">
+                                    <span class="icon icon-document"></span> ${doc}
+                                </div>
+                            `).join('') : '<div style="color: var(--text-secondary);">No documents uploaded</div>'}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Show/hide action buttons based on status
+            document.getElementById('approveBtn').style.display = deposit.status === 'pending' ? 'inline-flex' : 'none';
+            document.getElementById('rejectBtn').style.display = deposit.status === 'pending' ? 'inline-flex' : 'none';
+            
+            openModal('depositModal');
         }
 
-        // Format time ago
-        function formatTimeAgo(dateString) {
-            const date = new Date(dateString);
-            const now = new Date();
-            const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+        function approveDeposit() {
+            if (!viewingDepositId) return;
             
-            if (diffInMinutes < 60) {
-                return `${diffInMinutes}m ago`;
-            } else if (diffInMinutes < 1440) {
-                return `${Math.floor(diffInMinutes / 60)}h ago`;
-            } else {
-                return `${Math.floor(diffInMinutes / 1440)}d ago`;
+            const depositIndex = deposits.findIndex(d => d.id === viewingDepositId);
+            if (depositIndex !== -1) {
+                deposits[depositIndex].status = 'approved';
+                saveData();
+                closeModal('depositModal');
+                renderDepositsTable();
+                updateStats();
+                showNotification('Deposit approved successfully!', 'success');
             }
         }
 
-        // Notification system
+        function rejectDeposit() {
+            if (!viewingDepositId) return;
+            
+            if (confirm('Are you sure you want to reject this deposit request?')) {
+                const depositIndex = deposits.findIndex(d => d.id === viewingDepositId);
+                if (depositIndex !== -1) {
+                    deposits[depositIndex].status = 'rejected';
+                    saveData();
+                    closeModal('depositModal');
+                    renderDepositsTable();
+                    updateStats();
+                    showNotification('Deposit rejected.', 'warning');
+                }
+            }
+        }
+
+        function approveDepositQuick(depositId) {
+            const depositIndex = deposits.findIndex(d => d.id === depositId);
+            if (depositIndex !== -1) {
+                deposits[depositIndex].status = 'approved';
+                saveData();
+                renderDepositsTable();
+                updateStats();
+                showNotification('Deposit approved!', 'success');
+            }
+        }
+
+        // Export and reporting
+        function exportClients() {
+            const csvContent = "data:text/csv;charset=utf-8," 
+                + "ID,First Name,Last Name,Email,Phone,Status,Join Date,Total Deposits\n"
+                + clients.map(client => 
+                    `${client.id},${client.firstName},${client.lastName},${client.email},${client.phone || ''},${client.status},${client.joinDate},${client.totalDeposits}`
+                ).join("\n");
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `clients_export_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification('Clients exported successfully!', 'success');
+        }
+
+        function generateReport() {
+            const reportContent = `AEQUITAS CAPITAL PARTNERS
+ADMIN DASHBOARD REPORT
+Generated: ${new Date().toLocaleDateString()}
+
+==========================================
+
+SUMMARY STATISTICS:
+Total Clients: ${clients.length}
+Active Clients: ${clients.filter(c => c.status === 'active').length}
+Pending Clients: ${clients.filter(c => c.status === 'pending').length}
+Inactive Clients: ${clients.filter(c => c.status === 'inactive').length}
+
+Total Deposits: $${deposits.reduce((sum, d) => sum + d.amount, 0).toLocaleString()}
+Pending Deposits: ${deposits.filter(d => d.status === 'pending').length}
+Approved Deposits: ${deposits.filter(d => d.status === 'approved').length}
+Completed Deposits: ${deposits.filter(d => d.status === 'completed').length}
+
+==========================================
+
+TOP CLIENTS BY DEPOSIT VALUE:
+${clients
+    .sort((a, b) => b.totalDeposits - a.totalDeposits)
+    .slice(0, 10)
+    .map((client, index) => `${index + 1}. ${client.firstName} ${client.lastName} - $${client.totalDeposits.toLocaleString()}`)
+    .join('\n')}
+
+==========================================
+
+RECENT DEPOSIT ACTIVITY:
+${deposits
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .slice(0, 10)
+    .map(deposit => `${deposit.reference} - ${deposit.clientName} - $${deposit.amount.toLocaleString()} - ${deposit.status}`)
+    .join('\n')}
+
+==========================================
+
+This report was generated automatically by the Aequitas Capital Partners Admin Dashboard.
+For questions, contact: admin@aequitascap.com`;
+            
+            const blob = new Blob([reportContent], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `admin_report_${new Date().toISOString().split('T')[0]}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            showNotification('Report generated successfully!', 'success');
+        }
+
+        // Update statistics
+        function updateStats() {
+            document.getElementById('totalClients').textContent = clients.length;
+            
+            const totalDeposits = deposits.reduce((sum, d) => sum + d.amount, 0);
+            document.getElementById('activeDeposits').textContent = `$${(totalDeposits / 1000000).toFixed(1)}M`;
+            
+            document.getElementById('pendingRequests').textContent = deposits.filter(d => d.status === 'pending').length;
+        }
+
+        // Enhanced notification system
         function showNotification(message, type = 'info') {
-            const existingNotifications = document.querySelectorAll('.notification-toast');
+            const existingNotifications = document.querySelectorAll('.notification');
             existingNotifications.forEach(n => n.remove());
 
             const notification = document.createElement('div');
-            notification.className = `notification-toast notification-${type}`;
+            notification.className = `notification notification-${type}`;
             notification.style.cssText = `
                 position: fixed;
                 top: 20px;
@@ -1073,50 +2233,7 @@
             }, 5000);
         }
 
-        // Initialize admin dashboard
-        document.addEventListener('DOMContentLoaded', function() {
-            // Check admin access first
-            if (!checkAdminAccess()) return;
-            
-            // Load saved theme
-            const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
-            if (savedTheme === 'dark') {
-                currentTheme = 'dark';
-                document.documentElement.setAttribute('data-theme', 'dark');
-                const themeToggle = document.querySelector('.theme-toggle .icon');
-                if (themeToggle) themeToggle.className = 'icon icon-sun';
-            }
-
-            // Load user data
-            const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
-            const firstName = userData.firstName || 'Admin';
-            const lastName = userData.lastName || 'User';
-            const email = userData.email || 'admin@aequitascap.com';
-            
-            document.getElementById('userName').textContent = `${firstName} ${lastName}`;
-            document.getElementById('userEmail').textContent = email;
-            document.getElementById('userAvatar').textContent = firstName.charAt(0).toUpperCase();
-            
-            // Load deposits and notifications
-            loadDeposits();
-            
-            // Set up auto-refresh every 30 seconds
-            setInterval(() => {
-                loadDeposits();
-            }, 30000);
-            
-            // Modal click outside to close
-            window.onclick = function(event) {
-                const modal = document.getElementById('depositModal');
-                if (event.target === modal) {
-                    closeModal();
-                }
-            };
-            
-            console.log('Admin dashboard initialized successfully');
-        });
-
-        // Add CSS for animations
+        // Add CSS for notification animations
         const style = document.createElement('style');
         style.textContent = `
             @keyframes slideInRight {
@@ -1126,17 +2243,301 @@
             @keyframes slideOutRight {
                 from { transform: translateX(0); opacity: 1; }
                 to { transform: translateX(100%); opacity: 0; }
-            }
-            .btn-error {
-                background: var(--error);
-                color: white;
-            }
-            .btn-error:hover {
-                background: #dc2626;
-            }
-        `;
-        document.head.appendChild(style);
+       `;
+       document.head.appendChild(style);
 
-    </script>
+       // Close modal when clicking outside
+       document.addEventListener('click', function(e) {
+           if (e.target.classList.contains('modal')) {
+               const modalId = e.target.id;
+               closeModal(modalId);
+           }
+       });
+
+       // Keyboard shortcuts
+       document.addEventListener('keydown', function(e) {
+           // ESC to close modals
+           if (e.key === 'Escape') {
+               const openModal = document.querySelector('.modal.show');
+               if (openModal) {
+                   closeModal(openModal.id);
+               }
+           }
+           
+           // Ctrl+N for new client
+           if (e.ctrlKey && e.key === 'n') {
+               e.preventDefault();
+               openAddClientModal();
+           }
+       });
+
+       // Auto-refresh data every 30 seconds
+       setInterval(() => {
+           // Check for new deposits from main app
+           const userDeposits = localStorage.getItem('aequitas_deposits');
+           if (userDeposits) {
+               const userDepositData = JSON.parse(userDeposits);
+               let newDepositsAdded = false;
+               
+               userDepositData.forEach(deposit => {
+                   if (!deposits.find(d => d.id === deposit.id)) {
+                       deposits.push({
+                           id: deposit.id,
+                           reference: deposit.reference,
+                           clientId: deposit.userId || 'client_demo',
+                           clientName: 'Demo User',
+                           amount: deposit.amount,
+                           purpose: deposit.purpose,
+                           status: deposit.status,
+                           date: new Date(deposit.createdAt).toLocaleDateString(),
+                           documents: []
+                       });
+                       newDepositsAdded = true;
+                   }
+               });
+               
+               if (newDepositsAdded) {
+                   saveData();
+                   if (currentTab === 'deposits') {
+                       renderDepositsTable();
+                   }
+                   updateStats();
+               }
+           }
+       }, 30000);
+
+       // Search functionality with debounce
+       let searchTimeout;
+       function debounceSearch(callback, delay = 300) {
+           clearTimeout(searchTimeout);
+           searchTimeout = setTimeout(callback, delay);
+       }
+
+       document.getElementById('clientSearch').addEventListener('input', function() {
+           debounceSearch(filterClients);
+       });
+
+       document.getElementById('depositSearch').addEventListener('input', function() {
+           debounceSearch(filterDeposits);
+       });
+
+       // Initialize page
+       document.addEventListener('DOMContentLoaded', function() {
+           // Check authentication and admin privileges
+           const authToken = localStorage.getItem('aequitas_auth_token');
+           const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
+           
+           if (!authToken) {
+               showNotification('Please log in to access this page.', 'warning');
+               setTimeout(() => {
+                   window.location.href = 'login.html';
+               }, 2000);
+               return;
+           }
+           
+           if (userData.role !== 'admin') {
+               showNotification('Access denied. Admin privileges required.', 'error');
+               setTimeout(() => {
+                   window.location.href = 'dashboard.html';
+               }, 2000);
+               return;
+           }
+
+           // Load saved theme
+           const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
+           if (savedTheme === 'dark') {
+               currentTheme = 'dark';
+               document.documentElement.setAttribute('data-theme', 'dark');
+               const themeToggle = document.querySelector('.theme-toggle .icon');
+               if (themeToggle) themeToggle.className = 'icon icon-sun';
+           }
+
+           // Load user data and update UI
+           const firstName = userData.firstName || 'Admin';
+           const lastName = userData.lastName || 'User';
+           const email = userData.email || 'admin@aequitascap.com';
+           
+           // Update user info elements
+           const userNameEl = document.getElementById('userName');
+           const userEmailEl = document.getElementById('userEmail');
+           const topUserNameEl = document.getElementById('topUserName');
+           const userAvatarEl = document.getElementById('userAvatar');
+           
+           if (userNameEl) userNameEl.textContent = `${firstName} ${lastName}`;
+           if (userEmailEl) userEmailEl.textContent = email;
+           if (topUserNameEl) topUserNameEl.textContent = firstName;
+           if (userAvatarEl) userAvatarEl.textContent = firstName.charAt(0).toUpperCase();
+
+           // Initialize data and render
+           initializeData();
+           renderClientsTable();
+           updateStats();
+
+           console.log('Admin dashboard initialized successfully');
+           showNotification('Welcome to the Admin Dashboard!', 'success');
+       });
+
+       // Handle window resize for responsive behavior
+       window.addEventListener('resize', function() {
+           if (window.innerWidth <= 1024) {
+               // Mobile/tablet adjustments
+               const sidebar = document.getElementById('sidebar');
+               if (sidebar && !sidebar.classList.contains('open')) {
+                   sidebar.style.transform = 'translateX(-100%)';
+               }
+           }
+       });
+
+       // Performance monitoring
+       function logPerformance(action) {
+           const timestamp = new Date().toISOString();
+           console.log(`[Admin Dashboard] ${action} at ${timestamp}`);
+           
+           // Could be extended to send to analytics service
+           const performanceLog = JSON.parse(localStorage.getItem('aequitas_admin_performance') || '[]');
+           performanceLog.push({ action, timestamp });
+           
+           // Keep only last 100 entries
+           if (performanceLog.length > 100) {
+               performanceLog.splice(0, performanceLog.length - 100);
+           }
+           
+           localStorage.setItem('aequitas_admin_performance', JSON.stringify(performanceLog));
+       }
+
+       // Enhanced error handling
+       window.addEventListener('error', function(e) {
+           console.error('Admin dashboard error:', e.error);
+           showNotification('An error occurred. Please refresh the page if issues persist.', 'error');
+           
+           // Log error for debugging
+           const errorLog = JSON.parse(localStorage.getItem('aequitas_admin_errors') || '[]');
+           errorLog.push({
+               message: e.error.message,
+               stack: e.error.stack,
+               timestamp: new Date().toISOString(),
+               url: window.location.href
+           });
+           
+           // Keep only last 50 errors
+           if (errorLog.length > 50) {
+               errorLog.splice(0, errorLog.length - 50);
+           }
+           
+           localStorage.setItem('aequitas_admin_errors', JSON.stringify(errorLog));
+       });
+
+       // Backup and restore functionality
+       function createBackup() {
+           const backupData = {
+               clients: clients,
+               deposits: deposits,
+               timestamp: new Date().toISOString(),
+               version: '1.0'
+           };
+           
+           const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+           const url = window.URL.createObjectURL(blob);
+           const a = document.createElement('a');
+           a.href = url;
+           a.download = `aequitas_admin_backup_${new Date().toISOString().split('T')[0]}.json`;
+           document.body.appendChild(a);
+           a.click();
+           window.URL.revokeObjectURL(url);
+           document.body.removeChild(a);
+           
+           showNotification('Backup created successfully!', 'success');
+       }
+
+       // Data validation
+       function validateClientData(clientData) {
+           const errors = [];
+           
+           if (!clientData.firstName || clientData.firstName.trim().length < 2) {
+               errors.push('First name must be at least 2 characters');
+           }
+           
+           if (!clientData.lastName || clientData.lastName.trim().length < 2) {
+               errors.push('Last name must be at least 2 characters');
+           }
+           
+           if (!clientData.email || !isValidEmail(clientData.email)) {
+               errors.push('Please enter a valid email address');
+           }
+           
+           if (clientData.phone && !isValidPhone(clientData.phone)) {
+               errors.push('Please enter a valid phone number');
+           }
+           
+           return errors;
+       }
+
+       function isValidEmail(email) {
+           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+           return emailRegex.test(email);
+       }
+
+       function isValidPhone(phone) {
+           const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
+           return phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''));
+       }
+
+       // Log user actions for audit trail
+       function logUserAction(action, details = {}) {
+           const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
+           const auditLog = JSON.parse(localStorage.getItem('aequitas_admin_audit') || '[]');
+           
+           auditLog.push({
+               action: action,
+               details: details,
+               user: userData.email || 'unknown',
+               timestamp: new Date().toISOString(),
+               sessionId: sessionStorage.getItem('session_id') || 'unknown'
+           });
+           
+           // Keep only last 1000 entries
+           if (auditLog.length > 1000) {
+               auditLog.splice(0, auditLog.length - 1000);
+           }
+           
+           localStorage.setItem('aequitas_admin_audit', JSON.stringify(auditLog));
+       }
+
+       // Enhanced client form validation
+       document.getElementById('clientForm').addEventListener('input', function(e) {
+           const field = e.target;
+           const value = field.value.trim();
+           
+           // Real-time validation feedback
+           field.style.borderColor = '';
+           
+           if (field.name === 'email' && value && !isValidEmail(value)) {
+               field.style.borderColor = 'var(--error)';
+           } else if (field.name === 'phone' && value && !isValidPhone(value)) {
+               field.style.borderColor = 'var(--error)';
+           } else if ((field.name === 'firstName' || field.name === 'lastName') && value && value.length < 2) {
+               field.style.borderColor = 'var(--error)';
+           } else if (value) {
+               field.style.borderColor = 'var(--success)';
+           }
+       });
+
+       // Performance optimizations
+       const memoizeRender = (() => {
+           const cache = new Map();
+           return (key, renderFunction) => {
+               if (cache.has(key)) {
+                   return cache.get(key);
+               }
+               const result = renderFunction();
+               cache.set(key, result);
+               return result;
+           };
+       })();
+
+       // Initialize performance monitoring
+       logPerformance('Admin dashboard loaded');
+
+   </script>
 </body>
 </html>
