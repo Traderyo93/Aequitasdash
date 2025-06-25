@@ -875,17 +875,32 @@
             return data;
         }
 
-        // Update Chart Period
-        function updateChartPeriod(period, element) {
-            console.log(`Updating chart to period: ${period}`);
-            
-            // Update active filter button
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            element.classList.add('active');
-            
-            currentPeriod = period;
-            createEquityChart();
-        }
+        // Update Chart Period - FIXED VERSION
+       function updateChartPeriod(period, element) {
+           console.log(`Updating chart to period: ${period}`);
+           
+           // Always ensure chart is expanded when using filters
+           const chartSection = document.getElementById('chartSection');
+           const chartContent = document.getElementById('chartContent');
+           const collapseBtn = document.getElementById('chartCollapseBtn');
+           
+           if (chartCollapsed) {
+               chartCollapsed = false;
+               chartSection.classList.remove('collapsed');
+               collapseBtn.innerHTML = '<span class="icon icon-chevron-up"></span>';
+           }
+           
+           // Update active filter button
+           document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+           element.classList.add('active');
+           
+           currentPeriod = period;
+           
+           // Create chart with slight delay to ensure expansion animation completes
+           setTimeout(() => {
+               createEquityChart();
+           }, 100);
+       }
 
         // Create Equity Chart - FIXED VERSION
         function createEquityChart() {
