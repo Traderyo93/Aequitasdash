@@ -2066,47 +2066,73 @@
             openModal('depositModal');
         }
 
-        function approveDeposit() {
-            if (!viewingDepositId) return;
+function approveDeposit() {
+    if (!viewingDepositId) return;
+    
+    const depositIndex = deposits.findIndex(d => d.id === viewingDepositId);
+    if (depositIndex !== -1) {
+        deposits[depositIndex].status = 'approved';
+        
+        // IMPORTANT: Update the main deposits storage that deposit page uses
+        const mainDeposits = JSON.parse(localStorage.getItem('aequitas_deposits') || '[]');
+        const mainDepositIndex = mainDeposits.findIndex(d => d.id === viewingDepositId);
+        if (mainDepositIndex !== -1) {
+            mainDeposits[mainDepositIndex].status = 'approved';
+            localStorage.setItem('aequitas_deposits', JSON.stringify(mainDeposits));
+        }
+        
+        saveData();
+        closeModal('depositModal');
+        renderDepositsTable();
+        updateStats();
+        showNotification('Deposit approved successfully!', 'success');
+    }
+}
+
+function rejectDeposit() {
+    if (!viewingDepositId) return;
+    
+    if (confirm('Are you sure you want to reject this deposit request?')) {
+        const depositIndex = deposits.findIndex(d => d.id === viewingDepositId);
+        if (depositIndex !== -1) {
+            deposits[depositIndex].status = 'rejected';
             
-            const depositIndex = deposits.findIndex(d => d.id === viewingDepositId);
-            if (depositIndex !== -1) {
-                deposits[depositIndex].status = 'approved';
-                saveData();
-                closeModal('depositModal');
-                renderDepositsTable();
-                updateStats();
-                showNotification('Deposit approved successfully!', 'success');
+            // IMPORTANT: Update the main deposits storage that deposit page uses
+            const mainDeposits = JSON.parse(localStorage.getItem('aequitas_deposits') || '[]');
+            const mainDepositIndex = mainDeposits.findIndex(d => d.id === viewingDepositId);
+            if (mainDepositIndex !== -1) {
+                mainDeposits[mainDepositIndex].status = 'rejected';
+                localStorage.setItem('aequitas_deposits', JSON.stringify(mainDeposits));
             }
-        }
-
-        function rejectDeposit() {
-            if (!viewingDepositId) return;
             
-            if (confirm('Are you sure you want to reject this deposit request?')) {
-                const depositIndex = deposits.findIndex(d => d.id === viewingDepositId);
-                if (depositIndex !== -1) {
-                    deposits[depositIndex].status = 'rejected';
-                    saveData();
-                    closeModal('depositModal');
-                    renderDepositsTable();
-                    updateStats();
-                    showNotification('Deposit rejected.', 'warning');
-                }
-            }
+            saveData();
+            closeModal('depositModal');
+            renderDepositsTable();
+            updateStats();
+            showNotification('Deposit rejected.', 'warning');
         }
+    }
+}
 
-        function approveDepositQuick(depositId) {
-            const depositIndex = deposits.findIndex(d => d.id === depositId);
-            if (depositIndex !== -1) {
-                deposits[depositIndex].status = 'approved';
-                saveData();
-                renderDepositsTable();
-                updateStats();
-                showNotification('Deposit approved!', 'success');
-            }
+function approveDepositQuick(depositId) {
+    const depositIndex = deposits.findIndex(d => d.id === depositId);
+    if (depositIndex !== -1) {
+        deposits[depositIndex].status = 'approved';
+        
+        // IMPORTANT: Update the main deposits storage that deposit page uses
+        const mainDeposits = JSON.parse(localStorage.getItem('aequitas_deposits') || '[]');
+        const mainDepositIndex = mainDeposits.findIndex(d => d.id === depositId);
+        if (mainDepositIndex !== -1) {
+            mainDeposits[mainDepositIndex].status = 'approved';
+            localStorage.setItem('aequitas_deposits', JSON.stringify(mainDeposits));
         }
-
+        
+        saveData();
+        renderDepositsTable();
+        updateStats();
+        showNotification('Deposit approved!', 'success');
+    }
+}
         // Export and reporting
         function exportClients() {
             const csvContent = "data:text/csv;charset=utf-8," 
