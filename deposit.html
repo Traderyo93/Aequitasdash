@@ -1170,26 +1170,64 @@
         let depositHistory = [];
 
         // Load existing data on page load
-        function loadExistingData() {
-            const savedDeposits = localStorage.getItem('aequitas_deposits');
-            if (savedDeposits) {
-                depositHistory = JSON.parse(savedDeposits);
-            }
+      function loadExistingData() {
+    const savedDeposits = localStorage.getItem('aequitas_deposits');
+    if (savedDeposits) {
+        depositHistory = JSON.parse(savedDeposits);
+    }
+    
+    const savedFiles = localStorage.getItem('aequitas_uploaded_files');
+    if (savedFiles) {
+        uploadedFiles = JSON.parse(savedFiles);
+        
+        // Clean up files for deposits that are no longer pending
+        if (uploadedFiles.forms) {
+            uploadedFiles.forms = uploadedFiles.forms.filter(file => {
+                const deposit = depositHistory.find(d => d.id === file.depositId);
+                // Keep file only if deposit is still pending
+                return deposit && deposit.status === 'pending';
+            });
             
-            const savedFiles = localStorage.getItem('aequitas_uploaded_files');
-            if (savedFiles) {
-                uploadedFiles = JSON.parse(savedFiles);
-                renderUploadedFiles('forms');
-            }
-
-            const savedProgress = localStorage.getItem('aequitas_deposit_progress');
-            if (savedProgress) {
-                updateProgressSteps(parseInt(savedProgress));
-            }
-
-            updateDepositTimeline();
+            // Save cleaned up files
+            localStorage.setItem('aequitas_uploaded_files', JSON.stringify(uploadedFiles));
         }
+        
+        renderUploadedFiles('forms');
+    }
 
+    const savedProgress = localStorage.getItem('aequitas_deposit_progress');
+    if (savedProgress) {
+        updateProgressSteps(parseInt(savedProgress));
+    }
+
+    updateDepositTimeline();
+}
+
+        // Add this new function in deposit.html
+function cleanupProcessedFiles() {
+    const uploadedFiles = JSON.parse(localStorage.getItem('aequitas_uploaded_files') || '{}');
+    
+    if (uploadedFiles.forms) {
+        const originalCount = uploadedFiles.forms.length;
+        
+        // Remove files for deposits that are no longer pending
+        uploadedFiles.forms = uploadedFiles.forms.filter(file => {
+            const deposit = depositHistory.find(d => d.id === file.depositId);
+            return deposit && deposit.status === 'pending';
+        });
+        
+        if (uploadedFiles.forms.length !== originalCount) {
+            localStorage.setItem('aequitas_uploaded_files', JSON.stringify(uploadedFiles));
+            renderUploadedFiles('forms');
+            
+            const removedCount = originalCount - uploadedFiles.forms.length;
+            if (removedCount > 0) {
+                showNotification(`${removedCount} processed file(s) removed from upload area.`, 'info');
+            }
+        }
+    }
+}
+        
         // Theme Toggle
         function toggleTheme() {
             currentTheme = currentTheme === 'light' ? 'dark' : 'light';
@@ -1502,55 +1540,58 @@ function downloadDepositForm() {
 }
 
         function updateDepositTimeline() {
-            const timeline = document.getElementById('depositTimeline');
-            
-            // Only show real user deposits - no demo data
-            const allDeposits = depositHistory.map(d => ({
-                id: d.id,
-                title: `Deposit Request - ${d.reference}`,
-                description: `$${d.amount.toLocaleString()} deposit for ${d.purpose} - ${getStatusDescription(d.status)}`,
-                date: new Date(d.createdAt).toLocaleDateString(),
-                status: d.status,
-                amount: d.amount,
-                showDownload: d.status === 'completed'
-            }));
-            
-            if (allDeposits.length === 0) {
-                timeline.innerHTML = `
-                    <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
-                        <div style="font-size: 18px; margin-bottom: 8px;">No deposits yet</div>
-                        <div style="font-size: 14px;">Your deposit history will appear here once you submit a request.</div>
-                    </div>
-                `;
-                return;
-            }
-            
-            timeline.innerHTML = allDeposits.map(deposit => `
-                <div class="timeline-item ${deposit.status}">
-                    <div class="timeline-content">
-                        <div class="timeline-header">
-                            <div class="timeline-title">${deposit.title}</div>
-                            <div class="timeline-date">${deposit.date}</div>
-                        </div>
-                        <div class="timeline-description">
-                            ${deposit.description}
-                        </div>
-                        <div class="timeline-actions">
-                            <span class="status-badge status-${deposit.status}">
-                                <span class="icon icon-${getStatusIcon(deposit.status)}"></span>
-                                ${deposit.status.charAt(0).toUpperCase() + deposit.status.slice(1)}
-                            </span>
-                            ${deposit.showDownload ? `
-                                <button class="btn btn-secondary" onclick="downloadDocument('${deposit.id}')">
-                                    <span class="icon icon-download"></span>
-                                    Download Receipt
-                                </button>
-                            ` : ''}
-                        </div>
-                    </div>
+    const timeline = document.getElementById('depositTimeline');
+    
+    // Only show real user deposits - no demo data
+    const allDeposits = depositHistory.map(d => ({
+        id: d.id,
+        title: `Deposit Request - ${d.reference}`,
+        description: `$${d.amount.toLocaleString()} deposit for ${d.purpose} - ${getStatusDescription(d.status)}`,
+        date: new Date(d.createdAt).toLocaleDateString(),
+        status: d.status,
+        amount: d.amount,
+        showDownload: d.status === 'completed'
+    }));
+    
+    if (allDeposits.length === 0) {
+        timeline.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                <div style="font-size: 18px; margin-bottom: 8px;">No deposits yet</div>
+                <div style="font-size: 14px;">Your deposit history will appear here once you submit a request.</div>
+            </div>
+        `;
+        return;
+    }
+    
+    timeline.innerHTML = allDeposits.map(deposit => `
+        <div class="timeline-item ${deposit.status}">
+            <div class="timeline-content">
+                <div class="timeline-header">
+                    <div class="timeline-title">${deposit.title}</div>
+                    <div class="timeline-date">${deposit.date}</div>
                 </div>
-            `).join('');
-        }
+                <div class="timeline-description">
+                    ${deposit.description}
+                </div>
+                <div class="timeline-actions">
+                    <span class="status-badge status-${deposit.status}">
+                        <span class="icon icon-${getStatusIcon(deposit.status)}"></span>
+                        ${deposit.status.charAt(0).toUpperCase() + deposit.status.slice(1)}
+                    </span>
+                    ${deposit.showDownload ? `
+                        <button class="btn btn-secondary" onclick="downloadDocument('${deposit.id}')">
+                            <span class="icon icon-download"></span>
+                            Download Receipt
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
+    `).join('');
+    
+    // Clean up processed files at the end
+    cleanupProcessedFiles();
+}
 
         // Helper functions for timeline
         function getStatusDescription(status) {
