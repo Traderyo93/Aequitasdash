@@ -2062,10 +2062,16 @@ function viewDeposit(depositId) {
                                     <div style="font-size: 12px; color: var(--text-secondary);">${file.size} • Uploaded ${new Date(file.uploadDate).toLocaleDateString()}</div>
                                 </div>
                             </div>
-                            <span class="status active">
-                                <span class="icon icon-check"></span>
-                                Uploaded
-                            </span>
+                            <div style="display: flex; gap: 8px;">
+    <span class="status active">
+        <span class="icon icon-check"></span>
+        Uploaded
+    </span>
+    <button class="btn btn-secondary btn-sm" onclick="downloadUploadedFile('${file.id}', '${file.name}')" title="Download File">
+        <span class="icon icon-download"></span>
+        Download
+    </button>
+</div>
                         </div>
                     `).join('') : '<div style="color: var(--text-secondary); padding: 20px; text-align: center; background: var(--bg-secondary); border-radius: 6px;">No documents uploaded yet</div>'}
                 </div>
@@ -2089,89 +2095,119 @@ function viewDeposit(depositId) {
     openModal('depositModal');
 }
 
+        function downloadUploadedFile(fileId, fileName) {
+    // Since we can't actually download the real file content from localStorage,
+    // we'll create a placeholder file that indicates this was uploaded
+    const fileContent = `UPLOADED DOCUMENT PLACEHOLDER
+
+File: ${fileName}
+File ID: ${fileId}
+Upload Date: ${new Date().toLocaleDateString()}
+
+This is a placeholder for the actual uploaded document.
+In a real system, this would be the actual file content.
+
+The user uploaded this file as part of their deposit request.
+This serves as proof that the document was submitted.
+
+For actual document review, the real file would need to be
+retrieved from secure storage.`;
+
+    const blob = new Blob([fileContent], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `uploaded_${fileName.replace('.pdf', '')}_placeholder.txt`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    
+    showNotification(`Downloaded placeholder for ${fileName}`, 'info');
+}
+        
 function approveDeposit() {
     if (!viewingDepositId) return;
     
     const depositIndex = deposits.findIndex(d => d.id === viewingDepositId);
     if (depositIndex !== -1) {
         deposits[depositIndex].status = 'approved';
+        deposits[depositIndex].approvedAt = new Date().toISOString();
+        deposits[depositIndex].approvedBy = 'admin';
         
         // Update main deposits storage
         const mainDeposits = JSON.parse(localStorage.getItem('aequitas_deposits') || '[]');
         const mainDepositIndex = mainDeposits.findIndex(d => d.id === viewingDepositId);
         if (mainDepositIndex !== -1) {
             mainDeposits[mainDepositIndex].status = 'approved';
+            mainDeposits[mainDepositIndex].approvedAt = new Date().toISOString();
+            mainDeposits[mainDepositIndex].approvedBy = 'admin';
             localStorage.setItem('aequitas_deposits', JSON.stringify(mainDeposits));
         }
         
-        // Archive uploaded files (move to processed storage)
+        // Mark uploaded files as processed but KEEP them for audit trail
         const uploadedFiles = JSON.parse(localStorage.getItem('aequitas_uploaded_files') || '{}');
-        const processedFiles = JSON.parse(localStorage.getItem('aequitas_processed_files') || '[]');
-        
         if (uploadedFiles.forms) {
-            const depositFiles = uploadedFiles.forms.filter(f => f.depositId === viewingDepositId);
-            depositFiles.forEach(file => {
-                file.processedAt = new Date().toISOString();
-                file.processedBy = 'admin';
-                processedFiles.push(file);
+            uploadedFiles.forms.forEach(file => {
+                if (file.depositId === viewingDepositId) {
+                    file.status = 'approved';
+                    file.processedAt = new Date().toISOString();
+                    file.processedBy = 'admin';
+                }
             });
-            
-            // Remove from uploaded files
-            uploadedFiles.forms = uploadedFiles.forms.filter(f => f.depositId !== viewingDepositId);
             localStorage.setItem('aequitas_uploaded_files', JSON.stringify(uploadedFiles));
-            localStorage.setItem('aequitas_processed_files', JSON.stringify(processedFiles));
         }
         
         saveData();
         closeModal('depositModal');
         renderDepositsTable();
         updateStats();
-        showNotification('Deposit approved and files processed successfully!', 'success');
+        showNotification('Deposit approved successfully! Files retained for audit trail.', 'success');
     }
 }
-        
+
 function rejectDeposit() {
     if (!viewingDepositId) return;
     
-    if (confirm('Are you sure you want to reject this deposit request? Uploaded files will be archived.')) {
+    if (confirm('Are you sure you want to reject this deposit request?')) {
         const depositIndex = deposits.findIndex(d => d.id === viewingDepositId);
         if (depositIndex !== -1) {
             deposits[depositIndex].status = 'rejected';
+            deposits[depositIndex].rejectedAt = new Date().toISOString();
+            deposits[depositIndex].rejectedBy = 'admin';
             
             // Update main deposits storage
             const mainDeposits = JSON.parse(localStorage.getItem('aequitas_deposits') || '[]');
             const mainDepositIndex = mainDeposits.findIndex(d => d.id === viewingDepositId);
             if (mainDepositIndex !== -1) {
                 mainDeposits[mainDepositIndex].status = 'rejected';
+                mainDeposits[mainDepositIndex].rejectedAt = new Date().toISOString();
+                mainDeposits[mainDepositIndex].rejectedBy = 'admin';
                 localStorage.setItem('aequitas_deposits', JSON.stringify(mainDeposits));
             }
             
-            // Archive uploaded files
+            // Mark uploaded files as rejected but KEEP them for audit trail
             const uploadedFiles = JSON.parse(localStorage.getItem('aequitas_uploaded_files') || '{}');
-            const rejectedFiles = JSON.parse(localStorage.getItem('aequitas_rejected_files') || '[]');
-            
             if (uploadedFiles.forms) {
-                const depositFiles = uploadedFiles.forms.filter(f => f.depositId === viewingDepositId);
-                depositFiles.forEach(file => {
-                    file.rejectedAt = new Date().toISOString();
-                    file.rejectedBy = 'admin';
-                    rejectedFiles.push(file);
+                uploadedFiles.forms.forEach(file => {
+                    if (file.depositId === viewingDepositId) {
+                        file.status = 'rejected';
+                        file.processedAt = new Date().toISOString();
+                        file.processedBy = 'admin';
+                    }
                 });
-                
-                // Remove from uploaded files
-                uploadedFiles.forms = uploadedFiles.forms.filter(f => f.depositId !== viewingDepositId);
                 localStorage.setItem('aequitas_uploaded_files', JSON.stringify(uploadedFiles));
-                localStorage.setItem('aequitas_rejected_files', JSON.stringify(rejectedFiles));
             }
             
             saveData();
             closeModal('depositModal');
             renderDepositsTable();
             updateStats();
-            showNotification('Deposit rejected and files archived.', 'warning');
+            showNotification('Deposit rejected. Files retained for audit trail.', 'warning');
         }
     }
 }
+        
 function approveDepositQuick(depositId) {
     const depositIndex = deposits.findIndex(d => d.id === depositId);
     if (depositIndex !== -1) {
@@ -2452,9 +2488,11 @@ For questions, contact: admin@aequitascap.com`;
            if (topUserNameEl) topUserNameEl.textContent = firstName;
            if (userAvatarEl) userAvatarEl.textContent = firstName.charAt(0).toUpperCase();
 
-           // Show admin section since this is the admin page
-const adminSection = document.getElementById('adminSection');
-if (adminSection) adminSection.style.display = 'block';
+// Show admin section if user is admin
+if (userData.role === 'admin') {
+    const adminSection = document.getElementById('adminSection');
+    if (adminSection) adminSection.style.display = 'block';
+}
 
            // Initialize data and render
            initializeData();
