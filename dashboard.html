@@ -580,10 +580,10 @@
 
             <div class="nav-section">
                 <div class="nav-section-title">Trading</div>
-                <button class="nav-item" onclick="navigateTo('deposit')">
-                    <span class="icon icon-money"></span>
-                    <span>Deposit</span>
-                </button>
+                <a href="deposit.html" class="nav-item">
+    <span class="icon icon-money"></span>
+    <span>Deposit</span>
+</a>
                 <button class="nav-item" onclick="navigateTo('withdraw')">
                     <span class="icon icon-bank"></span>
                     <span>Withdraw</span>
@@ -774,23 +774,17 @@
             }
         }
 
-        // Navigation
-        function navigateTo(page) {
-            // Remove active class from all nav items
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            
-            // Add active class to clicked item
-            event.target.closest('.nav-item').classList.add('active');
-            
-            console.log(`Navigation to: ${page}`);
-            
-            // For demo, show coming soon for non-dashboard pages
-            if (page !== 'dashboard') {
-                alert(`${page.charAt(0).toUpperCase() + page.slice(1)} page coming soon!`);
-            }
-        }
+function navigateTo(page) {
+    console.log(`Navigation to: ${page}`);
+    
+    if (page === 'deposit') {
+        window.location.href = 'deposit.html';
+    } else if (page === 'dashboard') {
+        window.location.href = 'dashboard.html'; // or index.html, whatever your main page is called
+    } else {
+        alert(`${page.charAt(0).toUpperCase() + page.slice(1)} page coming soon!`);
+    }
+}
 
         // Logout
         function logout() {
