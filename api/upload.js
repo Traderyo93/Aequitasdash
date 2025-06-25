@@ -1,4 +1,4 @@
-// api/upload.js - Complete Production File Upload with Vercel Blob
+// api/upload.js - Upload with explicit store ID
 import { put } from '@vercel/blob';
 
 export default async function handler(req, res) {
@@ -21,32 +21,17 @@ export default async function handler(req, res) {
 
   try {
     console.log('Upload request received');
+    console.log('Available env vars:', Object.keys(process.env).filter(k => k.includes('BLOB')));
     
     const { fileName, fileData, depositId, userId } = req.body;
     
     // Validate required fields
-    if (!fileName) {
+    if (!fileName || !fileData || !depositId) {
       return res.status(400).json({ 
         success: false, 
-        error: 'fileName is required' 
+        error: 'fileName, fileData, and depositId are required' 
       });
     }
-    
-    if (!fileData) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'fileData is required' 
-      });
-    }
-    
-    if (!depositId) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'depositId is required' 
-      });
-    }
-
-    console.log(`Processing upload: ${fileName} for deposit ${depositId}`);
 
     // Validate file type (PDF only)
     if (!fileName.toLowerCase().endsWith('.pdf')) {
@@ -92,12 +77,37 @@ export default async function handler(req, res) {
     
     console.log(`Uploading to Vercel Blob: ${blobPath}`);
     
-    // Upload to Vercel Blob
-    const blob = await put(blobPath, buffer, {
-      access: 'public',
-      contentType: 'application/pdf',
-      addRandomSuffix: false
-    });
+    // Try upload with different token approaches
+    let blob;
+    
+    try {
+      // Method 1: Use environment token
+      blob = await put(blobPath, buffer, {
+        access: 'public',
+        contentType: 'application/pdf',
+        addRandomSuffix: false
+      });
+    } catch (error) {
+      console.log('Method 1 failed, trying method 2:', error.message);
+      
+      // Method 2: Try with explicit token from different env var names
+      const possibleTokens = [
+        process.env.BLOB_READ_WRITE_TOKEN,
+        process.env.VERCEL_BLOB_READ_WRITE_TOKEN,
+        process.env[`BLOB_READ_WRITE_TOKEN_${process.env.VERCEL_ENV?.toUpperCase()}`]
+      ].filter(Boolean);
+      
+      if (possibleTokens.length > 0) {
+        blob = await put(blobPath, buffer, {
+          access: 'public',
+          contentType: 'application/pdf',
+          addRandomSuffix: false,
+          token: possibleTokens[0]
+        });
+      } else {
+        throw new Error('No valid blob token found');
+      }
+    }
     
     console.log(`Upload successful: ${blob.url}`);
     
@@ -119,25 +129,17 @@ export default async function handler(req, res) {
     
     return res.status(200).json({
       success: true,
-      message: 'File uploaded successfully',
+      message: 'File uploaded successfully to Vercel Blob',
       file: fileRecord
     });
     
   } catch (error) {
     console.error('Upload error:', error);
     
-    // Handle specific Vercel Blob errors
-    if (error.message.includes('blob')) {
-      return res.status(500).json({
-        success: false,
-        error: 'Cloud storage error. Please try again.'
-      });
-    }
-    
-    // Handle generic errors
     return res.status(500).json({
       success: false,
-      error: 'Upload failed: ' + (error.message || 'Unknown error')
+      error: 'Upload failed: ' + error.message,
+      details: 'Check function logs for more information'
     });
   }
 }
