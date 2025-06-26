@@ -2533,26 +2533,43 @@
         }
 
         function editClient(clientId) {
-            const client = clients.find(c => c.id === clientId);
-            if (!client) return;
-            
-            editingClientId = clientId;
-            document.getElementById('modalTitle').textContent = 'Edit Client';
-            document.getElementById('saveClientBtn').textContent = 'Update Client';
-            
-            // Populate form
-            document.getElementById('firstName').value = client.firstName;
-            document.getElementById('lastName').value = client.lastName;
-            document.getElementById('email').value = client.email;
-            document.getElementById('phone').value = client.phone || '';
-            document.getElementById('address').value = client.address || '';
-            document.getElementById('initialDeposit').value = client.accountValue;
-            document.getElementById('clientStatus').value = client.status;
-            document.getElementById('clientId').value = client.id;
-            
-            openModal('clientModal');
-        }
-
+    console.log('✏️ Edit client called with ID:', clientId);
+    const client = clients.find(c => c.id === clientId);
+    console.log('📋 Found client:', client);
+    
+    if (!client) {
+        console.error('❌ Client not found:', clientId);
+        showNotification('Client not found!', 'error');
+        return;
+    }
+    
+    editingClientId = clientId;
+    console.log('📝 Set editingClientId to:', editingClientId);
+    
+    // Update modal title and button
+    document.getElementById('modalTitle').textContent = 'Edit Client';
+    document.getElementById('saveClientBtn').textContent = 'Update Client';
+    
+    // Populate form with client data - FIXED to handle undefined values
+    document.getElementById('firstName').value = client.firstName || '';
+    document.getElementById('lastName').value = client.lastName || '';
+    document.getElementById('email').value = client.email || '';
+    document.getElementById('phone').value = client.phone || '';
+    document.getElementById('address').value = client.address || '';
+    document.getElementById('initialDeposit').value = client.accountValue || 0;
+    document.getElementById('clientStatus').value = client.status || 'active';
+    document.getElementById('clientId').value = client.id;
+    
+    console.log('✅ Form populated with data');
+    console.log('Modal data check:', {
+        firstName: document.getElementById('firstName').value,
+        lastName: document.getElementById('lastName').value,
+        email: document.getElementById('email').value,
+        editingClientId: editingClientId
+    });
+    
+    openModal('clientModal');
+}
         function viewClient(clientId) {
             const client = clients.find(c => c.id === clientId);
             if (!client) return;
