@@ -147,6 +147,11 @@
         .icon-phone {
             mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z'/%3E%3C/svg%3E");
         }
+
+        .icon-clock {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'/%3E%3C/svg%3E");
+        }
+
         /* Sidebar Styles */
         .sidebar {
             position: fixed;
@@ -586,10 +591,22 @@
             font-size: 12px;
         }
 
+        .btn-outline {
+            background: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+
+        .btn-outline:hover {
+            background: var(--accent);
+            color: white;
+        }
+
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
+
         /* Data Table */
         .data-table {
             width: 100%;
@@ -650,7 +667,7 @@
             color: var(--text-tertiary);
         }
 
-        .status.pending {
+        .status.pending, .status.setup_pending, .status.documents_pending, .status.review_pending {
             background: rgba(245, 158, 11, 0.1);
             color: var(--warning);
         }
@@ -759,6 +776,14 @@
 
         .modal-form-group.full-width {
             grid-column: 1 / -1;
+        }
+
+        .modal-form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 6px;
         }
 
         /* Pagination */
@@ -1257,6 +1282,7 @@
                 <div class="tabs">
                     <button class="tab active" data-tab="clients" onclick="switchTab('clients')">All Clients</button>
                     <button class="tab" data-tab="deposits" onclick="switchTab('deposits')">Deposit Requests</button>
+                    <button class="tab" data-tab="pending" onclick="switchTab('pending')">Pending Users</button>
                     <button class="tab" data-tab="reports" onclick="switchTab('reports')">Reports</button>
                 </div>
 
@@ -1342,6 +1368,45 @@
                                 </tr>
                             </thead>
                             <tbody id="depositsTableBody">
+                                <!-- Dynamic content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Pending Users Tab -->
+                <div class="tab-content" id="pending-tab">
+                    <div class="search-filters">
+                        <div class="search-input">
+                            <span class="icon icon-search"></span>
+                            <input type="text" placeholder="Search pending users..." id="pendingSearch" onkeyup="filterPendingUsers()">
+                        </div>
+                        <select class="filter-select" id="pendingFilter" onchange="filterPendingUsers()">
+                            <option value="">All Status</option>
+                            <option value="setup_pending">Setup Required</option>
+                            <option value="documents_pending">Documents Required</option>
+                            <option value="review_pending">Awaiting Review</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="exportPendingUsers()">
+                            <span class="icon icon-download"></span>
+                            Export
+                        </button>
+                    </div>
+
+                    <div style="overflow-x: auto;">
+                        <table class="data-table" id="pendingUsersTable">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Email</th>
+                                    <th>Setup Progress</th>
+                                    <th>Documents</th>
+                                    <th>Submitted</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pendingUsersTableBody">
                                 <!-- Dynamic content -->
                             </tbody>
                         </table>
@@ -1489,7 +1554,7 @@
         </div>
     </div>
     
-    <!-- Complete Working JavaScript with REAL DATABASE INTEGRATION -->
+    <!-- Complete Working JavaScript with REAL DATABASE INTEGRATION AND USER APPROVAL -->
     <script>
         // === REAL DATABASE INTEGRATION SYSTEM ===
         
@@ -1555,6 +1620,38 @@
                 return null;
             }
         }
+
+        // Fetch pending users from database
+        async function fetchPendingUsers() {
+            try {
+                console.log('📋 Fetching pending users...');
+                
+                const response = await fetch('/api/user-setup', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to fetch pending users');
+                }
+                
+                console.log('📋 Pending users received:', data.pendingUsers);
+                
+                pendingUsers = data.pendingUsers;
+                
+                return data;
+                
+            } catch (error) {
+                console.error('💥 Failed to fetch pending users:', error);
+                showNotification(`Failed to load pending users: ${error.message}`, 'error');
+                return { pendingUsers: [] };
+            }
+        }
         
         // Update stats display with real data
         function updateStatsDisplay(stats) {
@@ -1588,9 +1685,9 @@
             const systemStatusEl = document.getElementById('systemStatus');
             if (systemStatusEl) {
                 if (stats.totalClientBalances >= 1000000) {
-                    systemStatusEl.textContent = `${(stats.totalClientBalances / 1000000).toFixed(1)}M Total`;
+                    systemStatusEl.textContent = `${(stats.totalClientBalances / 1000000).toFixed(1)}M`;
                 } else {
-                    systemStatusEl.textContent = `${stats.totalClientBalances.toLocaleString()} Total`;
+                    systemStatusEl.textContent = `${stats.totalClientBalances.toLocaleString()}`;
                 }
             }
             
@@ -1715,6 +1812,7 @@
         let currentTheme = 'light';
         let clients = [];
         let deposits = [];
+        let pendingUsers = [];
         let currentPage = 1;
         let itemsPerPage = 10;
         let currentTab = 'clients';
@@ -1728,8 +1826,11 @@
             // Fetch real statistics and data from database
             const statsData = await fetchAdminStats();
             
+            // Also fetch pending users
+            await fetchPendingUsers();
+            
             if (statsData) {
-                console.log(`✅ Admin loaded REAL data: ${clients.length} clients, ${deposits.length} deposits`);
+                console.log(`✅ Admin loaded REAL data: ${clients.length} clients, ${deposits.length} deposits, ${pendingUsers.length} pending users`);
             } else {
                 console.log('⚠️ Failed to load real data, using empty state');
             }
@@ -1789,7 +1890,328 @@
                 renderClientsTable();
             } else if (tabName === 'deposits') {
                 renderDepositsTable();
+            } else if (tabName === 'pending') {
+                fetchPendingUsers().then(() => {
+                    renderPendingUsersTable();
+                });
             }
+        }
+
+        // Render pending users table
+        function renderPendingUsersTable() {
+            const tbody = document.getElementById('pendingUsersTableBody');
+            const searchTerm = document.getElementById('pendingSearch').value.toLowerCase();
+            const statusFilter = document.getElementById('pendingFilter').value;
+            
+            let filteredUsers = pendingUsers.filter(user => {
+                const matchesSearch = user.first_name.toLowerCase().includes(searchTerm) ||
+                                    user.last_name.toLowerCase().includes(searchTerm) ||
+                                    user.email.toLowerCase().includes(searchTerm);
+                const matchesStatus = !statusFilter || user.setup_status === statusFilter;
+                return matchesSearch && matchesStatus;
+            });
+            
+            if (filteredUsers.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                            <div style="font-size: 18px; margin-bottom: 8px;">No pending users found</div>
+                            <div style="font-size: 14px;">Users requiring approval will appear here.</div>
+                        </td>
+                    </tr>
+                `;
+            } else {
+                tbody.innerHTML = filteredUsers.map(user => `
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div class="client-avatar">${user.first_name.charAt(0)}</div>
+                                <div>
+                                    <div style="font-weight: 500;">${user.first_name} ${user.last_name}</div>
+                                    <div style="font-size: 12px; color: var(--text-tertiary);">ID: ${user.id}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>${user.email}</td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="flex: 1; background: var(--bg-tertiary); border-radius: 4px; height: 8px;">
+                                    <div style="background: var(--accent); height: 100%; border-radius: 4px; width: ${user.setup_progress || 0}%;"></div>
+                                </div>
+                                <span style="font-size: 12px; color: var(--text-secondary);">${user.setup_progress || 0}%</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="font-size: 12px;">
+                                ${user.document_count > 0 ? `
+                                    <div style="color: var(--success);">✓ ${user.document_count} uploaded</div>
+                                ` : `
+                                    <div style="color: var(--text-secondary);">No documents</div>
+                                `}
+                            </div>
+                        </td>
+                        <td>${user.setup_completed_at ? new Date(user.setup_completed_at).toLocaleDateString() : 'Not completed'}</td>
+                        <td><span class="status ${user.setup_status || 'pending'}">${getStatusLabel(user.setup_status)}</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn view" onclick="reviewUserSetup('${user.id}')" title="Review Setup">
+                                    <span class="icon icon-eye"></span>
+                                </button>
+                                ${user.setup_status === 'review_pending' ? `
+                                    <button class="action-btn edit" onclick="approveUser('${user.id}')" title="Approve">
+                                        <span class="icon icon-check"></span>
+                                    </button>
+                                    <button class="action-btn delete" onclick="rejectUser('${user.id}')" title="Reject">
+                                        <span class="icon icon-x"></span>
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        // Get user-friendly status labels
+        function getStatusLabel(status) {
+            switch(status) {
+                case 'setup_pending': return 'Setup Required';
+                case 'documents_pending': return 'Documents Required';
+                case 'review_pending': return 'Awaiting Review';
+                case 'approved': return 'Approved';
+                case 'rejected': return 'Rejected';
+                default: return 'Unknown';
+            }
+        }
+
+        // Review user setup details
+        async function reviewUserSetup(userId) {
+            try {
+                console.log('🔍 Reviewing user setup:', userId);
+                
+                const response = await fetch(`/api/user-setup?userId=${userId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to fetch user details');
+                }
+                
+                const user = data.user;
+                
+                document.getElementById('clientDetailsBody').innerHTML = `
+                    <div class="modal-form-grid">
+                        <div class="modal-form-group">
+                            <label>Full Name</label>
+                            <div style="font-weight: 500;">${user.first_name} ${user.last_name}</div>
+                        </div>
+                        <div class="modal-form-group">
+                            <label>Email</label>
+                            <div>${user.email}</div>
+                        </div>
+                        <div class="modal-form-group">
+                            <label>Phone</label>
+                            <div>${user.phone || 'Not provided'}</div>
+                        </div>
+                        <div class="modal-form-group">
+                            <label>Date of Birth</label>
+                            <div>${user.date_of_birth || 'Not provided'}</div>
+                        </div>
+                        <div class="modal-form-group full-width">
+                            <label>Address</label>
+                            <div>${user.address || 'Not provided'}</div>
+                        </div>
+                        <div class="modal-form-group">
+                            <label>Setup Progress</label>
+                            <div>
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                    <div style="flex: 1; background: var(--bg-tertiary); border-radius: 4px; height: 8px;">
+                                        <div style="background: var(--accent); height: 100%; border-radius: 4px; width: ${user.setup_progress || 0}%;"></div>
+                                    </div>
+                                    <span>${user.setup_progress || 0}%</span>
+                                </div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">
+                                    ${getSetupStepsCompleted(user)}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-form-group">
+                            <label>Documents Uploaded</label>
+                            <div>
+                                ${user.documents && user.documents.length > 0 ? 
+                                    user.documents.map(doc => `
+                                        <div style="padding: 8px; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 8px;">
+                                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                                <span style="font-weight: 500;">${doc.document_type}</span>
+                                                <button class="btn btn-sm btn-outline" onclick="downloadDocument('${doc.file_url}', '${doc.document_type}')">
+                                                    <span class="icon icon-download"></span>
+                                                    Download
+                                                </button>
+                                            </div>
+                                            <div style="font-size: 12px; color: var(--text-secondary);">
+                                                Uploaded: ${new Date(doc.uploaded_at).toLocaleDateString()}
+                                            </div>
+                                        </div>
+                                    `).join('') 
+                                    : '<div style="color: var(--text-secondary);">No documents uploaded</div>'
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    
+                    ${user.setup_status === 'review_pending' ? `
+                        <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+                            <div style="display: flex; gap: 12px;">
+                                <button class="btn btn-success" onclick="approveUserFromModal('${user.id}')">
+                                    <span class="icon icon-check"></span>
+                                    Approve User
+                                </button>
+                                <button class="btn btn-danger" onclick="rejectUserFromModal('${user.id}')">
+                                    <span class="icon icon-x"></span>
+                                    Reject User
+                                </button>
+                            </div>
+                        </div>
+                    ` : ''}
+                `;
+                
+                openModal('viewClientModal');
+                
+            } catch (error) {
+                console.error('💥 Failed to review user setup:', error);
+                showNotification(`Failed to load user details: ${error.message}`, 'error');
+            }
+        }
+
+        // Get setup steps completed description
+        function getSetupStepsCompleted(user) {
+            const steps = [];
+            if (user.personal_info_completed) steps.push('Personal Info');
+            if (user.documents_uploaded > 0) steps.push('Documents');
+            if (user.legal_agreements_signed) steps.push('Legal Agreements');
+            
+            return steps.length > 0 ? `Completed: ${steps.join(', ')}` : 'No steps completed';
+        }
+
+        // Download document function
+        function downloadDocument(fileUrl, documentType) {
+            if (fileUrl) {
+                const link = document.createElement('a');
+                link.href = fileUrl;
+                link.download = `${documentType}_document.pdf`;
+                link.target = '_blank';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                showNotification(`Downloading ${documentType} document...`, 'success');
+            } else {
+                showNotification('Document URL not available', 'error');
+            }
+        }
+
+        // Approve user
+        async function approveUser(userId) {
+            if (confirm('Are you sure you want to approve this user? They will gain full access to the dashboard.')) {
+                await performUserAction(userId, 'approve');
+            }
+        }
+
+        // Approve user from modal
+        async function approveUserFromModal(userId) {
+            await performUserAction(userId, 'approve');
+            closeModal('viewClientModal');
+        }
+
+        // Reject user
+        async function rejectUser(userId) {
+            const reason = prompt('Please provide a reason for rejection (optional):');
+            if (reason !== null) { // User didn't cancel
+                await performUserAction(userId, 'reject', reason);
+            }
+        }
+
+        // Reject user from modal
+        async function rejectUserFromModal(userId) {
+            const reason = prompt('Please provide a reason for rejection (optional):');
+            if (reason !== null) { // User didn't cancel
+                await performUserAction(userId, 'reject', reason);
+                closeModal('viewClientModal');
+            }
+        }
+
+        // Perform user approval/rejection action
+        async function performUserAction(userId, action, reason = '') {
+            try {
+                console.log(`🔄 ${action}ing user:`, userId);
+                
+                const response = await fetch('/api/user-setup', {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId: userId,
+                        action: action,
+                        reason: reason
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || `Failed to ${action} user`);
+                }
+                
+                // Refresh data
+                await fetchPendingUsers();
+                await fetchAdminStats(); // Refresh main stats
+                
+                renderPendingUsersTable();
+                
+                const actionText = action === 'approve' ? 'approved' : 'rejected';
+                showNotification(`User successfully ${actionText}!`, 'success');
+                
+            } catch (error) {
+                console.error(`💥 Failed to ${action} user:`, error);
+                showNotification(`Failed to ${action} user: ${error.message}`, 'error');
+            }
+        }
+
+        // Filter pending users
+        function filterPendingUsers() {
+            renderPendingUsersTable();
+        }
+
+        // Export pending users
+        function exportPendingUsers() {
+            if (pendingUsers.length === 0) {
+                showNotification('No pending users to export', 'warning');
+                return;
+            }
+            
+            const csvContent = "data:text/csv;charset=utf-8," 
+                + "ID,First Name,Last Name,Email,Setup Status,Progress,Created Date\n"
+                + pendingUsers.map(user => 
+                    `${user.id},${user.first_name},${user.last_name},${user.email},${user.setup_status || 'pending'},${user.setup_progress || 0}%,${new Date(user.created_at).toLocaleDateString()}`
+                ).join("\n");
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `pending_users_export_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification('Pending users exported successfully!', 'success');
         }
 
         // Render clients table
@@ -2341,6 +2763,7 @@ Total Clients: ${clients.length}
 Active Clients: ${clients.filter(c => c.status === 'active').length}
 Pending Clients: ${clients.filter(c => c.status === 'pending').length}
 Inactive Clients: ${clients.filter(c => c.status === 'inactive').length}
+Pending Users: ${pendingUsers.length}
 
 Total Client Assets: ${clients.reduce((sum, c) => sum + c.accountValue, 0).toLocaleString()}
 Total Deposits Made: ${clients.reduce((sum, c) => sum + c.totalDeposits, 0).toLocaleString()}
@@ -2365,6 +2788,13 @@ ${deposits
     .slice(0, 10)
     .map(deposit => `${deposit.reference} - ${deposit.clientName} - ${deposit.amount.toLocaleString()} - ${deposit.status}`)
     .join('\n')}
+
+==========================================
+
+PENDING USER APPROVALS:
+${pendingUsers.length > 0 ? pendingUsers.map(user => 
+    `${user.first_name} ${user.last_name} (${user.email}) - ${getStatusLabel(user.setup_status)} - ${user.setup_progress || 0}% complete`
+).join('\n') : 'No pending users requiring approval'}
 
 ==========================================
 
@@ -2522,7 +2952,7 @@ For questions, contact: admin@aequitascap.com`;
             // Initialize data and render with REAL DATABASE DATA
             initializeData().then(() => {
                 renderClientsTable();
-                console.log(`✅ Admin dashboard initialized with REAL database data - ${clients.length} clients, ${deposits.length} deposits`);
+                console.log(`✅ Admin dashboard initialized with REAL database data - ${clients.length} clients, ${deposits.length} deposits, ${pendingUsers.length} pending users`);
                 showNotification(`Admin Dashboard loaded with ${clients.length} real clients from database!`, 'success');
             });
         });
