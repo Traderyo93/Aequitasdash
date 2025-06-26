@@ -1,4 +1,4 @@
-// api/admin-stats.js - FIXED WITH COMMONJS
+// api/admin-stats.js - COMPLETE FULL VERSION WITH ALL FEATURES
 const { sql } = require('@vercel/postgres');
 const jwt = require('jsonwebtoken');
 
@@ -99,24 +99,43 @@ module.exports = async function handler(req, res) {
       pendingRequests = 0;
     }
     
-    // 5. ALL CLIENTS WITH DETAILS
-    const allClientsResult = await sql`
-      SELECT 
-        id,
-        email,
-        first_name,
-        last_name,
-        phone,
-        address,
-        account_value,
-        starting_balance,
-        created_at,
-        last_login,
-        role
-      FROM users 
-      WHERE role != 'admin' AND role != 'deleted'
-      ORDER BY created_at DESC
-    `;
+    // 5. ALL CLIENTS WITH DETAILS - Handle missing columns gracefully
+    let allClientsResult;
+    try {
+      // Try with all columns first
+      allClientsResult = await sql`
+        SELECT 
+          id,
+          email,
+          first_name,
+          last_name,
+          phone,
+          address,
+          account_value,
+          starting_balance,
+          created_at,
+          last_login,
+          role
+        FROM users 
+        WHERE role != 'admin' AND role != 'deleted'
+        ORDER BY created_at DESC
+      `;
+    } catch (columnError) {
+      console.log('Some columns missing, trying with basic columns only');
+      // Fallback to basic columns
+      allClientsResult = await sql`
+        SELECT 
+          id,
+          email,
+          first_name,
+          last_name,
+          created_at,
+          role
+        FROM users 
+        WHERE role != 'admin' AND role != 'deleted'
+        ORDER BY created_at DESC
+      `;
+    }
     
     // 6. ALL DEPOSITS (if table exists)
     let allDepositsResult = { rows: [] };
@@ -192,6 +211,28 @@ module.exports = async function handler(req, res) {
       userId: deposit.user_id
     }));
 
+    // Format clients for frontend - handle missing columns
+    const formattedClients = allClientsResult.rows.map(client => ({
+      id: client.id,
+      firstName: client.first_name,
+      lastName: client.last_name,
+      email: client.email,
+      phone: client.phone || 'Not provided',
+      address: client.address || 'Not provided',
+      status: client.role === 'admin' ? 'admin' : 'active',
+      joinDate: client.created_at ? client.created_at.split('T')[0] : 'Unknown',
+      totalDeposits: 0, // Will be calculated from deposits
+      accountValue: parseFloat(client.account_value || 0),
+      startingBalance: parseFloat(client.starting_balance || 0),
+      lastActive: client.last_login ? client.last_login.split('T')[0] : (client.created_at ? client.created_at.split('T')[0] : 'Unknown')
+    }));
+
+    // Calculate total deposits per client
+    formattedClients.forEach(client => {
+      const clientDeposits = formattedDeposits.filter(d => d.userId === client.id);
+      client.totalDeposits = clientDeposits.reduce((sum, d) => sum + d.amount, 0);
+    });
+
     const stats = {
       totalClients,
       activeDepositsThisMonth,
@@ -202,11 +243,13 @@ module.exports = async function handler(req, res) {
     };
     
     console.log('📊 Admin stats calculated:', stats);
+    console.log('👥 Clients found:', formattedClients.length);
+    console.log('💰 Deposits found:', formattedDeposits.length);
     
     return res.status(200).json({
       success: true,
       stats,
-      clients: allClientsResult.rows,
+      clients: formattedClients,
       deposits: formattedDeposits
     });
     
