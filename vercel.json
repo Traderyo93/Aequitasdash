@@ -1,5 +1,4 @@
 {
-  "version": 2,
   "functions": {
     "api/auth.js": {
       "maxDuration": 10
@@ -7,25 +6,5 @@
     "api/upload.js": {
       "maxDuration": 30
     }
-  },
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, DELETE, OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
-      ]
-    }
-  ]
+  }
 }
