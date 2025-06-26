@@ -1,8 +1,8 @@
-// api/user-setup.js - CREATE THIS NEW FILE
-import { sql } from '@vercel/postgres';
-import jwt from 'jsonwebtoken';
+// api/user-setup.js - COMMONJS VERSION
+const { sql } = require('@vercel/postgres');
+const jwt = require('jsonwebtoken');
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -27,9 +27,24 @@ export default async function handler(req, res) {
   
   try {
     if (req.method === 'GET') {
-      // Get user setup status
+      // If admin, get all pending users
+      if (user.role === 'admin') {
+        const pendingUsers = await sql`
+          SELECT id, email, first_name, last_name, setup_status, created_at
+          FROM users 
+          WHERE setup_status IN ('setup_pending', 'review_pending')
+          ORDER BY created_at DESC
+        `;
+        
+        return res.status(200).json({
+          success: true,
+          pendingUsers: pendingUsers.rows
+        });
+      }
+      
+      // Regular user - get their own status
       const result = await sql`
-        SELECT setup_status, setup_step, personal_info, uploaded_documents
+        SELECT setup_status, setup_step
         FROM users WHERE id = ${user.id}
       `;
       
@@ -42,23 +57,19 @@ export default async function handler(req, res) {
       return res.status(200).json({
         success: true,
         setupStatus: userStatus.setup_status,
-        setupStep: userStatus.setup_step,
-        personalInfo: userStatus.personal_info ? JSON.parse(userStatus.personal_info) : null,
-        uploadedDocuments: userStatus.uploaded_documents ? JSON.parse(userStatus.uploaded_documents) : null
+        setupStep: userStatus.setup_step
       });
     }
     
     if (req.method === 'POST') {
       // Save setup progress
-      const { setupStep, personalInfo, uploadedDocuments, setupStatus = 'in_progress' } = req.body;
+      const { setupStep, setupStatus = 'in_progress' } = req.body;
       
       await sql`
         UPDATE users 
         SET 
           setup_status = ${setupStatus},
           setup_step = ${setupStep || 1},
-          personal_info = ${personalInfo ? JSON.stringify(personalInfo) : null},
-          uploaded_documents = ${uploadedDocuments ? JSON.stringify(uploadedDocuments) : null},
           updated_at = NOW()
         WHERE id = ${user.id}
       `;
@@ -72,7 +83,7 @@ export default async function handler(req, res) {
         return res.status(403).json({ success: false, error: 'Admin access required' });
       }
       
-      const { userId, action, notes } = req.body;
+      const { userId, action } = req.body;
       
       if (!userId || !['approve', 'reject'].includes(action)) {
         return res.status(400).json({ success: false, error: 'Invalid request' });
@@ -96,4 +107,4 @@ export default async function handler(req, res) {
     console.error('Setup API error:', error);
     return res.status(500).json({ success: false, error: 'Server error' });
   }
-}
+};
