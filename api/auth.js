@@ -1,4 +1,4 @@
-// api/auth.js - Fixed to match your actual database schema
+// api/auth.js - Debug bcrypt comparison
 import { neon } from '@neondatabase/serverless';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -14,29 +14,21 @@ export default async function handler(req, res) {
     return;
   }
 
-  // Debug endpoint
   if (req.method === 'GET') {
     try {
       const sql = neon(process.env.POSTGRES_URL);
-      
       const usersTest = await sql`SELECT COUNT(*) as count FROM users`;
-      const allUsers = await sql`SELECT id, email, role, account_value FROM users`;
+      const allUsers = await sql`SELECT id, email, role, LEFT(password_hash, 30) as hash_preview FROM users`;
       
       return res.status(200).json({
         success: true,
-        message: "API and database working!",
-        database: "Neon connected successfully!",
+        message: "API working!",
         users_count: usersTest[0].count,
         users_list: allUsers,
-        connection: "neon_serverless",
-        timestamp: new Date().toISOString()
+        bcrypt_version: bcrypt.version || 'unknown'
       });
     } catch (error) {
-      console.error('Database test failed:', error);
-      return res.status(500).json({
-        success: false,
-        error: error.message
-      });
+      return res.status(500).json({ success: false, error: error.message });
     }
   }
 
@@ -52,18 +44,9 @@ export default async function handler(req, res) {
     return;
   }
 
-  if (!process.env.POSTGRES_URL) {
-    res.status(500).json({ 
-      success: false, 
-      error: 'Database configuration missing' 
-    });
-    return;
-  }
-
   try {
     const sql = neon(process.env.POSTGRES_URL);
     
-    // Query using your actual column names: id (not user_id)
     const result = await sql`
       SELECT id, email, password_hash, role, first_name, last_name, account_value, starting_balance
       FROM users 
@@ -71,31 +54,58 @@ export default async function handler(req, res) {
     `;
 
     if (result.length === 0) {
+      console.log('❌ User not found:', email);
       res.status(401).json({ success: false, error: 'Invalid credentials' });
       return;
     }
 
     const user = result[0];
+    console.log('👤 User found:', user.email);
+    console.log('🔐 Password provided:', password);
+    console.log('🔑 Hash from DB:', user.password_hash);
+    console.log('📝 Hash starts with:', user.password_hash.substring(0, 10));
     
-    // Verify password
-    const passwordValid = await bcrypt.compare(password, user.password_hash);
-    
-    if (!passwordValid) {
-      res.status(401).json({ success: false, error: 'Invalid credentials' });
+    // Debug bcrypt comparison
+    try {
+      const passwordValid = await bcrypt.compare(password, user.password_hash);
+      console.log('✅ bcrypt.compare result:', passwordValid);
+      
+      // Additional debug - test known hash
+      const testHash = bcrypt.hashSync(password, 10);
+      console.log('🧪 Fresh hash for same password:', testHash);
+      const testCompare = bcrypt.compareSync(password, testHash);
+      console.log('🧪 Fresh hash validates:', testCompare);
+      
+      if (!passwordValid) {
+        console.log('❌ Password validation failed');
+        res.status(401).json({ 
+          success: false, 
+          error: 'Invalid credentials',
+          debug: {
+            email_found: true,
+            password_provided: !!password,
+            hash_format: user.password_hash.substring(0, 4),
+            bcrypt_working: testCompare
+          }
+        });
+        return;
+      }
+    } catch (bcryptError) {
+      console.error('💥 bcrypt error:', bcryptError);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Password verification failed',
+        details: bcryptError.message
+      });
       return;
     }
 
-    // Update last login
-    await sql`
-      UPDATE users 
-      SET last_login = NOW() 
-      WHERE id = ${user.id}
-    `;
+    // Success - update last login
+    await sql`UPDATE users SET last_login = NOW() WHERE id = ${user.id}`;
 
-    // Create JWT token using 'id' not 'user_id'
     const token = jwt.sign(
       { 
-        id: user.id,           // Changed from user_id to id
+        id: user.id,
         email: user.email,
         role: user.role 
       },
@@ -103,22 +113,24 @@ export default async function handler(req, res) {
       { expiresIn: '24h' }
     );
 
+    console.log('🎉 Login successful for:', email);
+
     res.status(200).json({
       success: true,
       token: token,
       user: {
-        id: user.id,                           // Changed from user_id to id
+        id: user.id,
         email: user.email,
         role: user.role,
         firstName: user.first_name,
         lastName: user.last_name,
-        accountValue: user.account_value,      // Added from your schema
-        startingBalance: user.starting_balance // Added from your schema
+        accountValue: user.account_value,
+        startingBalance: user.starting_balance
       }
     });
 
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('💥 Login error:', error);
     res.status(500).json({ 
       success: false, 
       error: 'Database connection failed',
