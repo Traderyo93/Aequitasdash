@@ -514,7 +514,6 @@
             
             if (email) {
                 if (confirm(`Send password reset instructions to ${email}?`)) {
-                    // In a real app, make API call here
                     alert('Password reset instructions have been sent to your email.');
                 }
             } else {
@@ -533,7 +532,7 @@
             return emailRegex.test(email);
         }
 
-        // Login form handling - FIXED VERSION
+        // FIXED LOGIN FORM HANDLING - Uses correct localStorage keys
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -543,6 +542,8 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             
+            console.log('🚀 Login attempt:', { email, password: '***' });
+            
             // Basic validation
             if (!validateEmail(email)) {
                 errorMessage.textContent = 'Please enter a valid email address.';
@@ -551,8 +552,8 @@
                 return;
             }
 
-            if (password.length < 6) {
-                errorMessage.textContent = 'Password must be at least 6 characters long.';
+            if (password.length < 3) {
+                errorMessage.textContent = 'Password too short.';
                 errorMessage.style.display = 'block';
                 successMessage.style.display = 'none';
                 return;
@@ -565,37 +566,55 @@
             successMessage.style.display = 'none';
             
             try {
+                console.log('📡 Making API request...');
+                
                 const response = await fetch('/api/auth', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ email, password }) // FIXED: Remove 'action' field
+                    body: JSON.stringify({ email, password })
                 });
 
+                console.log('📊 Response status:', response.status);
                 const data = await response.json();
+                console.log('📋 Response data:', data);
 
                 if (response.ok && data.success) {
-                    // Store auth data - FIXED: Use correct key names
-                    localStorage.setItem('authToken', data.token);
-                    localStorage.setItem('username', data.user.email);
+                    // FIXED: Store auth data with CORRECT keys
+                    localStorage.setItem('aequitas_auth_token', data.token);
+                    localStorage.setItem('aequitas_user_data', JSON.stringify(data.user));
+                    
+                    console.log('✅ Login successful, user role:', data.user.role);
                     
                     // Success state
                     loginBtn.querySelector('.btn-text').textContent = 'Success!';
                     successMessage.style.display = 'block';
                     
-                    // Redirect to dashboard - FIXED: Use correct path
+                    // FIXED: Redirect based on user role with correct paths
                     setTimeout(() => {
-                        window.location.href = '/';
+                        if (data.user.role === 'admin') {
+                            console.log('🔄 Redirecting to admin dashboard...');
+                            window.location.href = 'admin.html';
+                        } else {
+                            console.log('🔄 Redirecting to client dashboard...');
+                            window.location.href = 'dashboard.html';
+                        }
                     }, 1500);
                 } else {
                     throw new Error(data.error || 'Login failed');
                 }
             } catch (error) {
-                console.error('Login error:', error);
+                console.error('💥 Login error:', error);
                 loginBtn.classList.remove('loading');
                 loginBtn.querySelector('.btn-text').textContent = 'Sign In Securely';
-                errorMessage.textContent = error.message || 'Login failed. Please check your credentials and try again.';
+                
+                // Show debug info in error message
+                if (error.message.includes('Invalid credentials')) {
+                    errorMessage.textContent = 'Invalid email or password. Please check your credentials and try again.';
+                } else {
+                    errorMessage.textContent = `Login failed: ${error.message}`;
+                }
                 errorMessage.style.display = 'block';
             }
         });
