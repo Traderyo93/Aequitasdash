@@ -55,7 +55,15 @@ export default async function handler(req, res) {
     `;
     const totalClients = parseInt(totalClientsResult.rows[0].count);
     
-    // 2. ACTIVE DEPOSITS THIS MONTH - Approved/completed deposits in current month
+    // 2. TOTAL CLIENT BALANCES - Sum of all client account values
+    const totalBalancesResult = await sql`
+      SELECT COALESCE(SUM(account_value), 0) as total
+      FROM users 
+      WHERE role != 'admin' AND role != 'deleted'
+    `;
+    const totalClientBalances = parseFloat(totalBalancesResult.rows[0].total || 0);
+    
+    // 3. ACTIVE DEPOSITS THIS MONTH - Approved/completed deposits in current month
     const currentMonth = new Date().getMonth() + 1;
     const currentYear = new Date().getFullYear();
     
@@ -66,23 +74,15 @@ export default async function handler(req, res) {
       AND EXTRACT(MONTH FROM created_at) = ${currentMonth}
       AND EXTRACT(YEAR FROM created_at) = ${currentYear}
     `;
-    const activeDeposits = parseFloat(activeDepositsResult.rows[0].total || 0);
+    const activeDepositsThisMonth = parseFloat(activeDepositsResult.rows[0].total || 0);
     
-    // 3. PENDING REQUESTS - Deposits with pending status
+    // 4. PENDING REQUESTS - Deposits with pending status
     const pendingRequestsResult = await sql`
       SELECT COUNT(*) as count
       FROM deposits 
       WHERE status = 'pending'
     `;
     const pendingRequests = parseInt(pendingRequestsResult.rows[0].count);
-    
-    // 4. TOTAL CLIENT BALANCES - Sum of all client account values
-    const totalBalancesResult = await sql`
-      SELECT COALESCE(SUM(account_value), 0) as total
-      FROM users 
-      WHERE role != 'admin' AND role != 'deleted'
-    `;
-    const totalClientBalances = parseFloat(totalBalancesResult.rows[0].total || 0);
     
     // 5. ALL CLIENTS WITH DETAILS - For the clients table
     const allClientsResult = await sql`
@@ -97,13 +97,18 @@ export default async function handler(req, res) {
         starting_balance,
         created_at,
         last_login,
-        role
+        role,
+        (
+          SELECT COALESCE(SUM(amount), 0) 
+          FROM deposits 
+          WHERE user_id = users.id AND status IN ('approved', 'completed')
+        ) as total_deposits
       FROM users 
       WHERE role != 'admin' AND role != 'deleted'
       ORDER BY created_at DESC
     `;
     
-    // 6. ALL DEPOSITS - For the deposits table
+    // 6. ALL DEPOSITS WITH USER INFO - For the deposits table
     const allDepositsResult = await sql`
       SELECT 
         d.id,
@@ -138,8 +143,8 @@ export default async function handler(req, res) {
     
     // Calculate growth percentage
     const depositGrowth = lastMonthDeposits > 0 
-      ? ((activeDeposits - lastMonthDeposits) / lastMonthDeposits * 100).toFixed(1)
-      : activeDeposits > 0 ? 100 : 0;
+      ? ((activeDepositsThisMonth - lastMonthDeposits) / lastMonthDeposits * 100).toFixed(1)
+      : activeDepositsThisMonth > 0 ? 100 : 0;
     
     // 8. NEW CLIENTS THIS MONTH
     const newClientsResult = await sql`
@@ -153,7 +158,7 @@ export default async function handler(req, res) {
     
     console.log('📊 Admin stats calculated:', {
       totalClients,
-      activeDeposits,
+      activeDepositsThisMonth,
       pendingRequests,
       totalClientBalances,
       depositGrowth,
@@ -164,7 +169,7 @@ export default async function handler(req, res) {
       success: true,
       stats: {
         totalClients,
-        activeDeposits,
+        activeDepositsThisMonth,
         pendingRequests,
         totalClientBalances,
         depositGrowth: parseFloat(depositGrowth),
