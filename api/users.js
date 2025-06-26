@@ -79,14 +79,14 @@ module.exports = async function handler(req, res) {
         });
       }
       
-// Create user - let PostgreSQL generate the UUID
+// Create user - let PostgreSQL generate UUID, use 'pending' role
 const insertResult = await sql`
     INSERT INTO users (
         email, password_hash, role, first_name, last_name, phone, address,
         account_value, starting_balance, setup_status, setup_step, password_must_change
     )
     VALUES (
-        ${email}, ${hashedPassword}, 'setup_required', ${firstName}, ${lastName}, 
+        ${email}, ${hashedPassword}, 'pending', ${firstName}, ${lastName}, 
         ${phone || ''}, ${address || ''}, ${parseFloat(initialDeposit)}, ${parseFloat(initialDeposit)}, 
         'setup_pending', 1, true
     )
