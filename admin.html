@@ -1490,8 +1490,206 @@
     
     <!-- Complete Working JavaScript with USER ISOLATION FOR ADMIN -->
     <script>
-        // === ADMIN USER ISOLATION SYSTEM ===
-        // Admin can see ALL user data but users only see their own!
+        // === ADMIN USER ISOLATION SYSTEM + REAL DATABASE INTEGRATION ===
+        
+        // Get auth token for API calls
+        function getAuthToken() {
+            return localStorage.getItem('aequitas_auth_token');
+        }
+        
+        // Fetch real admin statistics from database
+        async function fetchAdminStats() {
+            try {
+                console.log('📊 Fetching real admin statistics...');
+                
+                const response = await fetch('/api/admin-stats', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to fetch stats');
+                }
+                
+                console.log('📊 Real stats received:', data.stats);
+                
+                // Update stats display
+                updateStatsDisplay(data.stats);
+                
+                // Update clients and deposits arrays with real data
+                clients = data.clients.map(client => ({
+                    id: client.id,
+                    firstName: client.first_name,
+                    lastName: client.last_name,
+                    email: client.email,
+                    phone: client.phone,
+                    address: client.address,
+                    status: 'active', // All non-deleted users are active
+                    joinDate: client.created_at.split('T')[0],
+                    totalDeposits: parseFloat(client.account_value || 0),
+                    lastActive: client.last_login ? client.last_login.split('T')[0] : client.created_at.split('T')[0],
+                    accountValue: parseFloat(client.account_value || 0),
+                    startingBalance: parseFloat(client.starting_balance || 0)
+                }));
+                
+                deposits = data.deposits;
+                
+                console.log(`✅ Loaded ${clients.length} real clients and ${deposits.length} real deposits`);
+                
+                return data;
+                
+            } catch (error) {
+                console.error('💥 Failed to fetch admin stats:', error);
+                showNotification(`Failed to load admin statistics: ${error.message}`, 'error');
+                
+                // Fallback to empty data
+                clients = [];
+                deposits = [];
+                
+                return null;
+            }
+        }
+        
+        // Update stats display with real data
+        function updateStatsDisplay(stats) {
+            // Total Clients
+            const totalClientsEl = document.getElementById('totalClients');
+            if (totalClientsEl) {
+                totalClientsEl.textContent = stats.totalClients.toLocaleString();
+            }
+            
+            // Active Deposits (this month)
+            const activeDepositsEl = document.getElementById('activeDeposits');
+            if (activeDepositsEl) {
+                if (stats.activeDeposits >= 1000000) {
+                    activeDepositsEl.textContent = `${(stats.activeDeposits / 1000000).toFixed(1)}M`;
+                } else if (stats.activeDeposits >= 1000) {
+                    activeDepositsEl.textContent = `${(stats.activeDeposits / 1000).toFixed(1)}K`;
+                } else {
+                    activeDepositsEl.textContent = `${stats.activeDeposits.toLocaleString()}`;
+                }
+            }
+            
+            // Pending Requests
+            const pendingRequestsEl = document.getElementById('pendingRequests');
+            if (pendingRequestsEl) {
+                pendingRequestsEl.textContent = stats.pendingRequests.toLocaleString();
+            }
+            
+            // Update growth indicators
+            const growthEl = document.querySelector('.stat-change.positive span:last-child');
+            if (growthEl && stats.depositGrowth !== undefined) {
+                if (stats.depositGrowth > 0) {
+                    growthEl.textContent = `+${stats.depositGrowth}% vs last month`;
+                    growthEl.parentElement.className = 'stat-change positive';
+                } else if (stats.depositGrowth < 0) {
+                    growthEl.textContent = `${stats.depositGrowth}% vs last month`;
+                    growthEl.parentElement.className = 'stat-change negative';
+                } else {
+                    growthEl.textContent = 'No change vs last month';
+                    growthEl.parentElement.className = 'stat-change neutral';
+                }
+            }
+        }
+        
+        // Create new user in database (REAL!)
+        async function createUserInDatabase(userData) {
+            try {
+                console.log('👤 Creating real user in database:', userData);
+                
+                const response = await fetch('/api/users', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userData)
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to create user');
+                }
+                
+                console.log('✅ User created in database:', data.user);
+                
+                // Show success with setup instructions
+                showNotification(`User created successfully! Temp password: ${data.tempPassword}`, 'success');
+                
+                // Show detailed setup instructions
+                alert(data.setupInstructions);
+                
+                return data.user;
+                
+            } catch (error) {
+                console.error('💥 Failed to create user:', error);
+                throw error;
+            }
+        }
+        
+        // Update user in database
+        async function updateUserInDatabase(userId, userData) {
+            try {
+                console.log('📝 Updating user in database:', userId, userData);
+                
+                const response = await fetch('/api/users', {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ userId, ...userData })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to update user');
+                }
+                
+                console.log('✅ User updated in database:', data.user);
+                return data.user;
+                
+            } catch (error) {
+                console.error('💥 Failed to update user:', error);
+                throw error;
+            }
+        }
+        
+        // Delete user in database
+        async function deleteUserInDatabase(userId) {
+            try {
+                console.log('🗑️ Deleting user in database:', userId);
+                
+                const response = await fetch('/api/users', {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ userId })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to delete user');
+                }
+                
+                console.log('✅ User deleted in database');
+                return true;
+                
+            } catch (error) {
+                console.error('💥 Failed to delete user:', error);
+                throw error;
+            }
+        }
         
         // Get ALL user deposits from isolated storage
         function getAllUserDeposits() {
@@ -1737,33 +1935,18 @@
             }
         ];
 
-        // FIXED Initialize data with USER ISOLATION
-        function initializeData() {
-            console.log('🔄 Admin initializing with user isolation...');
+        // FIXED Initialize data with REAL DATABASE INTEGRATION
+        async function initializeData() {
+            console.log('🔄 Admin initializing with REAL database data...');
             
-            // Load all user data (admin can see everything)
-            deposits = getAllUserDeposits();
+            // Fetch real statistics and data from database
+            const statsData = await fetchAdminStats();
             
-            // Load sample clients (keep existing sample data)
-            const savedClients = localStorage.getItem('aequitas_admin_clients');
-            clients = savedClients ? JSON.parse(savedClients) : sampleClients;
-            
-            // Map deposits to clients for display
-            deposits.forEach(deposit => {
-                if (!deposit.clientName && deposit.originalUserId) {
-                    // Try to find client name from user ID
-                    const client = clients.find(c => c.id === deposit.originalUserId || c.email === deposit.originalUserId);
-                    if (client) {
-                        deposit.clientName = `${client.firstName} ${client.lastName}`;
-                        deposit.clientId = client.id;
-                    } else {
-                        deposit.clientName = deposit.originalUserId; // Fallback to user ID
-                    }
-                }
-            });
-            
-            saveData();
-            console.log(`✅ Admin loaded ${deposits.length} deposits from all users`);
+            if (statsData) {
+                console.log(`✅ Admin loaded REAL data: ${clients.length} clients, ${deposits.length} deposits`);
+            } else {
+                console.log('⚠️ Failed to load real data, using empty state');
+            }
         }
 
         // Save data to localStorage
@@ -2299,54 +2482,111 @@
             const client = clients.find(c => c.id === clientId);
             if (!client) return;
             
-            if (confirm(`Are you sure you want to delete client ${client.firstName} ${client.lastName}? This action cannot be undone.`)) {
-                clients = clients.filter(c => c.id !== clientId);
-                // Note: We don't delete user deposits as they're stored separately
-                saveData();
-                renderClientsTable();
-                updateStats();
-                showNotification(`Client ${client.firstName} ${client.lastName} has been deleted.`, 'success');
+            if (confirm(`Are you sure you want to delete client ${client.firstName} ${client.lastName}? This action cannot be undone and will remove them from the database.`)) {
+                // Delete from database
+                deleteUserInDatabase(clientId)
+                    .then(() => {
+                        // Remove from local array
+                        clients = clients.filter(c => c.id !== clientId);
+                        
+                        renderClientsTable();
+                        fetchAdminStats(); // Refresh stats
+                        showNotification(`Client ${client.firstName} ${client.lastName} has been deleted from database.`, 'success');
+                    })
+                    .catch(error => {
+                        showNotification(`Failed to delete client: ${error.message}`, 'error');
+                    });
             }
         }
 
-        // Form submission
-        document.getElementById('clientForm').addEventListener('submit', function(e) {
+        // Form submission - CREATE REAL USER IN DATABASE
+        document.getElementById('clientForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const formData = new FormData(e.target);
-            const clientData = {
-                firstName: formData.get('firstName'),
-                lastName: formData.get('lastName'),
-                email: formData.get('email'),
-                phone: formData.get('phone'),
-                address: formData.get('address'),
-                status: formData.get('status'),
-                totalDeposits: parseFloat(formData.get('initialDeposit')) || 0
-            };
+            const submitBtn = document.getElementById('saveClientBtn');
+            const originalText = submitBtn.textContent;
             
-            if (editingClientId) {
-                // Update existing client
-                const clientIndex = clients.findIndex(c => c.id === editingClientId);
-                if (clientIndex !== -1) {
-                    clients[clientIndex] = { ...clients[clientIndex], ...clientData };
-                    showNotification('Client updated successfully!', 'success');
-                }
-            } else {
-                // Add new client
-                const newClient = {
-                    id: 'client_' + Date.now(),
-                    ...clientData,
-                    joinDate: new Date().toISOString().split('T')[0],
-                    lastActive: new Date().toISOString().split('T')[0]
+            try {
+                // Show loading state
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Creating...';
+                
+                const formData = new FormData(e.target);
+                const clientData = {
+                    firstName: formData.get('firstName'),
+                    lastName: formData.get('lastName'),
+                    email: formData.get('email'),
+                    phone: formData.get('phone'),
+                    address: formData.get('address'),
+                    initialDeposit: parseFloat(formData.get('initialDeposit')) || 0,
+                    status: formData.get('status') || 'active'
                 };
-                clients.push(newClient);
-                showNotification('Client added successfully!', 'success');
+                
+                if (editingClientId) {
+                    // Update existing client in database
+                    const updatedUser = await updateUserInDatabase(editingClientId, {
+                        firstName: clientData.firstName,
+                        lastName: clientData.lastName,
+                        phone: clientData.phone,
+                        address: clientData.address,
+                        accountValue: clientData.initialDeposit
+                    });
+                    
+                    // Update local clients array
+                    const clientIndex = clients.findIndex(c => c.id === editingClientId);
+                    if (clientIndex !== -1) {
+                        clients[clientIndex] = {
+                            ...clients[clientIndex],
+                            firstName: updatedUser.first_name,
+                            lastName: updatedUser.last_name,
+                            email: updatedUser.email,
+                            phone: updatedUser.phone,
+                            address: updatedUser.address,
+                            totalDeposits: parseFloat(updatedUser.account_value),
+                            accountValue: parseFloat(updatedUser.account_value)
+                        };
+                    }
+                    
+                    showNotification('Client updated successfully in database!', 'success');
+                } else {
+                    // Create new client in database
+                    const newUser = await createUserInDatabase(clientData);
+                    
+                    // Add to local clients array
+                    const newClient = {
+                        id: newUser.id,
+                        firstName: newUser.first_name,
+                        lastName: newUser.last_name,
+                        email: newUser.email,
+                        phone: newUser.phone,
+                        address: newUser.address,
+                        status: 'active',
+                        joinDate: newUser.created_at.split('T')[0],
+                        totalDeposits: parseFloat(newUser.account_value),
+                        accountValue: parseFloat(newUser.account_value),
+                        startingBalance: parseFloat(newUser.account_value),
+                        lastActive: newUser.created_at.split('T')[0]
+                    };
+                    
+                    clients.push(newClient);
+                    
+                    showNotification('New client created successfully in database!', 'success');
+                }
+                
+                // Refresh the stats and tables
+                await fetchAdminStats();
+                
+                closeModal('clientModal');
+                renderClientsTable();
+                
+            } catch (error) {
+                console.error('Failed to save client:', error);
+                showNotification(`Failed to save client: ${error.message}`, 'error');
+            } finally {
+                // Reset button state
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
             }
-            
-            saveData();
-            closeModal('clientModal');
-            renderClientsTable();
-            updateStats();
         });
 
         // Export and reporting functions
@@ -2574,13 +2814,12 @@ For questions, contact: admin@aequitascap.com`;
                 if (adminSection) adminSection.style.display = 'block';
             }
 
-            // Initialize data and render with USER ISOLATION
-            initializeData();
+            // Initialize data and render with REAL DATABASE DATA
+            await initializeData();
             renderClientsTable();
-            updateStats();
-
-            console.log(`✅ Admin dashboard initialized with USER ISOLATION - can see ${deposits.length} deposits from all users`);
-            showNotification(`Welcome to the Admin Dashboard! Viewing ${deposits.length} deposits from all users.`, 'success');
+            
+            console.log(`✅ Admin dashboard initialized with REAL database data - ${clients.length} clients, ${deposits.length} deposits`);
+            showNotification(`Admin Dashboard loaded with ${clients.length} real clients from database!`, 'success');
         });
 
         // DEBUG: Test user isolation - CALL THIS IN CONSOLE
