@@ -1203,12 +1203,20 @@ function navigateTo(page) {
             economicCalendarContainer.appendChild(economicCalendarScript);
         }
 
-        // Initialize dashboard
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded, initializing dashboard...');
-            
-            // Load saved theme
-            const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing dashboard...');
+    
+    // CHECK: Redirect pending users to setup
+    const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
+    if (userData.role === 'pending' && userData.setupStatus !== 'approved') {
+        console.log('🔄 Pending user detected, redirecting to setup...');
+        window.location.href = 'setup.html';
+        return;
+    }
+    
+    // Load saved theme
+    const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
             console.log('Saved theme:', savedTheme);
             
             if (savedTheme === 'dark') {
