@@ -1,11 +1,13 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/**/*.js",
-      "use": "@vercel/node"
+  "functions": {
+    "api/auth.js": {
+      "maxDuration": 10
+    },
+    "api/upload.js": {
+      "maxDuration": 30
     }
-  ],
+  },
   "routes": [
     {
       "src": "/api/(.*)",
@@ -16,14 +18,6 @@
       "dest": "/$1"
     }
   ],
-  "functions": {
-    "api/auth.js": {
-      "maxDuration": 10
-    },
-    "api/upload.js": {
-      "maxDuration": 30
-    }
-  },
   "headers": [
     {
       "source": "/api/(.*)",
