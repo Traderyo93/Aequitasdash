@@ -2712,21 +2712,20 @@ clients = data.clients.map(client => ({
                     // Create new client in database
                     const newUser = await createUserInDatabase(clientData);
                     
-                    // Add to local clients array
-                    const newClient = {
-                        id: newUser.id,
-                        firstName: newUser.first_name,
-                        lastName: newUser.last_name,
-                        email: newUser.email,
-                        phone: newUser.phone,
-                        address: newUser.address,
-                        status: 'active',
-                        joinDate: newUser.created_at.split('T')[0],
-                        totalDeposits: 0, // New client has no deposits yet
-                        accountValue: parseFloat(newUser.account_value),
-                        startingBalance: parseFloat(newUser.account_value),
-                        lastActive: newUser.created_at.split('T')[0]
-                    };
+                   const newClient = {
+    id: newUser.id,
+    firstName: newUser.first_name || newUser.firstName,
+    lastName: newUser.last_name || newUser.lastName,
+    email: newUser.email,
+    phone: newUser.phone,
+    address: newUser.address,
+    status: 'active',
+    joinDate: newUser.created_at ? newUser.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+    totalDeposits: 0,
+    accountValue: parseFloat(newUser.account_value || 0),
+    startingBalance: parseFloat(newUser.account_value || 0),
+    lastActive: newUser.created_at ? newUser.created_at.split('T')[0] : new Date().toISOString().split('T')[0]
+};
                     
                     clients.push(newClient);
                     
