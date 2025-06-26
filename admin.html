@@ -1596,9 +1596,9 @@
                     phone: client.phone,
                     address: client.address,
                     status: 'active', // All non-deleted users are active
-                    joinDate: client.created_at.split('T')[0],
+                    joinDate: client.joinDate || 'Unknown',
                     totalDeposits: parseFloat(client.total_deposits || 0), // REAL total deposits
-                    lastActive: client.last_login ? client.last_login.split('T')[0] : client.created_at.split('T')[0],
+                    lastActive: client.lastActive || 'Unknown',
                     accountValue: parseFloat(client.account_value || 0), // REAL current balance
                     startingBalance: parseFloat(client.starting_balance || 0)
                 }));
