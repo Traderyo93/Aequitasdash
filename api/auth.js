@@ -1,6 +1,5 @@
-// api/auth.js - Debug version with connection testing
-import pg from 'pg';
-const { Client } = pg;
+// api/auth.js - Fixed with Vercel Postgres
+import { sql } from '@vercel/postgres';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
@@ -18,24 +17,16 @@ export default async function handler(req, res) {
   // Add GET method for testing
   if (req.method === 'GET') {
     try {
-      // Test database connection
-      const client = new Client({
-        connectionString: process.env.POSTGRES_URL,
-        ssl: { rejectUnauthorized: false }
-      });
+      console.log('Testing database connection...');
       
-      await client.connect();
-      console.log('Database connected successfully');
-      
-      // Test query
-      const result = await client.query('SELECT COUNT(*) FROM users');
-      await client.end();
+      // Test query with Vercel Postgres
+      const result = await sql`SELECT COUNT(*) FROM users`;
       
       return res.status(200).json({
         message: "API works",
         database: "connected successfully!",
         users_count: result.rows[0].count,
-        connection: "direct_postgres",
+        connection: "vercel_postgres",
         timestamp: new Date().toISOString(),
         postgres_url_exists: !!process.env.POSTGRES_URL
       });
@@ -72,22 +63,15 @@ export default async function handler(req, res) {
     return;
   }
 
-  // Database connection
-  const client = new Client({
-    connectionString: process.env.POSTGRES_URL,
-    ssl: { rejectUnauthorized: false }
-  });
-
   try {
     console.log('Attempting database connection...');
-    await client.connect();
-    console.log('Database connected for login attempt');
     
-    // Get user from database
-    const result = await client.query(
-      'SELECT user_id, email, password_hash, role FROM users WHERE email = $1',
-      [email]
-    );
+    // Get user from database using Vercel Postgres
+    const result = await sql`
+      SELECT user_id, email, password_hash, role 
+      FROM users 
+      WHERE email = ${email}
+    `;
 
     console.log(`Query result: ${result.rows.length} rows found for ${email}`);
 
@@ -139,11 +123,5 @@ export default async function handler(req, res) {
       details: error.message,
       postgres_url_exists: !!process.env.POSTGRES_URL
     });
-  } finally {
-    try {
-      await client.end();
-    } catch (e) {
-      console.error('Error closing database connection:', e);
-    }
   }
 }
