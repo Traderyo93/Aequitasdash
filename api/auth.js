@@ -54,16 +54,25 @@ module.exports = async function handler(req, res) {
       return res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
 
-    // Check if password change is required
-    if (user.password_must_change) {
-      if (!newPassword) {
-        return res.status(200).json({
-          success: true,
-          passwordChangeRequired: true,
-          message: 'Password change required'
-        });
+// Check if password change is required
+if (user.password_must_change) {
+  if (!newPassword) {
+    return res.status(200).json({
+      success: true,
+      passwordChangeRequired: true,
+      message: 'Password change required',
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        setupStatus: user.setup_status,
+        setupStep: user.setup_step,
+        setupRequired: user.setup_status !== 'approved'
       }
-      
+    });
+  }
       if (newPassword.length < 8) {
         return res.status(400).json({
           success: false,
