@@ -3,11 +3,17 @@
   "version": "1.0.0",
   "description": "Secure Aequitas Trading Dashboard",
   "dependencies": {
-    "pg": "^8.11.3",
+    "@vercel/postgres": "^0.10.0",
+    "@vercel/blob": "^0.25.0",
     "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^9.0.2"
   },
   "engines": {
     "node": "18.x"
+  },
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'Build complete'",
+    "start": "echo 'Production ready'"
   }
 }
