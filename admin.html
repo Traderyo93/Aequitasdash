@@ -1587,21 +1587,21 @@
                 // Update stats display
                 updateStatsDisplay(data.stats);
                 
-                // Update clients and deposits arrays with real data
-                clients = data.clients.map(client => ({
-                    id: client.id,
-                    firstName: client.first_name,
-                    lastName: client.last_name,
-                    email: client.email,
-                    phone: client.phone,
-                    address: client.address,
-                    status: 'active', // All non-deleted users are active
-                    joinDate: client.joinDate || 'Unknown',
-                    totalDeposits: parseFloat(client.total_deposits || 0), // REAL total deposits
-                    lastActive: client.lastActive || 'Unknown',
-                    accountValue: parseFloat(client.account_value || 0), // REAL current balance
-                    startingBalance: parseFloat(client.starting_balance || 0)
-                }));
+                // Update clients and deposits arrays with real data - FIXED mapping
+clients = data.clients.map(client => ({
+    id: client.id,
+    firstName: client.firstName || 'Unknown',  // API already returns camelCase
+    lastName: client.lastName || 'User',       // API already returns camelCase
+    email: client.email,
+    phone: client.phone || 'Not provided',
+    address: client.address || 'Not provided',
+    status: 'active',
+    joinDate: client.joinDate || 'Unknown',
+    totalDeposits: parseFloat(client.totalDeposits || 0),
+    lastActive: client.lastActive || 'Unknown',
+    accountValue: parseFloat(client.accountValue || 0),
+    startingBalance: parseFloat(client.startingBalance || 0)
+}));
                 
                 deposits = data.deposits;
                 
