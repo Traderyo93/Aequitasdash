@@ -581,26 +581,35 @@
                 console.log('📋 Response data:', data);
 
                 if (response.ok && data.success) {
-                    // FIXED: Store auth data with CORRECT keys
-                    localStorage.setItem('aequitas_auth_token', data.token);
-                    localStorage.setItem('aequitas_user_data', JSON.stringify(data.user));
-                    
-                    console.log('✅ Login successful, user role:', data.user.role);
-                    
-                    // Success state
-                    loginBtn.querySelector('.btn-text').textContent = 'Success!';
-                    successMessage.style.display = 'block';
-                    
-                    // FIXED: Redirect based on user role with correct paths
-                    setTimeout(() => {
-                        if (data.user.role === 'admin') {
-                            console.log('🔄 Redirecting to admin dashboard...');
-                            window.location.href = 'admin.html';
-                        } else {
-                            console.log('🔄 Redirecting to client dashboard...');
-                            window.location.href = 'dashboard.html';
-                        }
-                    }, 1500);
+if (response.ok && data.success) {
+    // Check if password change is required
+    if (data.passwordChangeRequired) {
+        console.log('🔐 Password change required, showing modal');
+        // Show password change modal logic here
+        // TODO: Add password change modal handling
+        alert('Password change required - this should show a modal');
+        return;
+    }
+    
+    // Normal login flow
+    localStorage.setItem('aequitas_auth_token', data.token);
+    localStorage.setItem('aequitas_user_data', JSON.stringify(data.user));
+    
+    console.log('✅ Login successful, user role:', data.user.role);
+    
+    // Success state
+    loginBtn.querySelector('.btn-text').textContent = 'Success!';
+    successMessage.style.display = 'block';
+    
+    // Redirect based on user role
+    setTimeout(() => {
+        if (data.user.role === 'admin') {
+            window.location.href = 'admin.html';
+        } else {
+            window.location.href = 'dashboard.html';
+        }
+    }, 1500);
+}
                 } else {
                     throw new Error(data.error || 'Login failed');
                 }
