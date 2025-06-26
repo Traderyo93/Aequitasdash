@@ -2246,7 +2246,7 @@
                     <tr>
                         <td>
                             <div style="display: flex; align-items: center; gap: 12px;">
-                                <div class="client-avatar">${client.firstName.charAt(0)}</div>
+                                <div class="client-avatar">${(client.firstName || 'U').charAt(0)}</div>
                                 <div>
                                     <div style="font-weight: 500;">${client.firstName} ${client.lastName}</div>
                                     <div style="font-size: 12px; color: var(--text-tertiary);">ID: ${client.id}</div>
