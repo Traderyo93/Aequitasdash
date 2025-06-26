@@ -1,5 +1,5 @@
-// api/auth.js - Debug bcrypt comparison
-import { neon } from '@neondatabase/serverless';
+// api/auth.js - REPLACE YOUR EXISTING FILE
+import { sql } from '@vercel/postgres';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
@@ -10,112 +10,75 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
-  }
-
-  if (req.method === 'GET') {
-    try {
-      const sql = neon(process.env.POSTGRES_URL);
-      const usersTest = await sql`SELECT COUNT(*) as count FROM users`;
-      const allUsers = await sql`SELECT id, email, role, LEFT(password_hash, 30) as hash_preview FROM users`;
-      
-      return res.status(200).json({
-        success: true,
-        message: "API working!",
-        users_count: usersTest[0].count,
-        users_list: allUsers,
-        bcrypt_version: bcrypt.version || 'unknown'
-      });
-    } catch (error) {
-      return res.status(500).json({ success: false, error: error.message });
-    }
+    return res.status(200).end();
   }
 
   if (req.method !== 'POST') {
-    res.status(405).json({ success: false, error: 'Method not allowed' });
-    return;
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
-  const { email, password } = req.body;
+  const { email, password, newPassword } = req.body;
 
   if (!email || !password) {
-    res.status(400).json({ success: false, error: 'Email and password required' });
-    return;
+    return res.status(400).json({ success: false, error: 'Email and password required' });
   }
 
   try {
-    const sql = neon(process.env.POSTGRES_URL);
-    
     const result = await sql`
-      SELECT id, email, password_hash, role, first_name, last_name, account_value, starting_balance
+      SELECT 
+        id, email, password_hash, role, first_name, last_name, 
+        account_value, starting_balance, setup_status, setup_step, password_must_change
       FROM users 
-      WHERE email = ${email}
+      WHERE email = ${email} AND role != 'deleted'
     `;
 
-    if (result.length === 0) {
-      console.log('❌ User not found:', email);
-      res.status(401).json({ success: false, error: 'Invalid credentials' });
-      return;
+    if (result.rows.length === 0) {
+      return res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
 
-    const user = result[0];
-    console.log('👤 User found:', user.email);
-    console.log('🔐 Password provided:', password);
-    console.log('🔑 Hash from DB:', user.password_hash);
-    console.log('📝 Hash starts with:', user.password_hash.substring(0, 10));
+    const user = result.rows[0];
     
-    // Debug bcrypt comparison
-    try {
-      const passwordValid = await bcrypt.compare(password, user.password_hash);
-      console.log('✅ bcrypt.compare result:', passwordValid);
-      
-      // Additional debug - test known hash
-      const testHash = bcrypt.hashSync(password, 10);
-      console.log('🧪 Fresh hash for same password:', testHash);
-      const testCompare = bcrypt.compareSync(password, testHash);
-      console.log('🧪 Fresh hash validates:', testCompare);
-      
-      if (!passwordValid) {
-        console.log('❌ Password validation failed');
-        res.status(401).json({ 
-          success: false, 
-          error: 'Invalid credentials',
-          debug: {
-            email_found: true,
-            password_provided: !!password,
-            hash_format: user.password_hash.substring(0, 4),
-            bcrypt_working: testCompare
-          }
-        });
-        return;
-      }
-    } catch (bcryptError) {
-      console.error('💥 bcrypt error:', bcryptError);
-      res.status(500).json({ 
-        success: false, 
-        error: 'Password verification failed',
-        details: bcryptError.message
-      });
-      return;
+    const passwordValid = await bcrypt.compare(password, user.password_hash);
+    if (!passwordValid) {
+      return res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
 
-    // Success - update last login
+    // Check if password change is required
+    if (user.password_must_change) {
+      if (!newPassword) {
+        return res.status(200).json({
+          success: true,
+          passwordChangeRequired: true,
+          message: 'Password change required'
+        });
+      }
+      
+      if (newPassword.length < 8) {
+        return res.status(400).json({
+          success: false,
+          error: 'New password must be at least 8 characters'
+        });
+      }
+      
+      // Update password
+      const newPasswordHash = await bcrypt.hash(newPassword, 12);
+      await sql`
+        UPDATE users 
+        SET password_hash = ${newPasswordHash}, password_must_change = false
+        WHERE id = ${user.id}
+      `;
+    }
+
+    // Update last login
     await sql`UPDATE users SET last_login = NOW() WHERE id = ${user.id}`;
 
     const token = jwt.sign(
-      { 
-        id: user.id,
-        email: user.email,
-        role: user.role 
-      },
+      { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET || 'aequitas-secret-key-2025',
       { expiresIn: '24h' }
     );
 
-    console.log('🎉 Login successful for:', email);
-
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       token: token,
       user: {
@@ -125,16 +88,19 @@ export default async function handler(req, res) {
         firstName: user.first_name,
         lastName: user.last_name,
         accountValue: user.account_value,
-        startingBalance: user.starting_balance
-      }
+        startingBalance: user.starting_balance,
+        setupStatus: user.setup_status,
+        setupStep: user.setup_step,
+        setupRequired: user.setup_status !== 'approved'
+      },
+      passwordChanged: user.password_must_change && newPassword
     });
 
   } catch (error) {
-    console.error('💥 Login error:', error);
-    res.status(500).json({ 
+    console.error('Login error:', error);
+    return res.status(500).json({ 
       success: false, 
-      error: 'Database connection failed',
-      details: error.message
+      error: 'Authentication failed'
     });
   }
 }
