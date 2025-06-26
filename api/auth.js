@@ -1,9 +1,9 @@
-// api/auth.js - FIXED VERSION
-import { sql } from '@vercel/postgres';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+// api/auth.js - FIXED WITH COMMONJS
+const { sql } = require('@vercel/postgres');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // Set CORS headers first
   res.setHeader('Content-Type', 'application/json');
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -125,4 +125,4 @@ export default async function handler(req, res) {
       details: error.message
     });
   }
-}
+};
