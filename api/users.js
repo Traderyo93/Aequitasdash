@@ -79,20 +79,19 @@ module.exports = async function handler(req, res) {
         });
       }
       
-      // Create user
-      const userId = 'usr_' + Date.now();
-      const insertResult = await sql`
-        INSERT INTO users (
-          id, email, password_hash, role, first_name, last_name, phone, address,
-          account_value, starting_balance, setup_status, setup_step, password_must_change
-        )
-        VALUES (
-          ${userId}, ${email}, ${hashedPassword}, 'setup_required', ${firstName}, ${lastName}, 
-          ${phone || ''}, ${address || ''}, ${parseFloat(initialDeposit)}, ${parseFloat(initialDeposit)}, 
-          'setup_pending', 1, true
-        )
-        RETURNING id, email, first_name, last_name
-      `;
+// Create user - let PostgreSQL generate the UUID
+const insertResult = await sql`
+    INSERT INTO users (
+        email, password_hash, role, first_name, last_name, phone, address,
+        account_value, starting_balance, setup_status, setup_step, password_must_change
+    )
+    VALUES (
+        ${email}, ${hashedPassword}, 'setup_required', ${firstName}, ${lastName}, 
+        ${phone || ''}, ${address || ''}, ${parseFloat(initialDeposit)}, ${parseFloat(initialDeposit)}, 
+        'setup_pending', 1, true
+    )
+    RETURNING id, email, first_name, last_name
+`;
       
       const newUser = insertResult.rows[0];
       
