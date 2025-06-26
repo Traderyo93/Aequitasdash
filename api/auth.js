@@ -1,9 +1,10 @@
-// api/auth.js - REPLACE YOUR EXISTING FILE
+// api/auth.js - FIXED VERSION
 import { sql } from '@vercel/postgres';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
 export default async function handler(req, res) {
+  // Set CORS headers first
   res.setHeader('Content-Type', 'application/json');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -17,13 +18,15 @@ export default async function handler(req, res) {
     return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
-  const { email, password, newPassword } = req.body;
-
-  if (!email || !password) {
-    return res.status(400).json({ success: false, error: 'Email and password required' });
-  }
-
   try {
+    const { email, password, newPassword } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ success: false, error: 'Email and password required' });
+    }
+
+    console.log('🔐 Auth attempt for:', email);
+
     const result = await sql`
       SELECT 
         id, email, password_hash, role, first_name, last_name, 
@@ -38,7 +41,15 @@ export default async function handler(req, res) {
 
     const user = result.rows[0];
     
-    const passwordValid = await bcrypt.compare(password, user.password_hash);
+    // Verify password
+    let passwordValid;
+    try {
+      passwordValid = await bcrypt.compare(password, user.password_hash);
+    } catch (bcryptError) {
+      console.error('Password comparison failed:', bcryptError);
+      return res.status(500).json({ success: false, error: 'Authentication error' });
+    }
+    
     if (!passwordValid) {
       return res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
@@ -67,16 +78,26 @@ export default async function handler(req, res) {
         SET password_hash = ${newPasswordHash}, password_must_change = false
         WHERE id = ${user.id}
       `;
+      
+      console.log('✅ Password changed for user:', email);
     }
 
     // Update last login
-    await sql`UPDATE users SET last_login = NOW() WHERE id = ${user.id}`;
+    try {
+      await sql`UPDATE users SET last_login = NOW() WHERE id = ${user.id}`;
+    } catch (updateError) {
+      console.error('Failed to update last login:', updateError);
+      // Don't fail auth for this
+    }
 
+    // Generate JWT token
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET || 'aequitas-secret-key-2025',
       { expiresIn: '24h' }
     );
+
+    console.log('✅ Auth successful for:', email, 'Role:', user.role);
 
     return res.status(200).json({
       success: true,
@@ -87,8 +108,8 @@ export default async function handler(req, res) {
         role: user.role,
         firstName: user.first_name,
         lastName: user.last_name,
-        accountValue: user.account_value,
-        startingBalance: user.starting_balance,
+        accountValue: parseFloat(user.account_value || 0),
+        startingBalance: parseFloat(user.starting_balance || 0),
         setupStatus: user.setup_status,
         setupStep: user.setup_step,
         setupRequired: user.setup_status !== 'approved'
@@ -97,10 +118,11 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('💥 Login error:', error);
     return res.status(500).json({ 
       success: false, 
-      error: 'Authentication failed'
+      error: 'Authentication failed',
+      details: error.message
     });
   }
 }
