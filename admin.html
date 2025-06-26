@@ -1497,28 +1497,35 @@
         function getAllUserDeposits() {
             const allDeposits = [];
             
+            console.log('🔍 Scanning localStorage for user deposits...');
+            
             // Scan all localStorage keys for user-specific deposits
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
                 if (key && key.includes('_deposits')) {
+                    console.log(`💰 Found deposit storage key: ${key}`);
                     try {
                         const userDeposits = JSON.parse(localStorage.getItem(key));
                         if (Array.isArray(userDeposits)) {
                             // Extract user ID from key for mapping
                             const userId = key.replace('_deposits', '');
+                            console.log(`👤 Processing deposits for user: ${userId}, count: ${userDeposits.length}`);
+                            
                             userDeposits.forEach(deposit => {
                                 deposit.originalUserId = userId; // Track which user this belongs to
                                 deposit.clientName = deposit.clientName || userId; // Fallback to user ID
+                                allDeposits.push(deposit);
                             });
-                            allDeposits.push(...userDeposits);
+                        } else {
+                            console.log(`⚠️ Invalid deposit data structure for key: ${key}`);
                         }
                     } catch (e) {
-                        console.warn('Failed to parse deposits for key:', key);
+                        console.warn('Failed to parse deposits for key:', key, e);
                     }
                 }
             }
             
-            console.log(`👨‍💼 Admin loaded ${allDeposits.length} deposits from all users`);
+            console.log(`👨‍💼 Admin loaded ${allDeposits.length} deposits from all users:`, allDeposits);
             return allDeposits;
         }
 
@@ -1526,27 +1533,34 @@
         function getAllUserFiles() {
             const allFiles = [];
             
+            console.log('🔍 Scanning localStorage for user files...');
+            
             // Scan all localStorage keys for user-specific files
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
                 if (key && key.includes('_uploaded_files')) {
+                    console.log(`📂 Found file storage key: ${key}`);
                     try {
                         const userFileData = JSON.parse(localStorage.getItem(key));
-                        if (userFileData && userFileData.forms) {
+                        if (userFileData && userFileData.forms && Array.isArray(userFileData.forms)) {
                             // Extract user ID from key for mapping
                             const userId = key.replace('_uploaded_files', '');
+                            console.log(`👤 Processing files for user: ${userId}, count: ${userFileData.forms.length}`);
+                            
                             userFileData.forms.forEach(file => {
                                 file.originalUserId = userId; // Track which user this belongs to
+                                allFiles.push(file);
                             });
-                            allFiles.push(...userFileData.forms);
+                        } else {
+                            console.log(`⚠️ Invalid file data structure for key: ${key}`);
                         }
                     } catch (e) {
-                        console.warn('Failed to parse files for key:', key);
+                        console.warn('Failed to parse files for key:', key, e);
                     }
                 }
             }
             
-            console.log(`👨‍💼 Admin loaded ${allFiles.length} files from all users`);
+            console.log(`👨‍💼 Admin loaded ${allFiles.length} files from all users:`, allFiles);
             return allFiles;
         }
 
@@ -1915,13 +1929,20 @@
         // FIXED View deposit with USER ISOLATION
         function viewDeposit(depositId) {
             const deposit = deposits.find(d => d.id === depositId);
-            if (!deposit) return;
+            if (!deposit) {
+                console.error('Deposit not found:', depositId);
+                showNotification('Deposit not found!', 'error');
+                return;
+            }
             
+            console.log('👁️ Admin viewing deposit:', deposit);
             viewingDepositId = depositId;
             
             // Get uploaded files for this deposit from ALL users
             const allFiles = getAllUserFiles();
+            console.log('📁 All files found:', allFiles);
             const depositFiles = allFiles.filter(f => f.depositId === deposit.id);
+            console.log('📎 Files for this deposit:', depositFiles);
             
             document.getElementById('depositDetailsBody').innerHTML = `
                 <div class="modal-form-grid">
@@ -2562,8 +2583,38 @@ For questions, contact: admin@aequitascap.com`;
             showNotification(`Welcome to the Admin Dashboard! Viewing ${deposits.length} deposits from all users.`, 'success');
         });
 
-        // DEBUG: Test user isolation
+        // DEBUG: Test user isolation - CALL THIS IN CONSOLE
         function showUserIsolationStatus() {
+            console.log('=== DEBUGGING USER ISOLATION ===');
+            
+            // Show all localStorage keys
+            console.log('\n🔑 ALL LOCALSTORAGE KEYS:');
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                console.log(`Key ${i}: ${key}`);
+                
+                if (key.includes('uploaded_files') || key.includes('deposits')) {
+                    try {
+                        const data = JSON.parse(localStorage.getItem(key));
+                        console.log(`  Data:`, data);
+                    } catch (e) {
+                        console.log(`  Data: ${localStorage.getItem(key)}`);
+                    }
+                }
+            }
+            
+            // Test the functions
+            console.log('\n📂 getAllUserFiles() result:');
+            const allFiles = getAllUserFiles();
+            
+            console.log('\n💰 getAllUserDeposits() result:');
+            const allDeposits = getAllUserDeposits();
+            
+            // Show current admin state
+            console.log('\n👨‍💼 CURRENT ADMIN STATE:');
+            console.log('deposits array:', deposits);
+            console.log('clients array:', clients);
+            
             debugAllUserData();
             
             const userFileKeys = [];
@@ -2579,17 +2630,20 @@ For questions, contact: admin@aequitascap.com`;
                 }
             }
             
-            alert(`USER ISOLATION STATUS:
-            
-File Storage Keys: ${userFileKeys.length}
+            alert(`USER ISOLATION DEBUG:
+
+Found File Storage Keys: ${userFileKeys.length}
 ${userFileKeys.join('\n')}
 
-Deposit Storage Keys: ${userDepositKeys.length}  
+Found Deposit Storage Keys: ${userDepositKeys.length}  
 ${userDepositKeys.join('\n')}
 
-✅ Admin can see ALL user data!
-✅ Users are properly isolated!
-Check console for full debug info.`);
+Total Files Found: ${allFiles.length}
+Total Deposits Found: ${allDeposits.length}
+
+Admin deposits array: ${deposits.length}
+
+Check console for detailed output!`);
         }
 
         // Call this in console to test: showUserIsolationStatus()
