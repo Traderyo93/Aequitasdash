@@ -1196,22 +1196,22 @@
                         <span class="stat-title">Total Clients</span>
                         <span class="icon icon-users stat-icon"></span>
                     </div>
-                    <div class="stat-value" id="totalClients">247</div>
+                    <div class="stat-value" id="totalClients">0</div>
                     <div class="stat-change positive">
                         <span class="icon icon-check"></span>
-                        <span>+12 this month</span>
+                        <span>+0 this month</span>
                     </div>
                 </div>
 
                 <div class="stat-card">
                     <div class="stat-header">
-                        <span class="stat-title">Active Deposits</span>
+                        <span class="stat-title">Monthly Deposits</span>
                         <span class="icon icon-money stat-icon"></span>
                     </div>
-                    <div class="stat-value" id="activeDeposits">$47.2M</div>
+                    <div class="stat-value" id="activeDeposits">$0</div>
                     <div class="stat-change positive">
                         <span class="icon icon-check"></span>
-                        <span>+8.2% vs last month</span>
+                        <span>+0% vs last month</span>
                     </div>
                 </div>
 
@@ -1220,22 +1220,22 @@
                         <span class="stat-title">Pending Requests</span>
                         <span class="icon icon-document stat-icon"></span>
                     </div>
-                    <div class="stat-value" id="pendingRequests">23</div>
+                    <div class="stat-value" id="pendingRequests">0</div>
                     <div class="stat-change neutral">
                         <span class="icon icon-check"></span>
-                        <span>5 awaiting review</span>
+                        <span>0 awaiting review</span>
                     </div>
                 </div>
 
                 <div class="stat-card">
                     <div class="stat-header">
-                        <span class="stat-title">System Status</span>
+                        <span class="stat-title">Total Client Assets</span>
                         <span class="icon icon-check stat-icon"></span>
                     </div>
-                    <div class="stat-value" id="systemStatus">Online</div>
+                    <div class="stat-value" id="systemStatus">$0</div>
                     <div class="stat-change positive">
                         <span class="icon icon-check"></span>
-                        <span>All systems operational</span>
+                        <span>All accounts active</span>
                     </div>
                 </div>
             </div>
@@ -1289,6 +1289,7 @@
                                     <th>Email</th>
                                     <th>Phone</th>
                                     <th>Total Deposits</th>
+                                    <th>Current Balance</th>
                                     <th>Status</th>
                                     <th>Joined</th>
                                     <th>Actions</th>
@@ -1303,7 +1304,7 @@
                     <!-- Pagination -->
                     <div class="pagination">
                         <div class="pagination-info" id="paginationInfo">
-                            Showing 1-10 of 247 clients
+                            Showing 0-0 of 0 clients
                         </div>
                         <div class="pagination-controls" id="paginationControls">
                             <!-- Dynamic pagination buttons -->
@@ -1355,10 +1356,10 @@
                                 <span class="stat-title">Monthly Deposits</span>
                                 <span class="icon icon-money stat-icon"></span>
                             </div>
-                            <div class="stat-value">$12.4M</div>
+                            <div class="stat-value">$0</div>
                             <div class="stat-change positive">
                                 <span class="icon icon-check"></span>
-                                <span>+15.2% vs last month</span>
+                                <span>+0% vs last month</span>
                             </div>
                         </div>
 
@@ -1367,10 +1368,10 @@
                                 <span class="stat-title">New Clients</span>
                                 <span class="icon icon-users stat-icon"></span>
                             </div>
-                            <div class="stat-value">34</div>
+                            <div class="stat-value">0</div>
                             <div class="stat-change positive">
                                 <span class="icon icon-check"></span>
-                                <span>+22% vs last month</span>
+                                <span>+0% vs last month</span>
                             </div>
                         </div>
                     </div>
@@ -1426,8 +1427,8 @@
 
                     <div class="form-row">
                         <div class="form-field">
-                            <label for="initialDeposit">Initial Deposit</label>
-                            <input type="number" id="initialDeposit" name="initialDeposit" min="1000" step="0.01">
+                            <label for="initialDeposit">Initial Account Value</label>
+                            <input type="number" id="initialDeposit" name="initialDeposit" min="0" step="0.01">
                         </div>
                         <div class="form-field">
                             <label for="clientStatus">Status</label>
@@ -1488,9 +1489,9 @@
         </div>
     </div>
     
-    <!-- Complete Working JavaScript with USER ISOLATION FOR ADMIN -->
+    <!-- Complete Working JavaScript with REAL DATABASE INTEGRATION -->
     <script>
-        // === ADMIN USER ISOLATION SYSTEM + REAL DATABASE INTEGRATION ===
+        // === REAL DATABASE INTEGRATION SYSTEM ===
         
         // Get auth token for API calls
         function getAuthToken() {
@@ -1531,9 +1532,9 @@
                     address: client.address,
                     status: 'active', // All non-deleted users are active
                     joinDate: client.created_at.split('T')[0],
-                    totalDeposits: parseFloat(client.account_value || 0),
+                    totalDeposits: parseFloat(client.total_deposits || 0), // REAL total deposits
                     lastActive: client.last_login ? client.last_login.split('T')[0] : client.created_at.split('T')[0],
-                    accountValue: parseFloat(client.account_value || 0),
+                    accountValue: parseFloat(client.account_value || 0), // REAL current balance
                     startingBalance: parseFloat(client.starting_balance || 0)
                 }));
                 
@@ -1557,43 +1558,61 @@
         
         // Update stats display with real data
         function updateStatsDisplay(stats) {
-            // Total Clients
+            console.log('📊 Updating stats display with:', stats);
+            
+            // Total Clients - REAL count from database
             const totalClientsEl = document.getElementById('totalClients');
             if (totalClientsEl) {
                 totalClientsEl.textContent = stats.totalClients.toLocaleString();
             }
             
-            // Active Deposits (this month)
+            // Active Deposits THIS MONTH - REAL deposits from current month
             const activeDepositsEl = document.getElementById('activeDeposits');
             if (activeDepositsEl) {
-                if (stats.activeDeposits >= 1000000) {
-                    activeDepositsEl.textContent = `${(stats.activeDeposits / 1000000).toFixed(1)}M`;
-                } else if (stats.activeDeposits >= 1000) {
-                    activeDepositsEl.textContent = `${(stats.activeDeposits / 1000).toFixed(1)}K`;
+                if (stats.activeDepositsThisMonth >= 1000000) {
+                    activeDepositsEl.textContent = `${(stats.activeDepositsThisMonth / 1000000).toFixed(1)}M`;
+                } else if (stats.activeDepositsThisMonth >= 1000) {
+                    activeDepositsEl.textContent = `${(stats.activeDepositsThisMonth / 1000).toFixed(1)}K`;
                 } else {
-                    activeDepositsEl.textContent = `${stats.activeDeposits.toLocaleString()}`;
+                    activeDepositsEl.textContent = `${stats.activeDepositsThisMonth.toLocaleString()}`;
                 }
             }
             
-            // Pending Requests
+            // Pending Requests - REAL pending count
             const pendingRequestsEl = document.getElementById('pendingRequests');
             if (pendingRequestsEl) {
                 pendingRequestsEl.textContent = stats.pendingRequests.toLocaleString();
             }
             
-            // Update growth indicators
-            const growthEl = document.querySelector('.stat-change.positive span:last-child');
-            if (growthEl && stats.depositGrowth !== undefined) {
-                if (stats.depositGrowth > 0) {
-                    growthEl.textContent = `+${stats.depositGrowth}% vs last month`;
-                    growthEl.parentElement.className = 'stat-change positive';
-                } else if (stats.depositGrowth < 0) {
-                    growthEl.textContent = `${stats.depositGrowth}% vs last month`;
-                    growthEl.parentElement.className = 'stat-change negative';
+            // Total Client Balances
+            const systemStatusEl = document.getElementById('systemStatus');
+            if (systemStatusEl) {
+                if (stats.totalClientBalances >= 1000000) {
+                    systemStatusEl.textContent = `${(stats.totalClientBalances / 1000000).toFixed(1)}M Total`;
                 } else {
-                    growthEl.textContent = 'No change vs last month';
-                    growthEl.parentElement.className = 'stat-change neutral';
+                    systemStatusEl.textContent = `${stats.totalClientBalances.toLocaleString()} Total`;
                 }
+            }
+            
+            // Update growth indicators with REAL data
+            const balanceChangeEl = document.querySelector('.stat-change.positive span:last-child');
+            if (balanceChangeEl && stats.depositGrowth !== undefined) {
+                if (stats.depositGrowth > 0) {
+                    balanceChangeEl.textContent = `+${stats.depositGrowth}% vs last month`;
+                    balanceChangeEl.parentElement.className = 'stat-change positive';
+                } else if (stats.depositGrowth < 0) {
+                    balanceChangeEl.textContent = `${stats.depositGrowth}% vs last month`;
+                    balanceChangeEl.parentElement.className = 'stat-change negative';
+                } else {
+                    balanceChangeEl.textContent = 'No change vs last month';
+                    balanceChangeEl.parentElement.className = 'stat-change neutral';
+                }
+            }
+            
+            // Update new clients indicator
+            const newClientsChangeEl = document.querySelector('.stat-card:first-child .stat-change span:last-child');
+            if (newClientsChangeEl && stats.newClients !== undefined) {
+                newClientsChangeEl.textContent = `+${stats.newClients} this month`;
             }
         }
         
@@ -1691,176 +1710,7 @@
             }
         }
         
-        // Get ALL user deposits from isolated storage
-        function getAllUserDeposits() {
-            const allDeposits = [];
-            
-            console.log('🔍 Scanning localStorage for user deposits...');
-            
-            // Scan all localStorage keys for user-specific deposits
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key && key.includes('_deposits')) {
-                    console.log(`💰 Found deposit storage key: ${key}`);
-                    try {
-                        const userDeposits = JSON.parse(localStorage.getItem(key));
-                        if (Array.isArray(userDeposits)) {
-                            // Extract user ID from key for mapping
-                            const userId = key.replace('_deposits', '');
-                            console.log(`👤 Processing deposits for user: ${userId}, count: ${userDeposits.length}`);
-                            
-                            userDeposits.forEach(deposit => {
-                                deposit.originalUserId = userId; // Track which user this belongs to
-                                deposit.clientName = deposit.clientName || userId; // Fallback to user ID
-                                allDeposits.push(deposit);
-                            });
-                        } else {
-                            console.log(`⚠️ Invalid deposit data structure for key: ${key}`);
-                        }
-                    } catch (e) {
-                        console.warn('Failed to parse deposits for key:', key, e);
-                    }
-                }
-            }
-            
-            console.log(`👨‍💼 Admin loaded ${allDeposits.length} deposits from all users:`, allDeposits);
-            return allDeposits;
-        }
-
-        // Get ALL user files from isolated storage
-        function getAllUserFiles() {
-            const allFiles = [];
-            
-            console.log('🔍 Scanning localStorage for user files...');
-            
-            // Scan all localStorage keys for user-specific files
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key && key.includes('_uploaded_files')) {
-                    console.log(`📂 Found file storage key: ${key}`);
-                    try {
-                        const userFileData = JSON.parse(localStorage.getItem(key));
-                        if (userFileData && userFileData.forms && Array.isArray(userFileData.forms)) {
-                            // Extract user ID from key for mapping
-                            const userId = key.replace('_uploaded_files', '');
-                            console.log(`👤 Processing files for user: ${userId}, count: ${userFileData.forms.length}`);
-                            
-                            userFileData.forms.forEach(file => {
-                                file.originalUserId = userId; // Track which user this belongs to
-                                allFiles.push(file);
-                            });
-                        } else {
-                            console.log(`⚠️ Invalid file data structure for key: ${key}`);
-                        }
-                    } catch (e) {
-                        console.warn('Failed to parse files for key:', key, e);
-                    }
-                }
-            }
-            
-            console.log(`👨‍💼 Admin loaded ${allFiles.length} files from all users:`, allFiles);
-            return allFiles;
-        }
-
-        // Update deposit status in user-specific storage
-        function updateDepositInUserStorage(depositId, newStatus) {
-            let updated = false;
-            
-            // Find which user's storage contains this deposit
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key && key.includes('_deposits')) {
-                    try {
-                        const userDeposits = JSON.parse(localStorage.getItem(key));
-                        if (Array.isArray(userDeposits)) {
-                            const depositIndex = userDeposits.findIndex(d => d.id === depositId);
-                            if (depositIndex !== -1) {
-                                // Update the deposit in user's storage
-                                userDeposits[depositIndex].status = newStatus;
-                                userDeposits[depositIndex].approvedAt = new Date().toISOString();
-                                userDeposits[depositIndex].approvedBy = 'admin';
-                                
-                                localStorage.setItem(key, JSON.stringify(userDeposits));
-                                updated = true;
-                                
-                                const userId = key.replace('_deposits', '');
-                                console.log(`✅ Updated deposit ${depositId} to ${newStatus} for user ${userId}`);
-                                break;
-                            }
-                        }
-                    } catch (e) {
-                        console.warn('Failed to update deposits for key:', key);
-                    }
-                }
-            }
-            
-            return updated;
-        }
-
-        // Update file status in user-specific storage
-        function updateFileStatusInUserStorage(depositId, newStatus) {
-            let updatedCount = 0;
-            
-            // Find and update files for this deposit across all users
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key && key.includes('_uploaded_files')) {
-                    try {
-                        const userFileData = JSON.parse(localStorage.getItem(key));
-                        if (userFileData && userFileData.forms) {
-                            let hasChanges = false;
-                            
-                            userFileData.forms.forEach(file => {
-                                if (file.depositId === depositId) {
-                                    file.status = newStatus;
-                                    file.processedAt = new Date().toISOString();
-                                    file.processedBy = 'admin';
-                                    hasChanges = true;
-                                    updatedCount++;
-                                }
-                            });
-                            
-                            if (hasChanges) {
-                                localStorage.setItem(key, JSON.stringify(userFileData));
-                                const userId = key.replace('_uploaded_files', '');
-                                console.log(`📁 Updated files for deposit ${depositId} to ${newStatus} for user ${userId}`);
-                            }
-                        }
-                    } catch (e) {
-                        console.warn('Failed to update files for key:', key);
-                    }
-                }
-            }
-            
-            return updatedCount;
-        }
-
-        // Debug function for admin
-        function debugAllUserData() {
-            console.log('=== ADMIN DEBUG: ALL USER DATA ===');
-            
-            console.log('\n📂 All User Files:');
-            const allFiles = getAllUserFiles();
-            allFiles.forEach(file => {
-                console.log(`User: ${file.originalUserId}, File: ${file.name}, Deposit: ${file.depositId}, Status: ${file.status}`);
-            });
-            
-            console.log('\n💰 All User Deposits:');
-            const allDeposits = getAllUserDeposits();
-            allDeposits.forEach(deposit => {
-                console.log(`User: ${deposit.originalUserId}, Amount: ${deposit.amount}, Reference: ${deposit.reference}, Status: ${deposit.status}`);
-            });
-            
-            console.log('\n🔑 All Storage Keys:');
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key.includes('uploaded_files') || key.includes('deposits') || key.includes('deposit_progress')) {
-                    console.log(`${key}: ${localStorage.getItem(key).substring(0, 100)}...`);
-                }
-            }
-        }
-
-        // === END ADMIN USER ISOLATION SYSTEM ===
+        // === END REAL DATABASE INTEGRATION SYSTEM ===
 
         let currentTheme = 'light';
         let clients = [];
@@ -1870,70 +1720,6 @@
         let currentTab = 'clients';
         let editingClientId = null;
         let viewingDepositId = null;
-
-        // Sample client data
-        const sampleClients = [
-            {
-                id: 'client_1',
-                firstName: 'John',
-                lastName: 'Smith',
-                email: 'john.smith@email.com',
-                phone: '+1 (555) 123-4567',
-                address: '123 Main Street, New York, NY 10001',
-                status: 'active',
-                joinDate: '2024-01-15',
-                totalDeposits: 2500000,
-                lastActive: '2024-06-20'
-            },
-            {
-                id: 'client_2',
-                firstName: 'Sarah',
-                lastName: 'Johnson',
-                email: 'sarah.johnson@email.com',
-                phone: '+1 (555) 987-6543',
-                address: '456 Oak Avenue, Los Angeles, CA 90210',
-                status: 'active',
-                joinDate: '2024-02-03',
-                totalDeposits: 1800000,
-                lastActive: '2024-06-22'
-            },
-            {
-                id: 'client_3',
-                firstName: 'Michael',
-                lastName: 'Brown',
-                email: 'michael.brown@email.com',
-                phone: '+1 (555) 456-7890',
-                address: '789 Pine Road, Chicago, IL 60601',
-                status: 'pending',
-                joinDate: '2024-06-15',
-                totalDeposits: 500000,
-                lastActive: '2024-06-15'
-            },
-            {
-                id: 'client_4',
-                firstName: 'Emily',
-                lastName: 'Davis',
-                email: 'emily.davis@email.com',
-                phone: '+1 (555) 321-0987',
-                address: '321 Elm Street, Miami, FL 33101',
-                status: 'active',
-                joinDate: '2024-03-20',
-                totalDeposits: 3200000,
-                lastActive: '2024-06-21'
-            },
-            {
-                id: 'client_5',
-                firstName: 'Robert',
-                lastName: 'Wilson',
-                email: 'robert.wilson@email.com',
-                phone: '+1 (555) 654-3210',
-                address: '654 Maple Drive, Seattle, WA 98101',
-                status: 'inactive',
-                joinDate: '2024-01-08',
-                totalDeposits: 1200000,
-                lastActive: '2024-05-10'
-            }
-        ];
 
         // FIXED Initialize data with REAL DATABASE INTEGRATION
         async function initializeData() {
@@ -1947,12 +1733,6 @@
             } else {
                 console.log('⚠️ Failed to load real data, using empty state');
             }
-        }
-
-        // Save data to localStorage
-        function saveData() {
-            localStorage.setItem('aequitas_admin_clients', JSON.stringify(clients));
-            // Note: deposits are saved in user-specific storage, not admin storage
         }
 
         // Theme Toggle
@@ -2030,42 +1810,54 @@
             const endIndex = startIndex + itemsPerPage;
             const paginatedClients = filteredClients.slice(startIndex, endIndex);
             
-            tbody.innerHTML = paginatedClients.map(client => `
-                <tr>
-                    <td>
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <div class="client-avatar">${client.firstName.charAt(0)}</div>
-                            <div>
-                                <div style="font-weight: 500;">${client.firstName} ${client.lastName}</div>
-                                <div style="font-size: 12px; color: var(--text-tertiary);">ID: ${client.id}</div>
+            if (paginatedClients.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                            <div style="font-size: 18px; margin-bottom: 8px;">No clients found</div>
+                            <div style="font-size: 14px;">Try adjusting your search filters or add a new client.</div>
+                        </td>
+                    </tr>
+                `;
+            } else {
+                tbody.innerHTML = paginatedClients.map(client => `
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div class="client-avatar">${client.firstName.charAt(0)}</div>
+                                <div>
+                                    <div style="font-weight: 500;">${client.firstName} ${client.lastName}</div>
+                                    <div style="font-size: 12px; color: var(--text-tertiary);">ID: ${client.id}</div>
+                                </div>
                             </div>
-                        </div>
-                    </td>
-                    <td>${client.email}</td>
-                    <td>${client.phone || 'Not provided'}</td>
-                    <td>${client.totalDeposits.toLocaleString()}</td>
-                    <td><span class="status ${client.status}">${client.status}</span></td>
-                    <td>${new Date(client.joinDate).toLocaleDateString()}</td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="action-btn view" onclick="viewClient('${client.id}')" title="View Details">
-                                <span class="icon icon-eye"></span>
-                            </button>
-                            <button class="action-btn edit" onclick="editClient('${client.id}')" title="Edit">
-                                <span class="icon icon-edit"></span>
-                            </button>
-                            <button class="action-btn delete" onclick="deleteClient('${client.id}')" title="Delete">
-                                <span class="icon icon-trash"></span>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
+                        </td>
+                        <td>${client.email}</td>
+                        <td>${client.phone || 'Not provided'}</td>
+                        <td>${client.totalDeposits.toLocaleString()}</td>
+                        <td style="color: var(--success); font-weight: 600;">${client.accountValue.toLocaleString()}</td>
+                        <td><span class="status ${client.status}">${client.status}</span></td>
+                        <td>${new Date(client.joinDate).toLocaleDateString()}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn view" onclick="viewClient('${client.id}')" title="View Details">
+                                    <span class="icon icon-eye"></span>
+                                </button>
+                                <button class="action-btn edit" onclick="editClient('${client.id}')" title="Edit">
+                                    <span class="icon icon-edit"></span>
+                                </button>
+                                <button class="action-btn delete" onclick="deleteClient('${client.id}')" title="Delete">
+                                    <span class="icon icon-trash"></span>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
             
             updatePagination(filteredClients.length);
         }
 
-        // FIXED Render deposits table with USER ISOLATION
+        // Render deposits table 
         function renderDepositsTable() {
             const tbody = document.getElementById('depositsTableBody');
             const searchTerm = document.getElementById('depositSearch').value.toLowerCase();
@@ -2073,43 +1865,53 @@
             
             let filteredDeposits = deposits.filter(deposit => {
                 const matchesSearch = deposit.reference.toLowerCase().includes(searchTerm) ||
-                                    deposit.clientName.toLowerCase().includes(searchTerm) ||
-                                    deposit.originalUserId.toLowerCase().includes(searchTerm);
+                                    deposit.clientName.toLowerCase().includes(searchTerm);
                 const matchesStatus = !statusFilter || deposit.status === statusFilter;
                 return matchesSearch && matchesStatus;
             });
             
-            tbody.innerHTML = filteredDeposits.map(deposit => `
-                <tr>
-                    <td>
-                        <div style="font-weight: 500;">${deposit.reference}</div>
-                        <div style="font-size: 12px; color: var(--text-tertiary);">${deposit.id}</div>
-                    </td>
-                    <td>
-                        <div style="font-weight: 500;">${deposit.clientName}</div>
-                        <div style="font-size: 12px; color: var(--text-tertiary);">User: ${deposit.originalUserId}</div>
-                    </td>
-                    <td>${deposit.amount.toLocaleString()}</td>
-                    <td style="text-transform: capitalize;">${deposit.purpose}</td>
-                    <td><span class="status ${deposit.status}">${deposit.status}</span></td>
-                    <td>${deposit.date || new Date(deposit.createdAt).toLocaleDateString()}</td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="action-btn view" onclick="viewDeposit('${deposit.id}')" title="View Details">
-                                <span class="icon icon-eye"></span>
-                            </button>
-                            ${deposit.status === 'pending' ? `
-                                <button class="action-btn edit" onclick="approveDepositQuick('${deposit.id}')" title="Quick Approve">
-                                    <span class="icon icon-check"></span>
+            if (filteredDeposits.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                            <div style="font-size: 18px; margin-bottom: 8px;">No deposits found</div>
+                            <div style="font-size: 14px;">Deposit requests will appear here once clients submit them.</div>
+                        </td>
+                    </tr>
+                `;
+            } else {
+                tbody.innerHTML = filteredDeposits.map(deposit => `
+                    <tr>
+                        <td>
+                            <div style="font-weight: 500;">${deposit.reference}</div>
+                            <div style="font-size: 12px; color: var(--text-tertiary);">${deposit.id}</div>
+                        </td>
+                        <td>
+                            <div style="font-weight: 500;">${deposit.clientName}</div>
+                            <div style="font-size: 12px; color: var(--text-tertiary);">${deposit.clientEmail || ''}</div>
+                        </td>
+                        <td>${deposit.amount.toLocaleString()}</td>
+                        <td style="text-transform: capitalize;">${deposit.purpose}</td>
+                        <td><span class="status ${deposit.status}">${deposit.status}</span></td>
+                        <td>${new Date(deposit.date).toLocaleDateString()}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn view" onclick="viewDeposit('${deposit.id}')" title="View Details">
+                                    <span class="icon icon-eye"></span>
                                 </button>
-                            ` : ''}
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
+                                ${deposit.status === 'pending' ? `
+                                    <button class="action-btn edit" onclick="approveDepositQuick('${deposit.id}')" title="Quick Approve">
+                                        <span class="icon icon-check"></span>
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
         }
 
-        // FIXED View deposit with USER ISOLATION
+        // View deposit details
         function viewDeposit(depositId) {
             const deposit = deposits.find(d => d.id === depositId);
             if (!deposit) {
@@ -2120,12 +1922,6 @@
             
             console.log('👁️ Admin viewing deposit:', deposit);
             viewingDepositId = depositId;
-            
-            // Get uploaded files for this deposit from ALL users
-            const allFiles = getAllUserFiles();
-            console.log('📁 All files found:', allFiles);
-            const depositFiles = allFiles.filter(f => f.depositId === deposit.id);
-            console.log('📎 Files for this deposit:', depositFiles);
             
             document.getElementById('depositDetailsBody').innerHTML = `
                 <div class="modal-form-grid">
@@ -2142,8 +1938,8 @@
                         <div>${deposit.clientName || 'Unknown Client'}</div>
                     </div>
                     <div class="modal-form-group">
-                        <label>User ID</label>
-                        <div style="font-family: monospace; font-size: 12px; color: var(--text-tertiary);">${deposit.originalUserId || 'Unknown'}</div>
+                        <label>Client Email</label>
+                        <div>${deposit.clientEmail || 'Not provided'}</div>
                     </div>
                     <div class="modal-form-group">
                         <label>Amount</label>
@@ -2155,34 +1951,7 @@
                     </div>
                     <div class="modal-form-group">
                         <label>Date Submitted</label>
-                        <div>${deposit.date || new Date(deposit.createdAt).toLocaleDateString()}</div>
-                    </div>
-                    <div class="modal-form-group full-width">
-                        <label>Uploaded Documents (${depositFiles.length})</label>
-                        <div style="margin-top: 8px;">
-                            ${depositFiles.length > 0 ? depositFiles.map(file => `
-                                <div style="padding: 12px; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <span class="icon icon-document"></span>
-                                        <div>
-                                            <div style="font-weight: 500;">${file.name}</div>
-                                            <div style="font-size: 12px; color: var(--text-secondary);">${file.size} • Uploaded ${new Date(file.uploadDate).toLocaleDateString()}</div>
-                                            <div style="font-size: 11px; color: var(--text-tertiary);">User: ${file.originalUserId}</div>
-                                        </div>
-                                    </div>
-                                    <div style="display: flex; gap: 8px;">
-                                        <span class="status active">
-                                            <span class="icon icon-check"></span>
-                                            ${file.status || 'Uploaded'}
-                                        </span>
-                                        <button class="btn btn-secondary btn-sm" onclick="downloadUploadedFile('${file.id}', '${file.name}')" title="Download File">
-                                            <span class="icon icon-download"></span>
-                                            Download
-                                        </button>
-                                    </div>
-                                </div>
-                            `).join('') : '<div style="color: var(--text-secondary); padding: 20px; text-align: center; background: var(--bg-secondary); border-radius: 6px;">No documents uploaded yet</div>'}
-                        </div>
+                        <div>${new Date(deposit.date).toLocaleDateString()}</div>
                     </div>
                     <div class="modal-form-group full-width">
                         <label>Bank Transfer Reference</label>
@@ -2202,64 +1971,25 @@
             
             openModal('depositModal');
         }
-
-        // Download uploaded file function
-        function downloadUploadedFile(fileId, fileName) {
-            try {
-                // Get the file from ALL user files
-                const allFiles = getAllUserFiles();
-                let file = allFiles.find(f => f.id === fileId);
-                
-                if (file && file.url) {
-                    // Real file download from Vercel Blob!
-                    const link = document.createElement('a');
-                    link.href = file.url;
-                    link.download = fileName;
-                    link.target = '_blank';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    
-                    showNotification(`Downloaded ${fileName}`, 'success');
-                } else {
-                    throw new Error('File not found or no download URL');
-                }
-                
-            } catch (error) {
-                console.error('Download error:', error);
-                showNotification(`Download failed: ${error.message}`, 'error');
-            }
-        }
         
-        // FIXED Approve deposit with USER ISOLATION
+        // Approve deposit
         function approveDeposit() {
             if (!viewingDepositId) return;
             
-            // Update in admin's deposits array
             const depositIndex = deposits.findIndex(d => d.id === viewingDepositId);
             if (depositIndex !== -1) {
                 deposits[depositIndex].status = 'approved';
                 deposits[depositIndex].approvedAt = new Date().toISOString();
                 deposits[depositIndex].approvedBy = 'admin';
                 
-                // CRITICAL: Update in user-specific storage
-                const updated = updateDepositInUserStorage(viewingDepositId, 'approved');
-                
-                if (updated) {
-                    // Update file status for this deposit
-                    updateFileStatusInUserStorage(viewingDepositId, 'approved');
-                    
-                    closeModal('depositModal');
-                    renderDepositsTable();
-                    updateStats();
-                    showNotification('Deposit approved successfully! Files retained for audit trail.', 'success');
-                } else {
-                    showNotification('Failed to update deposit in user storage.', 'error');
-                }
+                closeModal('depositModal');
+                renderDepositsTable();
+                fetchAdminStats(); // Refresh stats
+                showNotification('Deposit approved successfully!', 'success');
             }
         }
 
-        // FIXED Reject deposit with USER ISOLATION
+        // Reject deposit
         function rejectDeposit() {
             if (!viewingDepositId) return;
             
@@ -2270,20 +2000,10 @@
                     deposits[depositIndex].rejectedAt = new Date().toISOString();
                     deposits[depositIndex].rejectedBy = 'admin';
                     
-                    // CRITICAL: Update in user-specific storage
-                    const updated = updateDepositInUserStorage(viewingDepositId, 'rejected');
-                    
-                    if (updated) {
-                        // Update file status for this deposit
-                        updateFileStatusInUserStorage(viewingDepositId, 'rejected');
-                        
-                        closeModal('depositModal');
-                        renderDepositsTable();
-                        updateStats();
-                        showNotification('Deposit rejected. Files retained for audit trail.', 'warning');
-                    } else {
-                        showNotification('Failed to update deposit in user storage.', 'error');
-                    }
+                    closeModal('depositModal');
+                    renderDepositsTable();
+                    fetchAdminStats(); // Refresh stats
+                    showNotification('Deposit rejected.', 'warning');
                 }
             }
         }
@@ -2293,16 +2013,9 @@
             if (depositIndex !== -1) {
                 deposits[depositIndex].status = 'approved';
                 
-                // CRITICAL: Update in user-specific storage
-                const updated = updateDepositInUserStorage(depositId, 'approved');
-                
-                if (updated) {
-                    renderDepositsTable();
-                    updateStats();
-                    showNotification('Deposit approved!', 'success');
-                } else {
-                    showNotification('Failed to update deposit in user storage.', 'error');
-                }
+                renderDepositsTable();
+                fetchAdminStats(); // Refresh stats
+                showNotification('Deposit approved!', 'success');
             }
         }
 
@@ -2312,10 +2025,15 @@
             const paginationInfo = document.getElementById('paginationInfo');
             const paginationControls = document.getElementById('paginationControls');
             
-            const startItem = (currentPage - 1) * itemsPerPage + 1;
+            const startItem = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
             const endItem = Math.min(currentPage * itemsPerPage, totalItems);
             
             paginationInfo.textContent = `Showing ${startItem}-${endItem} of ${totalItems} items`;
+            
+            if (totalPages <= 1) {
+                paginationControls.innerHTML = '';
+                return;
+            }
             
             let paginationHTML = '';
             
@@ -2406,7 +2124,7 @@
             document.getElementById('email').value = client.email;
             document.getElementById('phone').value = client.phone || '';
             document.getElementById('address').value = client.address || '';
-            document.getElementById('initialDeposit').value = client.totalDeposits;
+            document.getElementById('initialDeposit').value = client.accountValue;
             document.getElementById('clientStatus').value = client.status;
             document.getElementById('clientId').value = client.id;
             
@@ -2417,8 +2135,8 @@
             const client = clients.find(c => c.id === clientId);
             if (!client) return;
             
-            // Get client deposits from ALL user storage
-            const clientDeposits = deposits.filter(d => d.originalUserId === clientId || d.clientId === clientId);
+            // Get client deposits
+            const clientDeposits = deposits.filter(d => d.userId === clientId);
             
             document.getElementById('clientDetailsBody').innerHTML = `
                 <div class="modal-form-grid">
@@ -2447,20 +2165,24 @@
                         <div>${new Date(client.joinDate).toLocaleDateString()}</div>
                     </div>
                     <div class="modal-form-group">
+                        <label>Current Balance</label>
+                        <div style="font-weight: 600; color: var(--success);">${client.accountValue.toLocaleString()}</div>
+                    </div>
+                    <div class="modal-form-group">
                         <label>Total Deposits</label>
-                        <div style="font-weight: 600; color: var(--success);">${client.totalDeposits.toLocaleString()}</div>
+                        <div style="font-weight: 600; color: var(--accent);">${client.totalDeposits.toLocaleString()}</div>
                     </div>
                     <div class="modal-form-group full-width">
                         <label>Recent Deposits (${clientDeposits.length})</label>
                         <div style="margin-top: 8px;">
-                            ${clientDeposits.length > 0 ? clientDeposits.map(d => `
+                            ${clientDeposits.length > 0 ? clientDeposits.slice(0, 5).map(d => `
                                 <div style="padding: 8px; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 8px;">
                                     <div style="display: flex; justify-content: space-between;">
                                         <span style="font-weight: 500;">${d.reference}</span>
                                         <span class="status ${d.status}">${d.status}</span>
                                     </div>
                                     <div style="font-size: 12px; color: var(--text-secondary);">
-                                        ${d.amount.toLocaleString()} • ${d.date || new Date(d.createdAt).toLocaleDateString()}
+                                        ${d.amount.toLocaleString()} • ${new Date(d.date).toLocaleDateString()}
                                     </div>
                                 </div>
                             `).join('') : '<div style="color: var(--text-secondary);">No deposits yet</div>'}
@@ -2542,7 +2264,6 @@
                             email: updatedUser.email,
                             phone: updatedUser.phone,
                             address: updatedUser.address,
-                            totalDeposits: parseFloat(updatedUser.account_value),
                             accountValue: parseFloat(updatedUser.account_value)
                         };
                     }
@@ -2562,7 +2283,7 @@
                         address: newUser.address,
                         status: 'active',
                         joinDate: newUser.created_at.split('T')[0],
-                        totalDeposits: parseFloat(newUser.account_value),
+                        totalDeposits: 0, // New client has no deposits yet
                         accountValue: parseFloat(newUser.account_value),
                         startingBalance: parseFloat(newUser.account_value),
                         lastActive: newUser.created_at.split('T')[0]
@@ -2592,9 +2313,9 @@
         // Export and reporting functions
         function exportClients() {
             const csvContent = "data:text/csv;charset=utf-8," 
-                + "ID,First Name,Last Name,Email,Phone,Status,Join Date,Total Deposits\n"
+                + "ID,First Name,Last Name,Email,Phone,Status,Join Date,Total Deposits,Current Balance\n"
                 + clients.map(client => 
-                    `${client.id},${client.firstName},${client.lastName},${client.email},${client.phone || ''},${client.status},${client.joinDate},${client.totalDeposits}`
+                    `${client.id},${client.firstName},${client.lastName},${client.email},${client.phone || ''},${client.status},${client.joinDate},${client.totalDeposits},${client.accountValue}`
                 ).join("\n");
             
             const encodedUri = encodeURI(csvContent);
@@ -2621,37 +2342,31 @@ Active Clients: ${clients.filter(c => c.status === 'active').length}
 Pending Clients: ${clients.filter(c => c.status === 'pending').length}
 Inactive Clients: ${clients.filter(c => c.status === 'inactive').length}
 
-Total Deposits: ${deposits.reduce((sum, d) => sum + d.amount, 0).toLocaleString()}
+Total Client Assets: ${clients.reduce((sum, c) => sum + c.accountValue, 0).toLocaleString()}
+Total Deposits Made: ${clients.reduce((sum, c) => sum + c.totalDeposits, 0).toLocaleString()}
 Pending Deposits: ${deposits.filter(d => d.status === 'pending').length}
 Approved Deposits: ${deposits.filter(d => d.status === 'approved').length}
 Completed Deposits: ${deposits.filter(d => d.status === 'completed').length}
 
 ==========================================
 
-TOP CLIENTS BY DEPOSIT VALUE:
+TOP CLIENTS BY ACCOUNT VALUE:
 ${clients
-    .sort((a, b) => b.totalDeposits - a.totalDeposits)
+    .sort((a, b) => b.accountValue - a.accountValue)
     .slice(0, 10)
-    .map((client, index) => `${index + 1}. ${client.firstName} ${client.lastName} - ${client.totalDeposits.toLocaleString()}`)
+    .map((client, index) => `${index + 1}. ${client.firstName} ${client.lastName} - ${client.accountValue.toLocaleString()}`)
     .join('\n')}
 
 ==========================================
 
 RECENT DEPOSIT ACTIVITY:
 ${deposits
-    .sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date))
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
     .slice(0, 10)
-    .map(deposit => `${deposit.reference} - ${deposit.clientName} - ${deposit.amount.toLocaleString()} - ${deposit.status} (User: ${deposit.originalUserId})`)
+    .map(deposit => `${deposit.reference} - ${deposit.clientName} - ${deposit.amount.toLocaleString()} - ${deposit.status}`)
     .join('\n')}
 
 ==========================================
-
-USER ISOLATION STATUS:
-Files are properly isolated per user with keys like:
-${Array.from(new Set(getAllUserFiles().map(f => f.originalUserId))).map(userId => `- ${userId}_uploaded_files`).join('\n')}
-
-Deposits are properly isolated per user with keys like:
-${Array.from(new Set(deposits.map(d => d.originalUserId))).map(userId => `- ${userId}_deposits`).join('\n')}
 
 This report was generated automatically by the Aequitas Capital Partners Admin Dashboard.
 For questions, contact: admin@aequitascap.com`;
@@ -2667,16 +2382,6 @@ For questions, contact: admin@aequitascap.com`;
             document.body.removeChild(a);
             
             showNotification('Report generated successfully!', 'success');
-        }
-
-        // Update statistics
-        function updateStats() {
-            document.getElementById('totalClients').textContent = clients.length;
-            
-            const totalDeposits = deposits.reduce((sum, d) => sum + d.amount, 0);
-            document.getElementById('activeDeposits').textContent = `${(totalDeposits / 1000000).toFixed(1)}M`;
-            
-            document.getElementById('pendingRequests').textContent = deposits.filter(d => d.status === 'pending').length;
         }
 
         // Enhanced notification system
@@ -2815,77 +2520,12 @@ For questions, contact: admin@aequitascap.com`;
             }
 
             // Initialize data and render with REAL DATABASE DATA
-            await initializeData();
-            renderClientsTable();
-            
-            console.log(`✅ Admin dashboard initialized with REAL database data - ${clients.length} clients, ${deposits.length} deposits`);
-            showNotification(`Admin Dashboard loaded with ${clients.length} real clients from database!`, 'success');
+            initializeData().then(() => {
+                renderClientsTable();
+                console.log(`✅ Admin dashboard initialized with REAL database data - ${clients.length} clients, ${deposits.length} deposits`);
+                showNotification(`Admin Dashboard loaded with ${clients.length} real clients from database!`, 'success');
+            });
         });
-
-        // DEBUG: Test user isolation - CALL THIS IN CONSOLE
-        function showUserIsolationStatus() {
-            console.log('=== DEBUGGING USER ISOLATION ===');
-            
-            // Show all localStorage keys
-            console.log('\n🔑 ALL LOCALSTORAGE KEYS:');
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                console.log(`Key ${i}: ${key}`);
-                
-                if (key.includes('uploaded_files') || key.includes('deposits')) {
-                    try {
-                        const data = JSON.parse(localStorage.getItem(key));
-                        console.log(`  Data:`, data);
-                    } catch (e) {
-                        console.log(`  Data: ${localStorage.getItem(key)}`);
-                    }
-                }
-            }
-            
-            // Test the functions
-            console.log('\n📂 getAllUserFiles() result:');
-            const allFiles = getAllUserFiles();
-            
-            console.log('\n💰 getAllUserDeposits() result:');
-            const allDeposits = getAllUserDeposits();
-            
-            // Show current admin state
-            console.log('\n👨‍💼 CURRENT ADMIN STATE:');
-            console.log('deposits array:', deposits);
-            console.log('clients array:', clients);
-            
-            debugAllUserData();
-            
-            const userFileKeys = [];
-            const userDepositKeys = [];
-            
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key && key.includes('_uploaded_files')) {
-                    userFileKeys.push(key);
-                }
-                if (key && key.includes('_deposits')) {
-                    userDepositKeys.push(key);
-                }
-            }
-            
-            alert(`USER ISOLATION DEBUG:
-
-Found File Storage Keys: ${userFileKeys.length}
-${userFileKeys.join('\n')}
-
-Found Deposit Storage Keys: ${userDepositKeys.length}  
-${userDepositKeys.join('\n')}
-
-Total Files Found: ${allFiles.length}
-Total Deposits Found: ${allDeposits.length}
-
-Admin deposits array: ${deposits.length}
-
-Check console for detailed output!`);
-        }
-
-        // Call this in console to test: showUserIsolationStatus()
 
     </script>
 </body>
