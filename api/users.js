@@ -1,4 +1,4 @@
-// api/users.js - COMPLETE WORKING VERSION
+// api/users.js - FIXED VERSION
 import { sql } from '@vercel/postgres';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -13,19 +13,27 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
   
-  // Verify admin authentication for all operations
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({
-      success: false,
-      error: 'Authentication required'
-    });
-  }
-  
-  const token = authHeader.replace('Bearer ', '');
-  
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'aequitas-secret-key-2025');
+    // Verify admin authentication for all operations
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+    
+    const token = authHeader.replace('Bearer ', '');
+    
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET || 'aequitas-secret-key-2025');
+    } catch (jwtError) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid token'
+      });
+    }
     
     // Verify admin role
     if (decoded.role !== 'admin') {
@@ -34,14 +42,7 @@ export default async function handler(req, res) {
         error: 'Admin access required'
       });
     }
-  } catch (error) {
-    return res.status(401).json({
-      success: false,
-      error: 'Invalid token'
-    });
-  }
-  
-  try {
+
     if (req.method === 'POST') {
       // Create new user with setup requirement
       const { firstName, lastName, email, phone, address, initialDeposit = 0 } = req.body;
@@ -66,11 +67,21 @@ export default async function handler(req, res) {
       
       // Generate default password: FirstnameLastname123!
       const defaultPassword = `${firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase()}${lastName.charAt(0).toUpperCase() + lastName.slice(1).toLowerCase()}123!`;
-      const hashedPassword = await bcrypt.hash(defaultPassword, 12);
+      
+      let hashedPassword;
+      try {
+        hashedPassword = await bcrypt.hash(defaultPassword, 12);
+      } catch (hashError) {
+        console.error('Password hashing failed:', hashError);
+        return res.status(500).json({
+          success: false,
+          error: 'Failed to create secure password'
+        });
+      }
       
       // Create user
       const userId = 'usr_' + Date.now();
-      const result = await sql`
+      const insertResult = await sql`
         INSERT INTO users (
           id, email, password_hash, role, first_name, last_name, phone, address,
           account_value, starting_balance, setup_status, setup_step, password_must_change
@@ -83,14 +94,18 @@ export default async function handler(req, res) {
         RETURNING id, email, first_name, last_name
       `;
       
-      const newUser = result.rows[0];
+      const newUser = insertResult.rows[0];
       
-      // Create user_setup record
-      await sql`
-        INSERT INTO user_setup (user_id, setup_status, setup_progress)
-        VALUES (${userId}, 'setup_pending', 0)
-        ON CONFLICT DO NOTHING
-      `;
+      // Create user_setup record if table exists
+      try {
+        await sql`
+          INSERT INTO user_setup (user_id, setup_status, setup_progress)
+          VALUES (${userId}, 'setup_pending', 0)
+          ON CONFLICT DO NOTHING
+        `;
+      } catch (setupError) {
+        console.log('No user_setup table, skipping...');
+      }
       
       console.log('✅ User created:', newUser);
       
@@ -124,7 +139,7 @@ The user will be redirected to setup.html after login.
         });
       }
       
-      const result = await sql`
+      const updateResult = await sql`
         UPDATE users 
         SET 
           first_name = ${firstName},
@@ -137,7 +152,7 @@ The user will be redirected to setup.html after login.
         RETURNING id, email, first_name, last_name, phone, address, account_value
       `;
       
-      if (result.rows.length === 0) {
+      if (updateResult.rows.length === 0) {
         return res.status(404).json({
           success: false,
           error: 'User not found'
@@ -147,7 +162,7 @@ The user will be redirected to setup.html after login.
       return res.status(200).json({
         success: true,
         message: 'User updated successfully',
-        user: result.rows[0]
+        user: updateResult.rows[0]
       });
     }
     
@@ -186,7 +201,7 @@ The user will be redirected to setup.html after login.
     return res.status(500).json({
       success: false,
       error: 'Internal server error',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      details: error.message
     });
   }
 }
