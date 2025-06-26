@@ -1,4 +1,4 @@
-// api/deposits.js - User-Specific Deposits API
+// api/deposits.js - Fixed with Vercel Postgres
 import { sql } from '@vercel/postgres';
 
 export default async function handler(req, res) {
@@ -32,8 +32,6 @@ export default async function handler(req, res) {
     } else {
       userId = 'demo_user';
     }
-    
-    // Tables already exist in Neon - no need to create
     
     if (req.method === 'GET') {
       // Get deposits for specific user only
