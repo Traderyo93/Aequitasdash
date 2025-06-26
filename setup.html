@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Setup - Aequitas Capital Partners</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Geist:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        /* Copy ALL the CSS from the user_setup_flow artifact above */
+        /* I'll put a condensed version here for space */
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --border-color: #e2e8f0;
+            --sidebar-bg: #1e293b;
+            --sidebar-text: #94a3b8;
+            --accent: #3b82f6;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Geist', sans-serif; 
+            background: var(--bg-secondary); 
+            color: var(--text-primary); 
+        }
+        
+        /* Locked sidebar styles */
+        .sidebar {
+            position: fixed; left: 0; top: 0; width: 280px; height: 100vh;
+            background: var(--sidebar-bg); display: flex; flex-direction: column;
+        }
+        .nav-item { 
+            padding: 12px 20px; color: var(--sidebar-text); opacity: 0.4; 
+            cursor: not-allowed; position: relative;
+        }
+        .nav-item::after {
+            content: '🔒'; position: absolute; right: 20px; top: 50%;
+            transform: translateY(-50%);
+        }
+        .locked-notice {
+            padding: 20px; margin: 20px; background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px;
+            text-align: center; color: var(--warning);
+        }
+        
+        /* Main content */
+        .main-content { margin-left: 280px; min-height: 100vh; }
+        .setup-content { padding: 24px; max-width: 1000px; margin: 0 auto; }
+        
+        /* Forms and cards */
+        .card {
+            background: var(--bg-primary); border: 1px solid var(--border-color);
+            border-radius: 12px; padding: 24px; margin-bottom: 24px;
+        }
+        .form-input {
+            width: 100%; padding: 12px 16px; border: 1px solid var(--border-color);
+            border-radius: 8px; background: var(--bg-primary);
+        }
+        .btn {
+            padding: 12px 24px; border: none; border-radius: 8px;
+            background: var(--accent); color: white; cursor: pointer;
+        }
+        
+        /* Password modal */
+        .password-modal {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5); display: none; align-items: center;
+            justify-content: center; z-index: 10000;
+        }
+        .password-modal-content {
+            background: var(--bg-primary); padding: 32px; border-radius: 12px;
+            max-width: 400px; width: 90%;
+        }
+    </style>
+</head>
+<body>
+    <!-- Password Change Modal -->
+    <div class="password-modal" id="passwordModal">
+        <div class="password-modal-content">
+            <h2>Change Your Password</h2>
+            <p>You must change your temporary password before continuing.</p>
+            <form id="passwordChangeForm">
+                <div style="margin: 20px 0;">
+                    <label>Current Password</label>
+                    <input type="password" id="currentPassword" class="form-input" required>
+                </div>
+                <div style="margin: 20px 0;">
+                    <label>New Password</label>
+                    <input type="password" id="newPassword" class="form-input" required minlength="8">
+                </div>
+                <div style="margin: 20px 0;">
+                    <label>Confirm Password</label>
+                    <input type="password" id="confirmPassword" class="form-input" required>
+                </div>
+                <button type="submit" class="btn">Change Password</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Locked Sidebar -->
+    <div class="sidebar">
+        <div style="padding: 24px;">
+            <img src="https://i.ibb.co/8DfYwWdG/Aequitas-White-Logo.png" alt="Logo" style="max-width: 140px;">
+        </div>
+        
+        <div class="locked-notice">
+            <h3>Setup Required</h3>
+            <p>Complete setup to unlock features</p>
+        </div>
+        
+        <div style="padding: 20px;">
+            <div class="nav-item">📊 Dashboard</div>
+            <div class="nav-item">💰 Deposits</div>
+            <div class="nav-item">📄 Statements</div>
+            <div class="nav-item">⚙️ Settings</div>
+        </div>
+        
+        <div style="margin-top: auto; padding: 20px;">
+            <button onclick="logout()" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; padding: 10px; border-radius: 8px; width: 100%;">
+                Logout
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div style="background: var(--bg-primary); padding: 16px 24px; border-bottom: 1px solid var(--border-color);">
+            <h1>Account Setup Required</h1>
+        </div>
+        
+        <div class="setup-content">
+            <!-- Step 1: Personal Info -->
+            <div class="card" id="step1">
+                <h2>Step 1: Personal Information</h2>
+                <form id="personalForm">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0;">
+                        <div>
+                            <label>First Name *</label>
+                            <input type="text" id="firstName" class="form-input" required>
+                        </div>
+                        <div>
+                            <label>Last Name *</label>
+                            <input type="text" id="lastName" class="form-input" required>
+                        </div>
+                        <div>
+                            <label>Date of Birth *</label>
+                            <input type="date" id="dateOfBirth" class="form-input" required>
+                        </div>
+                        <div>
+                            <label>Phone *</label>
+                            <input type="tel" id="phone" class="form-input" required>
+                        </div>
+                    </div>
+                    <div style="margin: 20px 0;">
+                        <label>Address *</label>
+                        <textarea id="address" class="form-input" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn">Save & Continue</button>
+                </form>
+            </div>
+            
+            <!-- Step 2: Documents -->
+            <div class="card" id="step2" style="display: none;">
+                <h2>Step 2: Upload Documents</h2>
+                <p>Upload your ID and proof of address (PDF only):</p>
+                
+                <div style="margin: 20px 0;">
+                    <label>Identity Document (Passport/License)</label>
+                    <input type="file" id="idUpload" accept=".pdf" style="margin: 10px 0;">
+                    <div id="idStatus"></div>
+                </div>
+                
+                <div style="margin: 20px 0;">
+                    <label>Proof of Address</label>
+                    <input type="file" id="addressUpload" accept=".pdf" style="margin: 10px 0;">
+                    <div id="addressStatus"></div>
+                </div>
+                
+                <button onclick="nextStep()" class="btn" id="docsNext" disabled>Continue</button>
+            </div>
+            
+            <!-- Step 3: Legal -->
+            <div class="card" id="step3" style="display: none;">
+                <h2>Step 3: Legal Documents</h2>
+                <p>Download, sign, and upload these forms:</p>
+                
+                <div style="margin: 20px 0;">
+                    <button onclick="downloadDoc('memorandum')" class="btn">Download Fund Memorandum</button>
+                    <button onclick="downloadDoc('subscription')" class="btn">Download Subscription Form</button>
+                </div>
+                
+                <div style="margin: 20px 0;">
+                    <label>Upload Signed Documents</label>
+                    <input type="file" id="legalUpload" multiple accept=".pdf" style="margin: 10px 0;">
+                    <div id="legalStatus"></div>
+                </div>
+                
+                <button onclick="submitForReview()" class="btn" id="submitBtn" disabled>Submit for Review</button>
+            </div>
+            
+            <!-- Step 4: Review -->
+            <div class="card" id="step4" style="display: none;">
+                <h2>Under Admin Review</h2>
+                <div style="text-align: center; padding: 40px;">
+                    <div style="font-size: 48px; margin-bottom: 20px;">⏳</div>
+                    <h3>Your application is being reviewed</h3>
+                    <p>You'll receive an email when approved (typically 2-3 business days)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let uploadedFiles = { id: null, address: null, legal: [] };
+        let personalInfo = {};
+
+        // Check if password change needed
+        async function checkPasswordChange() {
+            const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
+            
+            // If this is a new user, they might need password change
+            if (userData.setupRequired && userData.setupStatus === 'pending') {
+                // Show password modal for new users
+                document.getElementById('passwordModal').style.display = 'flex';
+                return true;
+            }
+            return false;
+        }
+
+        // Handle password change
+        document.getElementById('passwordChangeForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const current = document.getElementById('currentPassword').value;
+            const newPass = document.getElementById('newPassword').value;
+            const confirm = document.getElementById('confirmPassword').value;
+            
+            if (newPass !== confirm) {
+                alert('Passwords do not match!');
+                return;
+            }
+            
+            if (newPass.length < 8) {
+                alert('Password must be at least 8 characters!');
+                return;
+            }
+            
+            try {
+                const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
+                
+                const response = await fetch('/api/auth', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: userData.email,
+                        password: current,
+                        newPassword: newPass
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    localStorage.setItem('aequitas_auth_token', data.token);
+                    localStorage.setItem('aequitas_user_data', JSON.stringify(data.user));
+                    
+                    document.getElementById('passwordModal').style.display = 'none';
+                    alert('Password changed successfully!');
+                    loadSetupProgress();
+                } else {
+                    alert(data.error || 'Password change failed');
+                }
+            } catch (error) {
+                alert('Password change failed');
+            }
+        });
+
+        // Personal info form
+        document.getElementById('personalForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            personalInfo = {
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                dateOfBirth: document.getElementById('dateOfBirth').value,
+                phone: document.getElementById('phone').value,
+                address: document.getElementById('address').value
+            };
+            
+            await saveProgress(2, personalInfo, uploadedFiles);
+            showStep(2);
+        });
+
+        // File uploads
+        document.getElementById('idUpload').addEventListener('change', function(e) {
+            handleFileUpload(e, 'id');
+        });
+        
+        document.getElementById('addressUpload').addEventListener('change', function(e) {
+            handleFileUpload(e, 'address');
+        });
+        
+        document.getElementById('legalUpload').addEventListener('change', function(e) {
+            handleFileUpload(e, 'legal');
+        });
+
+        async function handleFileUpload(event, type) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (file.type !== 'application/pdf') {
+                alert('Only PDF files allowed');
+                return;
+            }
+            
+            try {
+                const fileData = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.readAsDataURL(file);
+                });
+                
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        fileName: file.name,
+                        fileData: fileData,
+                        documentType: type,
+                        userId: JSON.parse(localStorage.getItem('aequitas_user_data')).id
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    const fileObj = {
+                        id: result.file.id,
+                        name: file.name,
+                        url: result.file.url,
+                        uploadDate: new Date().toISOString()
+                    };
+                    
+                    if (type === 'legal') {
+                        uploadedFiles.legal.push(fileObj);
+                    } else {
+                        uploadedFiles[type] = fileObj;
+                    }
+                    
+                    updateFileStatus(type);
+                    await saveProgress(currentStep, personalInfo, uploadedFiles);
+                    
+                    alert(`${file.name} uploaded successfully!`);
+                } else {
+                    alert('Upload failed: ' + result.error);
+                }
+            } catch (error) {
+                alert('Upload failed');
+            }
+        }
+
+        function updateFileStatus(type) {
+            if (type === 'id' && uploadedFiles.id) {
+                document.getElementById('idStatus').innerHTML = '✅ Uploaded';
+            }
+            if (type === 'address' && uploadedFiles.address) {
+                document.getElementById('addressStatus').innerHTML = '✅ Uploaded';
+            }
+            if (type === 'legal') {
+                document.getElementById('legalStatus').innerHTML = `✅ ${uploadedFiles.legal.length} file(s) uploaded`;
+                document.getElementById('submitBtn').disabled = uploadedFiles.legal.length < 2 ? true : false;
+            }
+            
+            // Enable next button if both docs uploaded
+            if (uploadedFiles.id && uploadedFiles.address) {
+                document.getElementById('docsNext').disabled = false;
+            }
+        }
+
+        function downloadDoc(type) {
+            const docs = {
+                memorandum: 'Fund Memorandum - Please read, sign, and upload',
+                subscription: 'Subscription Agreement - Please complete and sign'
+            };
+            
+            const content = `AEQUITAS CAPITAL PARTNERS\n\n${docs[type]}\n\nPlease sign this document and upload it back.\n\nName: ________________\nSignature: ________________\nDate: ________________`;
+            
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${type}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function nextStep() {
+            currentStep++;
+            showStep(currentStep);
+        }
+
+        async function submitForReview() {
+            if (uploadedFiles.legal.length < 2) {
+                alert('Please upload both legal documents');
+                return;
+            }
+            
+            await saveProgress(4, personalInfo, uploadedFiles, 'pending_review');
+            showStep(4);
+            alert('Application submitted for review!');
+        }
+
+        function showStep(step) {
+            // Hide all steps
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById(`step${i}`).style.display = 'none';
+            }
+            // Show current step
+            document.getElementById(`step${step}`).style.display = 'block';
+            currentStep = step;
+        }
+
+        async function saveProgress(step, personalInfo, uploadedFiles, status = 'in_progress') {
+            try {
+                const token = localStorage.getItem('aequitas_auth_token');
+                
+                await fetch('/api/user-setup', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        setupStep: step,
+                        personalInfo: personalInfo,
+                        uploadedDocuments: uploadedFiles,
+                        setupStatus: status
+                    })
+                });
+            } catch (error) {
+                console.error('Save failed:', error);
+            }
+        }
+
+        async function loadSetupProgress() {
+            try {
+                const token = localStorage.getItem('aequitas_auth_token');
+                
+                const response = await fetch('/api/user-setup', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.personalInfo) {
+                        personalInfo = data.personalInfo;
+                        // Populate form fields
+                        Object.keys(personalInfo).forEach(key => {
+                            const el = document.getElementById(key);
+                            if (el) el.value = personalInfo[key];
+                        });
+                    }
+                    
+                    if (data.uploadedDocuments) {
+                        uploadedFiles = data.uploadedDocuments;
+                        updateFileStatus('id');
+                        updateFileStatus('address');
+                        updateFileStatus('legal');
+                    }
+                    
+                    // Show appropriate step
+                    if (data.setupStatus === 'pending_review') {
+                        showStep(4);
+                    } else {
+                        showStep(data.setupStep || 1);
+                    }
+                }
+            } catch (error) {
+                console.error('Load failed:', error);
+            }
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('aequitas_auth_token');
+                localStorage.removeItem('aequitas_user_data');
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async function() {
+            const token = localStorage.getItem('aequitas_auth_token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const needsPasswordChange = await checkPasswordChange();
+            if (!needsPasswordChange) {
+                await loadSetupProgress();
+            }
+        });
+    </script>
+</body>
+</html>
