@@ -211,21 +211,31 @@ module.exports = async function handler(req, res) {
       userId: deposit.user_id
     }));
 
-    // Format clients for frontend - handle missing columns
-    const formattedClients = allClientsResult.rows.map(client => ({
-      id: client.id,
-      firstName: client.first_name,
-      lastName: client.last_name,
-      email: client.email,
-      phone: client.phone || 'Not provided',
-      address: client.address || 'Not provided',
-      status: client.role === 'admin' ? 'admin' : 'active',
-      joinDate: client.created_at ? client.created_at.split('T')[0] : 'Unknown',
-      totalDeposits: 0, // Will be calculated from deposits
-      accountValue: parseFloat(client.account_value || 0),
-      startingBalance: parseFloat(client.starting_balance || 0),
-      lastActive: client.last_login ? client.last_login.split('T')[0] : (client.created_at ? client.created_at.split('T')[0] : 'Unknown')
-    }));
+    // Format clients for frontend - handle missing columns and date formatting
+    const formattedClients = allClientsResult.rows.map(client => {
+      // Safe date formatting
+      const formatDate = (dateValue) => {
+        if (!dateValue) return 'Unknown';
+        if (typeof dateValue === 'string') return dateValue.split('T')[0];
+        if (dateValue instanceof Date) return dateValue.toISOString().split('T')[0];
+        return 'Unknown';
+      };
+
+      return {
+        id: client.id,
+        firstName: client.first_name,
+        lastName: client.last_name,
+        email: client.email,
+        phone: client.phone || 'Not provided',
+        address: client.address || 'Not provided',
+        status: client.role === 'admin' ? 'admin' : 'active',
+        joinDate: formatDate(client.created_at),
+        totalDeposits: 0, // Will be calculated from deposits
+        accountValue: parseFloat(client.account_value || 0),
+        startingBalance: parseFloat(client.starting_balance || 0),
+        lastActive: formatDate(client.last_login) !== 'Unknown' ? formatDate(client.last_login) : formatDate(client.created_at)
+      };
+    });
 
     // Calculate total deposits per client
     formattedClients.forEach(client => {
