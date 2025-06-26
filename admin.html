@@ -2221,9 +2221,9 @@
             const statusFilter = document.getElementById('statusFilter').value;
             
             let filteredClients = clients.filter(client => {
-                const matchesSearch = client.firstName.toLowerCase().includes(searchTerm) ||
-                                    client.lastName.toLowerCase().includes(searchTerm) ||
-                                    client.email.toLowerCase().includes(searchTerm);
+                const matchesSearch = (client.firstName || '').toLowerCase().includes(searchTerm) ||
+                    (client.lastName || '').toLowerCase().includes(searchTerm) ||
+                    (client.email || '').toLowerCase().includes(searchTerm);
                 const matchesStatus = !statusFilter || client.status === statusFilter;
                 return matchesSearch && matchesStatus;
             });
