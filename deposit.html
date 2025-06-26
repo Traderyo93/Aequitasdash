@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -118,6 +117,10 @@
 
         .icon-copy {
             mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z'/%3E%3C/svg%3E");
+        }
+
+        .icon-x {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12'/%3E%3C/svg%3E");
         }
         /* Sidebar Styles */
         .sidebar {
@@ -680,10 +683,6 @@
     color: var(--error);
 }
 
-.icon-x {
-    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12'/%3E%3C/svg%3E");
-}
-
         .status-completed {
             background: rgba(16, 185, 129, 0.1);
             color: var(--success);
@@ -1160,8 +1159,58 @@
             </div>
         </div>
     </div>
-    <!-- Complete Working JavaScript -->
+    <!-- Complete Working JavaScript with USER ISOLATION FIX -->
     <script>
+        // === USER ISOLATION SYSTEM ===
+        // CRITICAL FIX: This prevents users from seeing each other's files!
+        
+        function getCurrentUserId() {
+            const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
+            return userData.id || userData.email || 'anonymous';
+        }
+
+        function getUserStorageKey(baseKey) {
+            const userId = getCurrentUserId();
+            return `${userId}_${baseKey}`;
+        }
+
+        // User-isolated storage functions
+        function saveUploadedFiles(uploadedFiles) {
+            const key = getUserStorageKey('uploaded_files');
+            localStorage.setItem(key, JSON.stringify(uploadedFiles));
+            console.log(`💾 Files saved for user: ${getCurrentUserId()}`);
+        }
+
+        function loadUploadedFiles() {
+            const key = getUserStorageKey('uploaded_files');
+            const files = localStorage.getItem(key);
+            return files ? JSON.parse(files) : { forms: [] };
+        }
+
+        function saveUserDeposits(deposits) {
+            const key = getUserStorageKey('deposits');
+            localStorage.setItem(key, JSON.stringify(deposits));
+            console.log(`💾 Deposits saved for user: ${getCurrentUserId()}`);
+        }
+
+        function loadUserDeposits() {
+            const key = getUserStorageKey('deposits');
+            const deposits = localStorage.getItem(key);
+            return deposits ? JSON.parse(deposits) : [];
+        }
+
+        function saveDepositProgress(step) {
+            const key = getUserStorageKey('deposit_progress');
+            localStorage.setItem(key, step.toString());
+        }
+
+        function loadDepositProgress() {
+            const key = getUserStorageKey('deposit_progress');
+            return localStorage.getItem(key) || '1';
+        }
+
+        // === END USER ISOLATION SYSTEM ===
+
         let currentTheme = 'light';
         let uploadedFiles = {
             forms: []
@@ -1169,64 +1218,34 @@
         let currentDeposit = null;
         let depositHistory = [];
 
-        // Load existing data on page load
-      function loadExistingData() {
-    const savedDeposits = localStorage.getItem('aequitas_deposits');
-    if (savedDeposits) {
-        depositHistory = JSON.parse(savedDeposits);
-    }
-    
-    const savedFiles = localStorage.getItem('aequitas_uploaded_files');
-    if (savedFiles) {
-        uploadedFiles = JSON.parse(savedFiles);
-        
-        // Clean up files for deposits that are no longer pending
-        if (uploadedFiles.forms) {
-            uploadedFiles.forms = uploadedFiles.forms.filter(file => {
-                const deposit = depositHistory.find(d => d.id === file.depositId);
-                // Keep file only if deposit is still pending
-                return deposit && deposit.status === 'pending';
-            });
+        // Load existing data with USER ISOLATION
+        function loadExistingData() {
+            // Load user-specific deposits (not shared!)
+            depositHistory = loadUserDeposits();
             
-            // Save cleaned up files
-            localStorage.setItem('aequitas_uploaded_files', JSON.stringify(uploadedFiles));
-        }
-        
-        renderUploadedFiles('forms');
-    }
-
-    const savedProgress = localStorage.getItem('aequitas_deposit_progress');
-    if (savedProgress) {
-        updateProgressSteps(parseInt(savedProgress));
-    }
-
-    updateDepositTimeline();
-}
-
-        // Add this new function in deposit.html
-function cleanupProcessedFiles() {
-    const uploadedFiles = JSON.parse(localStorage.getItem('aequitas_uploaded_files') || '{}');
-    
-    if (uploadedFiles.forms) {
-        const originalCount = uploadedFiles.forms.length;
-        
-        // Remove files for deposits that are no longer pending
-        uploadedFiles.forms = uploadedFiles.forms.filter(file => {
-            const deposit = depositHistory.find(d => d.id === file.depositId);
-            return deposit && deposit.status === 'pending';
-        });
-        
-        if (uploadedFiles.forms.length !== originalCount) {
-            localStorage.setItem('aequitas_uploaded_files', JSON.stringify(uploadedFiles));
-            renderUploadedFiles('forms');
+            // Load user-specific files (not shared!)
+            uploadedFiles = loadUploadedFiles();
             
-            const removedCount = originalCount - uploadedFiles.forms.length;
-            if (removedCount > 0) {
-                showNotification(`${removedCount} processed file(s) removed from upload area.`, 'info');
+            // Clean up files for deposits that are no longer pending
+            if (uploadedFiles.forms) {
+                uploadedFiles.forms = uploadedFiles.forms.filter(file => {
+                    const deposit = depositHistory.find(d => d.id === file.depositId);
+                    return deposit && deposit.status === 'pending';
+                });
+                
+                saveUploadedFiles(uploadedFiles);
+                renderUploadedFiles('forms');
             }
+
+            // Load user-specific progress
+            const savedProgress = loadDepositProgress();
+            if (savedProgress) {
+                updateProgressSteps(parseInt(savedProgress));
+            }
+
+            updateDepositTimeline();
+            console.log(`📂 Loaded data for user: ${getCurrentUserId()}`);
         }
-    }
-}
         
         // Theme Toggle
         function toggleTheme() {
@@ -1292,90 +1311,90 @@ function cleanupProcessedFiles() {
             localStorage.setItem('aequitas_form_downloads', JSON.stringify(downloads));
         }
 
-        // REAL File Upload with tracking and validation
-async function handleFileUpload(event, type) {
-    const files = Array.from(event.target.files);
-    const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
-    
-    if (!currentDeposit) {
-        showNotification('Please submit deposit request first before uploading files.', 'warning');
-        event.target.value = '';
-        return;
-    }
-    
-    for (const file of files) {
-        // Validate file type and size
-        if (file.type !== 'application/pdf') {
-            showNotification(`${file.name} is not a PDF file. Only PDF files are allowed.`, 'error');
-            continue;
-        }
-        
-        if (file.size > 10 * 1024 * 1024) { // 10MB limit
-            showNotification(`${file.name} is too large. Maximum file size is 10MB.`, 'error');
-            continue;
-        }
-        
-        try {
-            showNotification('Uploading file...', 'info');
+        // FIXED File Upload with USER ISOLATION
+        async function handleFileUpload(event, type) {
+            const files = Array.from(event.target.files);
             
-            // Convert file to base64 for upload
-            const fileData = await new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onload = (e) => resolve(e.target.result);
-                reader.readAsDataURL(file);
-            });
-            
-            // Upload to backend
-            const response = await fetch('/api/upload', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    fileName: file.name,
-                    fileData: fileData,
-                    depositId: currentDeposit.id,
-                    userId: userData.id || 'demo'
-                })
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                // Add to local storage for UI
-                const fileObj = {
-                    id: result.file.id,
-                    name: file.name,
-                    size: formatFileSize(file.size),
-                    uploadDate: new Date().toISOString(),
-                    depositId: currentDeposit.id,
-                    url: result.file.url, // Real download URL!
-                    status: 'uploaded'
-                };
-                
-                uploadedFiles[type].push(fileObj);
-                localStorage.setItem('aequitas_uploaded_files', JSON.stringify(uploadedFiles));
-                
-                showNotification(`${file.name} uploaded successfully!`, 'success');
-                
-                // Update progress if forms are uploaded
-                if (type === 'forms' && uploadedFiles.forms.length > 0) {
-                    updateProgressSteps(3);
-                    localStorage.setItem('aequitas_deposit_progress', '3');
-                }
-            } else {
-                throw new Error(result.error || 'Upload failed');
+            if (!currentDeposit) {
+                showNotification('Please submit deposit request first before uploading files.', 'warning');
+                event.target.value = '';
+                return;
             }
             
-        } catch (error) {
-            console.error('Upload error:', error);
-            showNotification(`Upload failed: ${error.message}`, 'error');
+            for (const file of files) {
+                // Validate file type and size
+                if (file.type !== 'application/pdf') {
+                    showNotification(`${file.name} is not a PDF file. Only PDF files are allowed.`, 'error');
+                    continue;
+                }
+                
+                if (file.size > 10 * 1024 * 1024) { // 10MB limit
+                    showNotification(`${file.name} is too large. Maximum file size is 10MB.`, 'error');
+                    continue;
+                }
+                
+                try {
+                    showNotification('Uploading file...', 'info');
+                    
+                    // Convert file to base64 for upload
+                    const fileData = await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = (e) => resolve(e.target.result);
+                        reader.readAsDataURL(file);
+                    });
+                    
+                    // Upload to backend with USER ID
+                    const response = await fetch('/api/upload', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            fileName: file.name,
+                            fileData: fileData,
+                            depositId: currentDeposit.id,
+                            userId: getCurrentUserId() // CRITICAL: Include user ID!
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // Add to USER-SPECIFIC local storage
+                        const fileObj = {
+                            id: result.file.id,
+                            name: file.name,
+                            size: formatFileSize(file.size),
+                            uploadDate: new Date().toISOString(),
+                            depositId: currentDeposit.id,
+                            url: result.file.url, // Real download URL from Vercel Blob!
+                            status: 'uploaded',
+                            userId: getCurrentUserId() // Tag with user ID
+                        };
+                        
+                        uploadedFiles[type].push(fileObj);
+                        saveUploadedFiles(uploadedFiles); // FIXED: User-isolated storage!
+                        
+                        showNotification(`${file.name} uploaded successfully!`, 'success');
+                        
+                        // Update progress if forms are uploaded
+                        if (type === 'forms' && uploadedFiles.forms.length > 0) {
+                            updateProgressSteps(3);
+                            saveDepositProgress(3); // FIXED: User-isolated storage!
+                        }
+                    } else {
+                        throw new Error(result.error || 'Upload failed');
+                    }
+                    
+                } catch (error) {
+                    console.error('Upload error:', error);
+                    showNotification(`Upload failed: ${error.message}`, 'error');
+                }
+            }
+            
+            renderUploadedFiles(type);
+            event.target.value = ''; // Clear the input for next upload
         }
-    }
-    
-    renderUploadedFiles(type);
-    event.target.value = ''; // Clear the input for next upload
-}
 
         // Render uploaded files with enhanced display
         function renderUploadedFiles(type) {
@@ -1404,18 +1423,18 @@ async function handleFileUpload(event, type) {
             `).join('');
         }
 
-        // Remove uploaded file
+        // Remove uploaded file - USER ISOLATED
         function removeFile(type, index) {
             if (confirm('Are you sure you want to remove this file?')) {
                 uploadedFiles[type].splice(index, 1);
-                localStorage.setItem('aequitas_uploaded_files', JSON.stringify(uploadedFiles));
+                saveUploadedFiles(uploadedFiles); // FIXED: User-isolated storage!
                 renderUploadedFiles(type);
                 showNotification('File removed successfully.', 'success');
                 
                 // Update progress if no forms left
                 if (type === 'forms' && uploadedFiles.forms.length === 0) {
                     updateProgressSteps(2);
-                    localStorage.setItem('aequitas_deposit_progress', '2');
+                    saveDepositProgress(2); // FIXED: User-isolated storage!
                 }
             }
         }
@@ -1428,6 +1447,7 @@ async function handleFileUpload(event, type) {
             const i = Math.floor(Math.log(bytes) / Math.log(k));
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
+        
         function updateProgressSteps(activeStep) {
             const steps = document.querySelectorAll('.step');
             
@@ -1445,6 +1465,7 @@ async function handleFileUpload(event, type) {
             });
         }
 
+        // FIXED Deposit Form Submission with USER ISOLATION
         document.getElementById('depositForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -1464,8 +1485,7 @@ async function handleFileUpload(event, type) {
             // Generate reference number
             const reference = 'ACP' + Date.now().toString().slice(-6);
             
-            
-            // Create deposit object
+            // Create deposit object with USER ID
             currentDeposit = {
                 id: 'dep_' + Date.now(),
                 amount: parseFloat(amount),
@@ -1473,16 +1493,16 @@ async function handleFileUpload(event, type) {
                 reference: reference,
                 status: 'pending',
                 createdAt: new Date().toISOString(),
-                userId: JSON.parse(localStorage.getItem('aequitas_user_data') || '{}').id || 'demo'
+                userId: getCurrentUserId() // CRITICAL: Tag with current user!
             };
             
-            // Add to deposit history
+            // Add to USER-SPECIFIC deposit history
             depositHistory.push(currentDeposit);
-            localStorage.setItem('aequitas_deposits', JSON.stringify(depositHistory));
+            saveUserDeposits(depositHistory); // FIXED: User-isolated storage!
             
             // Update progress steps - STEP 1 COMPLETED, STEP 2 ACTIVE
             updateProgressSteps(2);
-            localStorage.setItem('aequitas_deposit_progress', '2');
+            saveDepositProgress(2); // FIXED: User-isolated storage!
             
             // Update timeline
             updateDepositTimeline();
@@ -1494,135 +1514,112 @@ async function handleFileUpload(event, type) {
             showNotification(`Deposit request for $${parseFloat(amount).toLocaleString()} submitted successfully! Your reference is: ${reference}`, 'success');
         });
 
-function downloadDepositForm() {
-    if (!currentDeposit) {
-        showNotification('Please submit deposit request first to generate your reference number.', 'warning');
-        return;
-    }
-    
-    const link = document.createElement('a');
-    link.href = 'forms/deposit-request-form.pdf';
-    link.download = 'deposit-request-form.pdf';
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    
-    // Handle download failure
-    link.onerror = function() {
-        showNotification('Error downloading file. Please contact support.', 'error');
-    };
-    
-    link.click();
-    document.body.removeChild(link);
-    
-    showNotification('Deposit Request Form downloaded! CRITICAL: Include KC5230 in your bank transfer reference.', 'success');
-    
-    // Track download
-    trackFormDownload('deposit_request', currentDeposit.amount);
-}
+        function downloadDepositForm() {
+            if (!currentDeposit) {
+                showNotification('Please submit deposit request first to generate your reference number.', 'warning');
+                return;
+            }
+            
+            const link = document.createElement('a');
+            link.href = 'forms/deposit-request-form.pdf';
+            link.download = 'deposit-request-form.pdf';
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            
+            // Handle download failure
+            link.onerror = function() {
+                showNotification('Error downloading file. Please contact support.', 'error');
+            };
+            
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification('Deposit Request Form downloaded! CRITICAL: Include KC5230 in your bank transfer reference.', 'success');
+            
+            // Track download
+            trackFormDownload('deposit_request', currentDeposit.amount);
+        }
 
         function downloadSourceOfFundsForm() {
-    const depositAmount = document.getElementById('depositAmount').value;
-    const depositPurpose = document.getElementById('depositPurpose').value;
-    
-    if (!depositAmount || !depositPurpose) {
-        showNotification('Please enter deposit amount and purpose first.', 'warning');
-        return;
-    }
-    
-    // Try different path formats
-    const link = document.createElement('a');
-    link.href = 'forms/source-of-funds-declaration.pdf';
-    link.download = 'source-of-funds-declaration.pdf';
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    
-    // Handle download failure
-    link.onerror = function() {
-        showNotification('Error downloading file. Please contact support.', 'error');
-    };
-    
-    link.click();
-    document.body.removeChild(link);
-    
-    showNotification('Source of Funds Declaration downloaded! Please complete and upload.', 'success');
-    
-    // Track download
-    trackFormDownload('source_of_funds', depositAmount);
-}
-
-function downloadDepositForm() {
-    if (!currentDeposit) {
-        showNotification('Please submit deposit request first to generate your reference number.', 'warning');
-        return;
-    }
-    
-    // Download the actual PDF from forms folder
-    const link = document.createElement('a');
-    link.href = './forms/deposit-request-form.pdf';
-    link.download = 'deposit-request-form.pdf';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    showNotification('Deposit Request Form downloaded! Complete with your reference: ' + currentDeposit.reference, 'success');
-    
-    // Track download
-    trackFormDownload('deposit_request', currentDeposit.amount);
-}
+            const depositAmount = document.getElementById('depositAmount').value;
+            const depositPurpose = document.getElementById('depositPurpose').value;
+            
+            if (!depositAmount || !depositPurpose) {
+                showNotification('Please enter deposit amount and purpose first.', 'warning');
+                return;
+            }
+            
+            // Try different path formats
+            const link = document.createElement('a');
+            link.href = 'forms/source-of-funds-declaration.pdf';
+            link.download = 'source-of-funds-declaration.pdf';
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            
+            // Handle download failure
+            link.onerror = function() {
+                showNotification('Error downloading file. Please contact support.', 'error');
+            };
+            
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification('Source of Funds Declaration downloaded! Please complete and upload.', 'success');
+            
+            // Track download
+            trackFormDownload('source_of_funds', depositAmount);
+        }
 
         function updateDepositTimeline() {
-    const timeline = document.getElementById('depositTimeline');
-    
-    // Only show real user deposits - no demo data
-    const allDeposits = depositHistory.map(d => ({
-        id: d.id,
-        title: `Deposit Request - ${d.reference}`,
-        description: `$${d.amount.toLocaleString()} deposit for ${d.purpose} - ${getStatusDescription(d.status)}`,
-        date: new Date(d.createdAt).toLocaleDateString(),
-        status: d.status,
-        amount: d.amount,
-        showDownload: d.status === 'completed'
-    }));
-    
-    if (allDeposits.length === 0) {
-        timeline.innerHTML = `
-            <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
-                <div style="font-size: 18px; margin-bottom: 8px;">No deposits yet</div>
-                <div style="font-size: 14px;">Your deposit history will appear here once you submit a request.</div>
-            </div>
-        `;
-        return;
-    }
-    
-    timeline.innerHTML = allDeposits.map(deposit => `
-        <div class="timeline-item ${deposit.status}">
-            <div class="timeline-content">
-                <div class="timeline-header">
-                    <div class="timeline-title">${deposit.title}</div>
-                    <div class="timeline-date">${deposit.date}</div>
+            const timeline = document.getElementById('depositTimeline');
+            
+            // Only show current user's deposits - USER ISOLATED!
+            const userDeposits = depositHistory.map(d => ({
+                id: d.id,
+                title: `Deposit Request - ${d.reference}`,
+                description: `${d.amount.toLocaleString()} deposit for ${d.purpose} - ${getStatusDescription(d.status)}`,
+                date: new Date(d.createdAt).toLocaleDateString(),
+                status: d.status,
+                amount: d.amount,
+                showDownload: d.status === 'completed'
+            }));
+            
+            if (userDeposits.length === 0) {
+                timeline.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                        <div style="font-size: 18px; margin-bottom: 8px;">No deposits yet</div>
+                        <div style="font-size: 14px;">Your deposit history will appear here once you submit a request.</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            timeline.innerHTML = userDeposits.map(deposit => `
+                <div class="timeline-item ${deposit.status}">
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <div class="timeline-title">${deposit.title}</div>
+                            <div class="timeline-date">${deposit.date}</div>
+                        </div>
+                        <div class="timeline-description">
+                            ${deposit.description}
+                        </div>
+                        <div class="timeline-actions">
+                            <span class="status-badge status-${deposit.status}">
+                                <span class="icon icon-${getStatusIcon(deposit.status)}"></span>
+                                ${deposit.status.charAt(0).toUpperCase() + deposit.status.slice(1)}
+                            </span>
+                            ${deposit.showDownload ? `
+                                <button class="btn btn-secondary" onclick="downloadDocument('${deposit.id}')">
+                                    <span class="icon icon-download"></span>
+                                    Download Receipt
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
                 </div>
-                <div class="timeline-description">
-                    ${deposit.description}
-                </div>
-                <div class="timeline-actions">
-                    <span class="status-badge status-${deposit.status}">
-                        <span class="icon icon-${getStatusIcon(deposit.status)}"></span>
-                        ${deposit.status.charAt(0).toUpperCase() + deposit.status.slice(1)}
-                    </span>
-                    ${deposit.showDownload ? `
-                        <button class="btn btn-secondary" onclick="downloadDocument('${deposit.id}')">
-                            <span class="icon icon-download"></span>
-                            Download Receipt
-                        </button>
-                    ` : ''}
-                </div>
-            </div>
-        </div>
-    `).join('');
-    
-    // Clean up processed files at the end
-    cleanupProcessedFiles();
-}
+            `).join('');
+        }
 
         // Helper functions for timeline
         function getStatusDescription(status) {
@@ -1635,15 +1632,15 @@ function downloadDepositForm() {
             }
         }
 
-       function getStatusIcon(status) {
-    switch(status) {
-        case 'completed': return 'check';
-        case 'approved': return 'check';
-        case 'pending': return 'clock';
-        case 'rejected': return 'x';
-        default: return 'clock';
-    }
-}
+        function getStatusIcon(status) {
+            switch(status) {
+                case 'completed': return 'check';
+                case 'approved': return 'check';
+                case 'pending': return 'clock';
+                case 'rejected': return 'x';
+                default: return 'clock';
+            }
+        }
 
         // Download document functionality
         function downloadDocument(docId) {
@@ -1674,6 +1671,7 @@ For questions, contact: support@aequitascap.com`;
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
         }
+        
         // Enhanced notification system
         function showNotification(message, type = 'info') {
             const existingNotifications = document.querySelectorAll('.notification');
@@ -1775,7 +1773,7 @@ For questions, contact: support@aequitascap.com`;
                 if (adminSection) adminSection.style.display = 'block';
             }
 
-            // Load existing data
+            // Load existing data with USER ISOLATION
             loadExistingData();
             
             // Initially disable download buttons until deposit is submitted
@@ -1787,22 +1785,46 @@ For questions, contact: support@aequitascap.com`;
                 if (downloadDepositBtn) downloadDepositBtn.disabled = true;
             }
 
-            console.log('Deposit page initialized successfully');
+            console.log(`✅ Deposit page initialized with USER ISOLATION for: ${getCurrentUserId()}`);
         });
+
+        // DEBUG FUNCTION - Test user isolation
+        function debugUserIsolation() {
+            console.log('=== USER ISOLATION DEBUG ===');
+            console.log('Current User:', getCurrentUserId());
+            console.log('User Storage Key for files:', getUserStorageKey('uploaded_files'));
+            console.log('User Storage Key for deposits:', getUserStorageKey('deposits'));
+            console.log('User Files:', loadUploadedFiles());
+            console.log('User Deposits:', loadUserDeposits());
+            
+            // Show ALL localStorage keys for debugging
+            console.log('\n=== ALL STORAGE KEYS ===');
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.includes('uploaded_files') || key.includes('deposits') || key.includes('deposit_progress')) {
+                    console.log(`${key}: ${localStorage.getItem(key).substring(0, 100)}...`);
+                }
+            }
+        }
 
         // Auto-save form data as user types
         document.getElementById('depositAmount').addEventListener('input', function() {
-            localStorage.setItem('aequitas_temp_amount', this.value);
+            const key = getUserStorageKey('temp_amount');
+            localStorage.setItem(key, this.value);
         });
 
         document.getElementById('depositPurpose').addEventListener('change', function() {
-            localStorage.setItem('aequitas_temp_purpose', this.value);
+            const key = getUserStorageKey('temp_purpose');
+            localStorage.setItem(key, this.value);
         });
 
         // Restore form data on page load
         function restoreFormData() {
-            const tempAmount = localStorage.getItem('aequitas_temp_amount');
-            const tempPurpose = localStorage.getItem('aequitas_temp_purpose');
+            const tempAmountKey = getUserStorageKey('temp_amount');
+            const tempPurposeKey = getUserStorageKey('temp_purpose');
+            
+            const tempAmount = localStorage.getItem(tempAmountKey);
+            const tempPurpose = localStorage.getItem(tempPurposeKey);
             
             if (tempAmount) {
                 document.getElementById('depositAmount').value = tempAmount;
