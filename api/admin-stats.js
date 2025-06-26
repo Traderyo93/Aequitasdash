@@ -1,8 +1,8 @@
-// api/admin-stats.js - FIXED VERSION
-import { sql } from '@vercel/postgres';
-import jwt from 'jsonwebtoken';
+// api/admin-stats.js - FIXED WITH COMMONJS
+const { sql } = require('@vercel/postgres');
+const jwt = require('jsonwebtoken');
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // Set CORS headers first
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -221,4 +221,4 @@ export default async function handler(req, res) {
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
-}
+};
