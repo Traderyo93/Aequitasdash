@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1419,7 +1420,7 @@
         });
 
         // Initialize page
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             // Check authentication
             const authToken = localStorage.getItem('aequitas_auth_token');
             const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
@@ -1464,7 +1465,7 @@
             }
 
             // Load support tickets
-            loadSupportTickets();
+            await loadSupportTickets();
         });
     </script>
 </body>
