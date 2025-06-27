@@ -1102,6 +1102,7 @@
         async function loadSupportTickets() {
             try {
                 console.log('📋 Loading support tickets...');
+                console.log('🔑 Using auth token:', getAuthToken() ? 'Present' : 'Missing');
                 
                 const response = await fetch('/api/support', {
                     method: 'GET',
@@ -1111,18 +1112,25 @@
                     }
                 });
                 
+                console.log('📡 GET Response status:', response.status);
+                console.log('📡 GET Response ok:', response.ok);
+                
                 const data = await response.json();
+                console.log('📡 GET Response data:', data);
                 
                 if (data.success) {
                     tickets = data.tickets || [];
                     console.log(`✅ Loaded ${tickets.length} support tickets`);
+                    console.log('🎫 Tickets array:', tickets);
                     
                     // Update unread count and badge
                     unreadCount = tickets.reduce((sum, ticket) => sum + (ticket.unread_count_user || 0), 0);
+                    console.log('🔔 Unread count:', unreadCount);
                     updateSupportBadge();
                     
                     renderSupportTickets();
                 } else {
+                    console.error('❌ Failed to load tickets:', data.error);
                     throw new Error(data.error || 'Failed to load support tickets');
                 }
                 
@@ -1377,10 +1385,14 @@
                     body: JSON.stringify(ticketData)
                 });
                 
+                console.log('📡 Response status:', response.status);
+                console.log('📡 Response ok:', response.ok);
+                
                 const data = await response.json();
+                console.log('📡 Response data:', data);
                 
                 if (data.success) {
-                    console.log('✅ Support ticket created:', data.ticket);
+                    console.log('✅ Support ticket created successfully:', data.ticket);
                     
                     // Reset form
                     e.target.reset();
@@ -1388,9 +1400,11 @@
                     // Show success message
                     showNotification('Support ticket submitted successfully! Henry Windeler Cohen will respond within 24 hours.', 'success');
                     
-                    // Reload tickets
+                    // Reload tickets immediately
+                    console.log('🔄 Reloading support tickets...');
                     await loadSupportTickets();
                 } else {
+                    console.error('❌ API returned error:', data.error);
                     throw new Error(data.error || 'Failed to create support ticket');
                 }
                 
