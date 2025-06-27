@@ -580,10 +580,10 @@
 
             <div class="nav-section">
                 <div class="nav-section-title">Trading</div>
-                <a href="deposit.html" class="nav-item">
-    <span class="icon icon-money"></span>
-    <span>Deposit</span>
-</a>
+                <button class="nav-item" onclick="navigateTo('deposit')">
+                    <span class="icon icon-money"></span>
+                    <span>Deposit</span>
+                </button>
                 <button class="nav-item" onclick="navigateTo('withdraw')">
                     <span class="icon icon-bank"></span>
                     <span>Withdraw</span>
@@ -599,6 +599,15 @@
                 <button class="nav-item" onclick="navigateTo('support')">
                     <span class="icon icon-chat"></span>
                     <span>Support</span>
+                </button>
+            </div>
+
+            <!-- Admin Section -->
+            <div class="nav-section" id="adminSection" style="display: none;">
+                <div class="nav-section-title">Admin</div>
+                <button class="nav-item" onclick="navigateTo('admin')">
+                    <span class="icon icon-user"></span>
+                    <span>Client Management</span>
                 </button>
             </div>
         </nav>
@@ -774,17 +783,26 @@
             }
         }
 
-function navigateTo(page) {
-    console.log(`Navigation to: ${page}`);
-    
-    if (page === 'deposit') {
-        window.location.href = 'deposit.html';
-    } else if (page === 'dashboard') {
-        window.location.href = 'dashboard.html'; // or index.html, whatever your main page is called
-    } else {
-        alert(`${page.charAt(0).toUpperCase() + page.slice(1)} page coming soon!`);
-    }
-}
+        // FIXED Navigation - Proper hyperlinks
+        function navigateTo(page) {
+            console.log(`Navigation to: ${page}`);
+            
+            if (page === 'deposit') {
+                window.location.href = 'deposit.html';
+            } else if (page === 'dashboard') {
+                window.location.href = 'dashboard.html';
+            } else if (page === 'support') {
+                window.location.href = 'support.html';
+            } else if (page === 'admin') {
+                window.location.href = 'admin.html';
+            } else if (page === 'statements') {
+                alert('Statements page coming soon!');
+            } else if (page === 'withdraw') {
+                alert('Withdraw page coming soon!');
+            } else if (page === 'profile') {
+                alert('Profile page coming soon!');
+            }
+        }
 
         // Logout
         function logout() {
@@ -792,7 +810,7 @@ function navigateTo(page) {
                 localStorage.removeItem('aequitas_auth_token');
                 localStorage.removeItem('aequitas_user_data');
                 console.log('Logged out, redirecting to login');
-                window.location.href = '/login.html';
+                window.location.href = 'login.html';
             }
         }
 
@@ -1238,6 +1256,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 createEquityChart();
             }, 200);
             
+            // Show admin section if user is admin
+            if (userData.role === 'admin') {
+                const adminSection = document.getElementById('adminSection');
+                if (adminSection) adminSection.style.display = 'block';
+            }
+            
             console.log('Dashboard initialization complete');
         });
 
@@ -1264,4 +1288,5 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     </script>
 </body>
+</html>
 </html>
