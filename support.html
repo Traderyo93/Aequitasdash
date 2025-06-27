@@ -1217,21 +1217,41 @@
 
         // Toggle Ticket Expansion
         async function toggleTicket(ticketId) {
+            console.log('🎫 Toggling ticket:', ticketId);
+            
             const content = document.getElementById(`content-${ticketId}`);
             const toggle = document.getElementById(`toggle-${ticketId}`);
             
+            if (!content || !toggle) {
+                console.error('❌ Could not find content or toggle elements for ticket:', ticketId);
+                return;
+            }
+            
+            console.log('🎫 Current expanded state:', content.classList.contains('expanded'));
+            
             if (content.classList.contains('expanded')) {
+                // Close the ticket
                 content.classList.remove('expanded');
                 toggle.innerHTML = '<span class="icon icon-chevron-down"></span>';
+                console.log('🎫 Ticket closed');
             } else {
+                // Open the ticket
                 content.classList.add('expanded');
                 toggle.innerHTML = '<span class="icon icon-chevron-up"></span>';
+                console.log('🎫 Ticket opened, loading messages...');
                 
-                // Load messages for this ticket
-                await loadTicketMessages(ticketId);
-                
-                // Mark as read
-                await markTicketRead(ticketId);
+                try {
+                    // Load messages for this ticket
+                    await loadTicketMessages(ticketId);
+                    
+                    // Mark as read
+                    await markTicketRead(ticketId);
+                    
+                    console.log('🎫 Messages loaded and marked as read');
+                } catch (error) {
+                    console.error('❌ Error loading messages:', error);
+                    // Don't close the ticket if there's an error
+                }
             }
         }
 
@@ -1248,21 +1268,28 @@
                     }
                 });
                 
+                console.log(`📨 Messages response status: ${response.status}`);
+                
                 const data = await response.json();
+                console.log(`📨 Messages response data:`, data);
                 
                 if (data.success) {
                     renderTicketMessages(ticketId, data.messages);
+                    console.log(`📨 Rendered ${data.messages.length} messages`);
                 } else {
                     throw new Error(data.error || 'Failed to load messages');
                 }
                 
             } catch (error) {
                 console.error('💥 Failed to load ticket messages:', error);
-                document.getElementById(`messages-${ticketId}`).innerHTML = `
-                    <div style="text-align: center; padding: 20px; color: var(--text-secondary);">
-                        <div style="font-size: 14px;">Failed to load messages. Please try again.</div>
-                    </div>
-                `;
+                const messagesContainer = document.getElementById(`messages-${ticketId}`);
+                if (messagesContainer) {
+                    messagesContainer.innerHTML = `
+                        <div style="text-align: center; padding: 20px; color: var(--text-secondary);">
+                            <div style="font-size: 14px;">Failed to load messages. Please try again.</div>
+                        </div>
+                    `;
+                }
             }
         }
 
@@ -1347,7 +1374,9 @@
         // Mark Ticket as Read
         async function markTicketRead(ticketId) {
             try {
-                await fetch('/api/support', {
+                console.log(`🔔 Marking ticket ${ticketId} as read`);
+                
+                const response = await fetch('/api/support', {
                     method: 'PUT',
                     headers: {
                         'Authorization': `Bearer ${getAuthToken()}`,
@@ -1359,17 +1388,22 @@
                     })
                 });
                 
-                // Update local ticket unread count
-                const ticket = tickets.find(t => t.id === ticketId);
-                if (ticket) {
-                    ticket.unread_count_user = 0;
-                    unreadCount = tickets.reduce((sum, t) => sum + (t.unread_count_user || 0), 0);
-                    updateSupportBadge();
-                    renderSupportTickets(); // Re-render to update display
+                if (response.ok) {
+                    // Update local ticket unread count
+                    const ticket = tickets.find(t => t.id === ticketId);
+                    if (ticket) {
+                        ticket.unread_count_user = 0;
+                        unreadCount = tickets.reduce((sum, t) => sum + (t.unread_count_user || 0), 0);
+                        updateSupportBadge();
+                        console.log(`🔔 Ticket ${ticketId} marked as read, new unread count: ${unreadCount}`);
+                    }
+                } else {
+                    console.warn('⚠️ Failed to mark ticket as read, but continuing...');
                 }
                 
             } catch (error) {
                 console.error('Failed to mark ticket as read:', error);
+                // Don't throw error, just log it
             }
         }
 
