@@ -1157,7 +1157,7 @@
                 container.innerHTML = `
                     <div class="empty-state">
                         <h3>No support tickets yet</h3>
-                        <p>When you submit a support request, it will appear here. Henry Cohen will respond within 24 hours.</p>
+                        <p>When you submit a support request, it will appear here. Henry Windeler Cohen will respond within 24 hours.</p>
                     </div>
                 `;
                 return;
@@ -1365,26 +1365,7 @@
             }
         }
 
-        // Submit Support Form
-        document.getElementById('supportForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const submitBtn = document.getElementById('submitBtn');
-            const originalText = submitBtn.innerHTML;
-            
-            try {
-                // Show loading state
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<span class="icon icon-clock"></span> Submitting...';
-                
-                const formData = new FormData(e.target);
-                const ticketData = {
-                    action: 'create_ticket',
-                    subject: formData.get('subject'),
-                    priority: formData.get('priority'),
-                    message: formData.get('message')
-                };
-                
+
                 console.log('📝 Creating support ticket:', ticketData);
                 
                 const response = await fetch('/api/support', {
@@ -1405,7 +1386,7 @@
                     e.target.reset();
                     
                     // Show success message
-                    showNotification('Support ticket submitted successfully! Henry Cohen will respond within 24 hours.', 'success');
+                    showNotification('Support ticket submitted successfully! Henry Windeler Cohen will respond within 24 hours.', 'success');
                     
                     // Reload tickets
                     await loadSupportTickets();
