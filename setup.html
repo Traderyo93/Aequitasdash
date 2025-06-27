@@ -1228,7 +1228,10 @@
                         reader.readAsDataURL(file);
                     });
                     
-                    // Upload to backend
+                    // Create a setup-specific ID for tracking
+                    const setupId = 'setup_' + getCurrentUserId() + '_' + Date.now();
+                    
+                    // Upload to backend with setup-specific parameters
                     const response = await fetch('/api/upload', {
                         method: 'POST',
                         headers: {
@@ -1237,8 +1240,10 @@
                         body: JSON.stringify({
                             fileName: file.name,
                             fileData: fileData,
-                            documentType: type,
-                            userId: getCurrentUserId()
+                            depositId: setupId, // Use setup ID instead of depositId
+                            userId: getCurrentUserId(),
+                            documentType: type, // Add document type for categorization
+                            isSetupDocument: true // Flag to indicate this is for setup, not deposit
                         })
                     });
                     
@@ -1249,7 +1254,8 @@
                             id: result.file.id,
                             name: file.name,
                             url: result.file.url,
-                            uploadDate: new Date().toISOString()
+                            uploadDate: new Date().toISOString(),
+                            setupId: setupId
                         };
                         
                         updateFileStatus(type, 'success');
