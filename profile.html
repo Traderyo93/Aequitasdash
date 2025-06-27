@@ -143,6 +143,10 @@
             mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4'/%3E%3C/svg%3E");
         }
 
+        .icon-users {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m22 0v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75M13 7a4 4 0 11-8 0 4 4 0 018 0z'/%3E%3C/svg%3E");
+        }
+
         /* Sidebar Styles */
         .sidebar {
             position: fixed;
@@ -815,7 +819,7 @@
                     <span class="icon icon-money"></span>
                     <span>Deposit</span>
                 </a>
-                <a href="withdraw.html" class="nav-item">
+                <a href="withdrawal.html" class="nav-item">
                     <span class="icon icon-bank"></span>
                     <span>Withdraw</span>
                 </a>
@@ -837,7 +841,7 @@
             <div class="nav-section" id="adminSection" style="display: none;">
                 <div class="nav-section-title">Admin</div>
                 <a href="admin.html" class="nav-item">
-                    <span class="icon icon-user"></span>
+                    <span class="icon icon-users"></span>
                     <span>Client Management</span>
                 </a>
             </div>
@@ -1047,6 +1051,49 @@
         let editMode = false;
         let userData = {};
         let timelineData = [];
+
+        // Universal Navigation System
+        function initializeNavigation() {
+            // Get current page name
+            const currentPage = window.location.pathname.split('/').pop() || 'profile.html';
+            
+            console.log('Current page:', currentPage);
+            
+            // Remove active class from all nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Add active class to current page
+            let currentNavItem = document.querySelector(`.nav-item[href="${currentPage}"]`);
+            
+            // Handle special cases
+            if (!currentNavItem) {
+                if (currentPage.includes('profile') || currentPage === '') {
+                    currentNavItem = document.querySelector(`.nav-item[href="profile.html"]`);
+                }
+            }
+            
+            if (currentNavItem) {
+                currentNavItem.classList.add('active');
+                console.log('Set active:', currentNavItem.href);
+            }
+            
+            // Handle navigation clicks - ensure authentication
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    const token = localStorage.getItem('aequitas_auth_token');
+                    if (!token) {
+                        e.preventDefault();
+                        showNotification('Please log in to access this page.', 'warning');
+                        setTimeout(() => {
+                            window.location.href = 'login.html';
+                        }, 1000);
+                        return;
+                    }
+                });
+            });
+        }
 
         // Theme Toggle
         function toggleTheme() {
@@ -1448,3 +1495,85 @@
                 z-index: 10001;
                 max-width: 400px;
                 font-size: 14px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                animation: slideInRight 0.3s ease-out;
+                ${type === 'success' ? 'background: linear-gradient(135deg, #10b981, #059669);' : ''}
+                ${type === 'error' ? 'background: linear-gradient(135deg, #ef4444, #dc2626);' : ''}
+                ${type === 'warning' ? 'background: linear-gradient(135deg, #f59e0b, #d97706);' : ''}
+                ${type === 'info' ? 'background: linear-gradient(135deg, #3b82f6, #2563eb);' : ''}
+            `;
+            
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="icon icon-${type === 'success' ? 'check' : 'clock'}" style="width: 16px; height: 16px;"></span>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.style.animation = 'slideOutRight 0.3s ease-in';
+                    setTimeout(() => notification.remove(), 300);
+                }
+            }, 5000);
+        }
+
+        // Add CSS for spinner and animations
+        const style = document.createElement('style');
+        style.textContent = `
+            .spinner {
+                display: inline-block;
+                width: 16px;
+                height: 16px;
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                border-radius: 50%;
+                border-top-color: white;
+                animation: spin 1s ease-in-out infinite;
+            }
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication
+            const authToken = localStorage.getItem('aequitas_auth_token');
+            if (!authToken) {
+                showNotification('Please log in to access this page.', 'warning');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
+                return;
+            }
+
+            // Load saved theme
+            const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
+            if (savedTheme === 'dark') {
+                currentTheme = 'dark';
+                document.documentElement.setAttribute('data-theme', 'dark');
+                const themeToggle = document.querySelector('.theme-toggle .icon');
+                if (themeToggle) themeToggle.className = 'icon icon-sun';
+            }
+
+            // Initialize navigation
+            initializeNavigation();
+
+            // Load user data and initialize page
+            loadUserData().then(() => {
+                // Show admin section if user is admin
+                if (userData.role === 'admin') {
+                    const adminSection = document.getElementById('adminSection');
+                    if (adminSection) adminSection.style.display = 'block';
+                }
+                
+                console.log('✅ Profile page initialized');
+            });
+        });
+
+    </script>
+</body>
+</html>
