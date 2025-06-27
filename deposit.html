@@ -1,4 +1,1058 @@
-<!DOCTYPE html>
+</style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-container">
+                <img src="https://i.ibb.co/8DfYwWdG/Aequitas-White-Logo.png" alt="Aequitas Capital Partners" class="logo">
+            </div>
+            <button class="theme-toggle" onclick="toggleTheme()">
+                <span class="icon icon-moon"></span>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Account</div>
+                <a href="dashboard.html" class="nav-item">
+                    <span class="icon icon-dashboard"></span>
+                    <span>Overview</span>
+                </a>
+                <a href="statements.html" class="nav-item">
+                    <span class="icon icon-document"></span>
+                    <span>Statements</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Trading</div>
+                <a href="deposit.html" class="nav-item active">
+                    <span class="icon icon-money"></span>
+                    <span>Deposit</span>
+                </a>
+                <a href="withdrawal.html" class="nav-item">
+                    <span class="icon icon-bank"></span>
+                    <span>Withdraw</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Settings</div>
+                <a href="profile.html" class="nav-item">
+                    <span class="icon icon-user"></span>
+                    <span>Profile</span>
+                </a>
+                <a href="support.html" class="nav-item">
+                    <span class="icon icon-chat"></span>
+                    <span>Support</span>
+                </a>
+            </div>
+
+            <!-- Admin Section -->
+            <div class="nav-section" id="adminSection" style="display: none;">
+                <div class="nav-section-title">Admin</div>
+                <a href="admin.html" class="nav-item">
+                    <span class="icon icon-users"></span>
+                    <span>Client Management</span>
+                </a>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">A</div>
+                <div class="user-details">
+                    <h4 id="userName">Admin User</h4>
+                    <p id="userEmail">admin@aequitascap.com</p>
+                </div>
+            </div>
+            <button class="logout-btn" onclick="logout()">
+                <span class="icon icon-logout"></span>
+                <span>Logout</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="top-bar">
+            <h1 class="page-title">Deposit Funds</h1>
+            <div class="top-user-info">
+                <span>Welcome back,</span>
+                <span id="topUserName">Admin</span>
+            </div>
+        </div>
+
+        <div class="deposit-content">
+            <!-- Progress Steps -->
+            <div class="steps">
+                <div class="step" id="step1">
+                    <div class="step-circle">1</div>
+                    <div class="step-label">Enter Amount</div>
+                </div>
+                <div class="step" id="step2">
+                    <div class="step-circle">2</div>
+                    <div class="step-label">Download Forms</div>
+                </div>
+                <div class="step" id="step3">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">Submit Documents</div>
+                </div>
+                <div class="step" id="step4">
+                    <div class="step-circle">4</div>
+                    <div class="step-label">Transfer Funds</div>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <!-- Deposit Amount Form -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="icon icon-money card-icon"></span>
+                        <h2 class="card-title">Deposit Amount</h2>
+                    </div>
+
+                    <form id="depositForm">
+                        <div class="form-group">
+                            <label class="form-label" for="depositAmount">Amount to Deposit</label>
+                            <div class="currency-input">
+                                <input type="number" id="depositAmount" class="form-input" placeholder="0.00" min="1000" step="0.01" required>
+                            </div>
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+                                Minimum deposit: $1,000
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="depositPurpose">Purpose of Deposit</label>
+                            <select id="depositPurpose" class="form-input" required>
+                                <option value="">Select purpose</option>
+                                <option value="initial">Initial Investment</option>
+                                <option value="additional">Additional Capital</option>
+                                <option value="reinvestment">Profit Reinvestment</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            <span class="icon icon-check"></span>
+                            Confirm Deposit Amount
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Required Forms -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="icon icon-document card-icon"></span>
+                        <h2 class="card-title">Required Forms</h2>
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 16px;">
+                            Please download, complete, and submit the following forms:
+                        </p>
+
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg-secondary); border-radius: 8px;">
+                                <div>
+                                    <div style="font-weight: 500; font-size: 14px;">Source of Funds Declaration</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">Required for all deposits</div>
+                                </div>
+                                <button type="button" class="btn btn-outline" id="downloadSourceBtn" onclick="downloadSourceOfFundsForm()" disabled>
+                                    <span class="icon icon-download"></span>
+                                    Download
+                                </button>
+                            </div>
+
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg-secondary); border-radius: 8px;">
+                                <div>
+                                    <div style="font-weight: 500; font-size: 14px;">Deposit Request Form</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">Internal processing form</div>
+                                </div>
+                                <button type="button" class="btn btn-outline" id="downloadDepositBtn" onclick="downloadDepositForm()" disabled>
+                                    <span class="icon icon-download"></span>
+                                    Download
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="file-upload" onclick="document.getElementById('formsUpload').click()">
+                        <div class="icon icon-upload file-upload-icon"></div>
+                        <div class="file-upload-text">Upload completed forms</div>
+                        <div class="file-upload-subtext">PDF files only, max 10MB each</div>
+                        <input type="file" id="formsUpload" class="file-input" multiple accept=".pdf" onchange="handleFileUpload(event, 'forms')">
+                    </div>
+
+                    <div class="uploaded-files" id="uploadedForms"></div>
+                </div>
+            </div>
+
+            <!-- Bank Details -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="icon icon-bank card-icon"></span>
+                    <h2 class="card-title">Bank Transfer Details</h2>
+                </div>
+
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                    Use the following bank details to transfer your deposit. Please ensure you include your account identification number in the payment reference.
+                </p>
+
+                <div class="bank-details-grid">
+                    <div class="bank-detail-item">
+                        <div class="bank-detail-label">Recipient</div>
+                        <div class="bank-detail-value">
+                            Bilderlings Pay Limited
+                            <button class="copy-btn" onclick="copyToClipboard('Bilderlings Pay Limited')">
+                                <span class="icon icon-copy"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bank-detail-item">
+                        <div class="bank-detail-label">Registration Number</div>
+                        <div class="bank-detail-value">
+                            09908958
+                            <button class="copy-btn" onclick="copyToClipboard('09908958')">
+                                <span class="icon icon-copy"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bank-detail-item">
+                        <div class="bank-detail-label">Address</div>
+                        <div class="bank-detail-value">
+                            13 Regent Street, London, SW1Y 4LR
+                            <button class="copy-btn" onclick="copyToClipboard('13 Regent Street, London, SW1Y 4LR')">
+                                <span class="icon icon-copy"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bank-detail-item">
+                        <div class="bank-detail-label">Country</div>
+                        <div class="bank-detail-value">United Kingdom</div>
+                    </div>
+
+                    <div class="bank-detail-item">
+                        <div class="bank-detail-label">Bank Name</div>
+                        <div class="bank-detail-value">
+                            iFAST Global Bank Limited
+                            <button class="copy-btn" onclick="copyToClipboard('iFAST Global Bank Limited')">
+                                <span class="icon icon-copy"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bank-detail-item">
+                        <div class="bank-detail-label">Account Number</div>
+                        <div class="bank-detail-value">
+                            00 0407 89
+                            <button class="copy-btn" onclick="copyToClipboard('00 0407 89')">
+                                <span class="icon icon-copy"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bank-detail-item">
+                        <div class="bank-detail-label">IBAN</div>
+                        <div class="bank-detail-value">
+                            GB83 EZYR 0436 3000 0407 89
+                            <button class="copy-btn" onclick="copyToClipboard('GB83 EZYR 0436 3000 0407 89')">
+                                <span class="icon icon-copy"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bank-detail-item">
+                        <div class="bank-detail-label">Sort Code</div>
+                        <div class="bank-detail-value">
+                            04 36 30
+                            <button class="copy-btn" onclick="copyToClipboard('04 36 30')">
+                                <span class="icon icon-copy"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bank-detail-item">
+                        <div class="bank-detail-label">SWIFT Code</div>
+                        <div class="bank-detail-value">
+                            EZYRGB3L
+                            <button class="copy-btn" onclick="copyToClipboard('EZYRGB3L')">
+                                <span class="icon icon-copy"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bank-detail-item">
+                        <div class="bank-detail-label">Bank Address</div>
+                        <div class="bank-detail-value">
+                            Sierra Quebec Bravo 77 Marsh Wall London, E14 9SH, UK
+                            <button class="copy-btn" onclick="copyToClipboard('Sierra Quebec Bravo 77 Marsh Wall London, E14 9SH, UK')">
+                                <span class="icon icon-copy"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bank-detail-item">
+                        <div class="bank-detail-label">Bank Country</div>
+                        <div class="bank-detail-value">United Kingdom</div>
+                    </div>
+
+                    <div class="bank-detail-item">
+                        <div class="bank-detail-label">Payment Reference</div>
+                        <div class="bank-detail-value">
+                            <span id="accountReference">KC5230</span>
+                            <button class="copy-btn" onclick="copyToClipboard(document.getElementById('accountReference').textContent)">
+                                <span class="icon icon-copy"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 16px; margin-top: 20px;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                        <span class="icon icon-clock" style="color: var(--warning);"></span>
+                        <strong style="color: var(--warning);">Important</strong>
+                    </div>
+                    <p style="font-size: 14px; color: var(--text-secondary);">
+                        <strong>CRITICAL:</strong> You MUST include the payment reference KC5230 in your bank transfer. 
+                        Failure to include this reference will result in delays or rejection of your deposit. 
+                        This reference is essential for proper allocation of your funds to your account.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Deposit History -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="icon icon-clock card-icon"></span>
+                    <h2 class="card-title">Deposit History & Status</h2>
+                </div>
+
+                <div class="timeline" id="depositTimeline">
+                    <!-- Timeline items will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Complete Working JavaScript with USER ISOLATION FIX -->
+    <script>
+        // === USER ISOLATION SYSTEM ===
+        // CRITICAL FIX: This prevents users from seeing each other's files!
+        
+        function getCurrentUserId() {
+            const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
+            return userData.id || userData.email || 'anonymous';
+        }
+
+        function getUserStorageKey(baseKey) {
+            const userId = getCurrentUserId();
+            return `${userId}_${baseKey}`;
+        }
+
+        // User-isolated storage functions
+        function saveUploadedFiles(uploadedFiles) {
+            const key = getUserStorageKey('uploaded_files');
+            localStorage.setItem(key, JSON.stringify(uploadedFiles));
+            console.log(`💾 Files saved for user: ${getCurrentUserId()}`);
+        }
+
+        function loadUploadedFiles() {
+            const key = getUserStorageKey('uploaded_files');
+            const files = localStorage.getItem(key);
+            return files ? JSON.parse(files) : { forms: [] };
+        }
+
+        function saveUserDeposits(deposits) {
+            const key = getUserStorageKey('deposits');
+            localStorage.setItem(key, JSON.stringify(deposits));
+            console.log(`💾 Deposits saved for user: ${getCurrentUserId()}`);
+        }
+
+        function loadUserDeposits() {
+            const key = getUserStorageKey('deposits');
+            const deposits = localStorage.getItem(key);
+            return deposits ? JSON.parse(deposits) : [];
+        }
+
+        function saveDepositProgress(step) {
+            const key = getUserStorageKey('deposit_progress');
+            localStorage.setItem(key, step.toString());
+        }
+
+        function loadDepositProgress() {
+            const key = getUserStorageKey('deposit_progress');
+            return localStorage.getItem(key) || '1';
+        }
+
+        // === END USER ISOLATION SYSTEM ===
+
+        let currentTheme = 'light';
+        let uploadedFiles = {
+            forms: []
+        };
+        let currentDeposit = null;
+        let depositHistory = [];
+
+        // Universal Navigation System
+        function initializeNavigation() {
+            // Get current page name
+            const currentPage = window.location.pathname.split('/').pop() || 'deposit.html';
+            
+            console.log('Current page:', currentPage);
+            
+            // Remove active class from all nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Add active class to current page
+            let currentNavItem = document.querySelector(`.nav-item[href="${currentPage}"]`);
+            
+            // Handle special cases
+            if (!currentNavItem) {
+                if (currentPage.includes('deposit') || currentPage === '') {
+                    currentNavItem = document.querySelector(`.nav-item[href="deposit.html"]`);
+                }
+            }
+            
+            if (currentNavItem) {
+                currentNavItem.classList.add('active');
+                console.log('Set active:', currentNavItem.href);
+            }
+            
+            // Handle navigation clicks - ensure authentication
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    const token = localStorage.getItem('aequitas_auth_token');
+                    if (!token) {
+                        e.preventDefault();
+                        showNotification('Please log in to access this page.', 'warning');
+                        setTimeout(() => {
+                            window.location.href = 'login.html';
+                        }, 1000);
+                        return;
+                    }
+                });
+            });
+        }
+
+        // Load existing data with USER ISOLATION
+        function loadExistingData() {
+            // Load user-specific deposits (not shared!)
+            depositHistory = loadUserDeposits();
+            
+            // Load user-specific files (not shared!)
+            uploadedFiles = loadUploadedFiles();
+            
+            // Clean up files for deposits that are no longer pending
+            if (uploadedFiles.forms) {
+                uploadedFiles.forms = uploadedFiles.forms.filter(file => {
+                    const deposit = depositHistory.find(d => d.id === file.depositId);
+                    return deposit && deposit.status === 'pending';
+                });
+                
+                saveUploadedFiles(uploadedFiles);
+                renderUploadedFiles('forms');
+            }
+
+            // Load user-specific progress
+            const savedProgress = loadDepositProgress();
+            if (savedProgress) {
+                updateProgressSteps(parseInt(savedProgress));
+            }
+
+            updateDepositTimeline();
+            console.log(`📂 Loaded data for user: ${getCurrentUserId()}`);
+        }
+        
+        // Theme Toggle
+        function toggleTheme() {
+            currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            
+            const themeToggle = document.querySelector('.theme-toggle .icon');
+            themeToggle.className = currentTheme === 'light' ? 'icon icon-moon' : 'icon icon-sun';
+            
+            localStorage.setItem('aequitas_theme', currentTheme);
+        }
+
+        // Logout
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('aequitas_auth_token');
+                localStorage.removeItem('aequitas_user_data');
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Copy to clipboard with visual feedback
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const button = event.target.closest('.copy-btn');
+                const originalHTML = button.innerHTML;
+                button.innerHTML = '<span class="icon icon-check"></span>';
+                button.style.color = 'var(--success)';
+                
+                setTimeout(() => {
+                    button.innerHTML = originalHTML;
+                    button.style.color = '';
+                }, 1000);
+
+                showNotification('Copied to clipboard!', 'success');
+            }).catch(() => {
+                showNotification('Failed to copy', 'error');
+            });
+        }
+
+        // Track form downloads
+        function trackFormDownload(formType, amount) {
+            const downloads = JSON.parse(localStorage.getItem('aequitas_form_downloads') || '[]');
+            downloads.push({
+                type: formType,
+                amount: amount,
+                timestamp: new Date().toISOString(),
+                depositId: currentDeposit?.id
+            });
+            localStorage.setItem('aequitas_form_downloads', JSON.stringify(downloads));
+        }
+
+        // FIXED File Upload with USER ISOLATION
+        async function handleFileUpload(event, type) {
+            const files = Array.from(event.target.files);
+            
+            if (!currentDeposit) {
+                showNotification('Please submit deposit request first before uploading files.', 'warning');
+                event.target.value = '';
+                return;
+            }
+            
+            for (const file of files) {
+                // Validate file type and size
+                if (file.type !== 'application/pdf') {
+                    showNotification(`${file.name} is not a PDF file. Only PDF files are allowed.`, 'error');
+                    continue;
+                }
+                
+                if (file.size > 10 * 1024 * 1024) { // 10MB limit
+                    showNotification(`${file.name} is too large. Maximum file size is 10MB.`, 'error');
+                    continue;
+                }
+                
+                try {
+                    showNotification('Uploading file...', 'info');
+                    
+                    // Convert file to base64 for upload
+                    const fileData = await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = (e) => resolve(e.target.result);
+                        reader.readAsDataURL(file);
+                    });
+                    
+                    // Upload to backend with USER ID
+                    const response = await fetch('/api/upload', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            fileName: file.name,
+                            fileData: fileData,
+                            depositId: currentDeposit.id,
+                            userId: getCurrentUserId() // CRITICAL: Include user ID!
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // Add to USER-SPECIFIC local storage
+                        const fileObj = {
+                            id: result.file.id,
+                            name: file.name,
+                            size: formatFileSize(file.size),
+                            uploadDate: new Date().toISOString(),
+                            depositId: currentDeposit.id,
+                            url: result.file.url, // Real download URL from Vercel Blob!
+                            status: 'uploaded',
+                            userId: getCurrentUserId() // Tag with user ID
+                        };
+                        
+                        uploadedFiles[type].push(fileObj);
+                        saveUploadedFiles(uploadedFiles); // FIXED: User-isolated storage!
+                        
+                        showNotification(`${file.name} uploaded successfully!`, 'success');
+                        
+                        // Update progress if forms are uploaded
+                        if (type === 'forms' && uploadedFiles.forms.length > 0) {
+                            updateProgressSteps(3);
+                            saveDepositProgress(3); // FIXED: User-isolated storage!
+                        }
+                    } else {
+                        throw new Error(result.error || 'Upload failed');
+                    }
+                    
+                } catch (error) {
+                    console.error('Upload error:', error);
+                    showNotification(`Upload failed: ${error.message}`, 'error');
+                }
+            }
+            
+            renderUploadedFiles(type);
+            event.target.value = ''; // Clear the input for next upload
+        }
+
+        // Render uploaded files with enhanced display
+        function renderUploadedFiles(type) {
+            const container = document.getElementById(`uploaded${type.charAt(0).toUpperCase() + type.slice(1)}`);
+            
+            if (uploadedFiles[type].length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            container.innerHTML = uploadedFiles[type].map((file, index) => `
+                <div class="uploaded-file">
+                    <div class="file-info">
+                        <span class="icon icon-document"></span>
+                        <div>
+                            <div class="file-name">${file.name}</div>
+                            <div class="file-size">${file.size} • Uploaded ${new Date(file.uploadDate).toLocaleDateString()}</div>
+                            <div style="font-size: 11px; color: var(--success); margin-top: 2px;">
+                                <span class="icon icon-check" style="width: 12px; height: 12px;"></span>
+                                Successfully uploaded
+                            </div>
+                        </div>
+                    </div>
+                    <button class="remove-file" onclick="removeFile('${type}', ${index})">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        // Remove uploaded file - USER ISOLATED
+        function removeFile(type, index) {
+            if (confirm('Are you sure you want to remove this file?')) {
+                uploadedFiles[type].splice(index, 1);
+                saveUploadedFiles(uploadedFiles); // FIXED: User-isolated storage!
+                renderUploadedFiles(type);
+                showNotification('File removed successfully.', 'success');
+                
+                // Update progress if no forms left
+                if (type === 'forms' && uploadedFiles.forms.length === 0) {
+                    updateProgressSteps(2);
+                    saveDepositProgress(2); // FIXED: User-isolated storage!
+                }
+            }
+        }
+
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        function updateProgressSteps(activeStep) {
+            const steps = document.querySelectorAll('.step');
+            
+            steps.forEach((step, index) => {
+                step.classList.remove('active', 'completed');
+                
+                if (index < activeStep - 1) {
+                    step.classList.add('completed');
+                    step.querySelector('.step-circle').innerHTML = '<span class="icon icon-check"></span>';
+                } else if (index === activeStep - 1) {
+                    step.classList.add('active');
+                } else {
+                    step.querySelector('.step-circle').textContent = index + 1;
+                }
+            });
+        }
+
+        // FIXED Deposit Form Submission with USER ISOLATION
+        document.getElementById('depositForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const amount = document.getElementById('depositAmount').value;
+            const purpose = document.getElementById('depositPurpose').value;
+            
+            if (!amount || !purpose) {
+                showNotification('Please fill in all required fields.', 'error');
+                return;
+            }
+            
+            if (parseFloat(amount) < 1000) {
+                showNotification('Minimum deposit amount is $1,000.', 'error');
+                return;
+            }
+            
+            // Generate reference number
+            const reference = 'ACP' + Date.now().toString().slice(-6);
+            
+            // Create deposit object with USER ID
+            currentDeposit = {
+                id: 'dep_' + Date.now(),
+                amount: parseFloat(amount),
+                purpose: purpose,
+                reference: reference,
+                status: 'pending',
+                createdAt: new Date().toISOString(),
+                userId: getCurrentUserId() // CRITICAL: Tag with current user!
+            };
+            
+            // Add to USER-SPECIFIC deposit history
+            depositHistory.push(currentDeposit);
+            saveUserDeposits(depositHistory); // FIXED: User-isolated storage!
+            
+            // Update progress steps - STEP 1 COMPLETED, STEP 2 ACTIVE
+            updateProgressSteps(2);
+            saveDepositProgress(2); // FIXED: User-isolated storage!
+            
+            // Update timeline
+            updateDepositTimeline();
+            
+            // Enable download buttons
+            document.getElementById('downloadSourceBtn').disabled = false;
+            document.getElementById('downloadDepositBtn').disabled = false;
+            
+            showNotification(`Deposit request for ${parseFloat(amount).toLocaleString()} submitted successfully! Your reference is: ${reference}`, 'success');
+        });
+
+        function downloadDepositForm() {
+            if (!currentDeposit) {
+                showNotification('Please submit deposit request first to generate your reference number.', 'warning');
+                return;
+            }
+            
+            const link = document.createElement('a');
+            link.href = 'forms/deposit-request-form.pdf';
+            link.download = 'deposit-request-form.pdf';
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            
+            // Handle download failure
+            link.onerror = function() {
+                showNotification('Error downloading file. Please contact support.', 'error');
+            };
+            
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification('Deposit Request Form downloaded! CRITICAL: Include KC5230 in your bank transfer reference.', 'success');
+            
+            // Track download
+            trackFormDownload('deposit_request', currentDeposit.amount);
+        }
+
+        function downloadSourceOfFundsForm() {
+            const depositAmount = document.getElementById('depositAmount').value;
+            const depositPurpose = document.getElementById('depositPurpose').value;
+            
+            if (!depositAmount || !depositPurpose) {
+                showNotification('Please enter deposit amount and purpose first.', 'warning');
+                return;
+            }
+            
+            // Try different path formats
+            const link = document.createElement('a');
+            link.href = 'forms/source-of-funds-declaration.pdf';
+            link.download = 'source-of-funds-declaration.pdf';
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            
+            // Handle download failure
+            link.onerror = function() {
+                showNotification('Error downloading file. Please contact support.', 'error');
+            };
+            
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification('Source of Funds Declaration downloaded! Please complete and upload.', 'success');
+            
+            // Track download
+            trackFormDownload('source_of_funds', depositAmount);
+        }
+
+        function updateDepositTimeline() {
+            const timeline = document.getElementById('depositTimeline');
+            
+            // Only show current user's deposits - USER ISOLATED!
+            const userDeposits = depositHistory.map(d => ({
+                id: d.id,
+                title: `Deposit Request - ${d.reference}`,
+                description: `${d.amount.toLocaleString()} deposit for ${d.purpose} - ${getStatusDescription(d.status)}`,
+                date: new Date(d.createdAt).toLocaleDateString(),
+                status: d.status,
+                amount: d.amount,
+                showDownload: d.status === 'completed'
+            }));
+            
+            if (userDeposits.length === 0) {
+                timeline.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                        <div style="font-size: 18px; margin-bottom: 8px;">No deposits yet</div>
+                        <div style="font-size: 14px;">Your deposit history will appear here once you submit a request.</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            timeline.innerHTML = userDeposits.map(deposit => `
+                <div class="timeline-item ${deposit.status}">
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <div class="timeline-title">${deposit.title}</div>
+                            <div class="timeline-date">${deposit.date}</div>
+                        </div>
+                        <div class="timeline-description">
+                            ${deposit.description}
+                        </div>
+                        <div class="timeline-actions">
+                            <span class="status-badge status-${deposit.status}">
+                                <span class="icon icon-${getStatusIcon(deposit.status)}"></span>
+                                ${deposit.status.charAt(0).toUpperCase() + deposit.status.slice(1)}
+                            </span>
+                            ${deposit.showDownload ? `
+                                <button class="btn btn-secondary" onclick="downloadDocument('${deposit.id}')">
+                                    <span class="icon icon-download"></span>
+                                    Download Receipt
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Helper functions for timeline
+        function getStatusDescription(status) {
+            switch(status) {
+                case 'pending': return 'Awaiting document review and approval';
+                case 'approved': return 'Approved - proceed with bank transfer';
+                case 'completed': return 'Funds received and allocated';
+                case 'rejected': return 'Please contact support for details';
+                default: return 'Status unknown';
+            }
+        }
+
+        function getStatusIcon(status) {
+            switch(status) {
+                case 'completed': return 'check';
+                case 'approved': return 'check';
+                case 'pending': return 'clock';
+                case 'rejected': return 'x';
+                default: return 'clock';
+            }
+        }
+
+        // Download document functionality
+        function downloadDocument(docId) {
+            showNotification(`Document ${docId} download initiated.`, 'success');
+            
+            const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
+            const fileName = `Receipt_${docId}_${userData.firstName || 'Client'}.pdf`;
+            
+            const receiptContent = `AEQUITAS CAPITAL PARTNERS
+DEPOSIT RECEIPT
+
+Document ID: ${docId}
+Client: ${userData.firstName || ''} ${userData.lastName || ''}
+Date: ${new Date().toLocaleDateString()}
+
+This serves as confirmation of your deposit transaction.
+Please retain this receipt for your records.
+
+For questions, contact: support@aequitascap.com`;
+
+            const blob = new Blob([receiptContent], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+        
+        // Enhanced notification system
+        function showNotification(message, type = 'info') {
+            const existingNotifications = document.querySelectorAll('.notification');
+            existingNotifications.forEach(n => n.remove());
+
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 16px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 500;
+                z-index: 10001;
+                max-width: 400px;
+                word-wrap: break-word;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                animation: slideInRight 0.3s ease-out;
+                ${type === 'success' ? 'background: linear-gradient(135deg, #10b981, #059669);' : ''}
+                ${type === 'error' ? 'background: linear-gradient(135deg, #ef4444, #dc2626);' : ''}
+                ${type === 'warning' ? 'background: linear-gradient(135deg, #f59e0b, #d97706);' : ''}
+                ${type === 'info' ? 'background: linear-gradient(135deg, #3b82f6, #2563eb);' : ''}
+            `;
+            
+            notification.innerHTML = `
+                <div style="display: flex; align-items: flex-start; gap: 8px;">
+                    <span class="icon icon-${type === 'success' ? 'check' : 'clock'}" style="margin-top: 2px;"></span>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.style.animation = 'slideOutRight 0.3s ease-in';
+                    setTimeout(() => notification.remove(), 300);
+                }
+            }, 5000);
+        }
+
+        // Add CSS for notification animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInRight {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOutRight {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication
+            const authToken = localStorage.getItem('aequitas_auth_token');
+            if (!authToken) {
+                showNotification('Please log in to access this page.', 'warning');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
+                return;
+            }
+
+            // Load saved theme
+            const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
+            if (savedTheme === 'dark') {
+                currentTheme = 'dark';
+                document.documentElement.setAttribute('data-theme', 'dark');
+                const themeToggle = document.querySelector('.theme-toggle .icon');
+                if (themeToggle) themeToggle.className = 'icon icon-sun';
+            }
+
+            // Initialize navigation
+            initializeNavigation();
+
+            // Load user data and update UI
+            const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
+            const firstName = userData.firstName || 'User';
+            const lastName = userData.lastName || '';
+            const email = userData.email || '';
+            
+            // Update user info elements
+            const userNameEl = document.getElementById('userName');
+            const userEmailEl = document.getElementById('userEmail');
+            const topUserNameEl = document.getElementById('topUserName');
+            const userAvatarEl = document.getElementById('userAvatar');
+            
+            if (userNameEl) userNameEl.textContent = `${firstName} ${lastName}`;
+            if (userEmailEl) userEmailEl.textContent = email;
+            if (topUserNameEl) topUserNameEl.textContent = firstName;
+            if (userAvatarEl) userAvatarEl.textContent = firstName.charAt(0).toUpperCase();
+
+            // Show admin section if user is admin
+            if (userData.role === 'admin') {
+                const adminSection = document.getElementById('adminSection');
+                if (adminSection) adminSection.style.display = 'block';
+            }
+
+            // Load existing data with USER ISOLATION
+            loadExistingData();
+            
+            // Initially disable download buttons until deposit is submitted
+            const downloadSourceBtn = document.getElementById('downloadSourceBtn');
+            const downloadDepositBtn = document.getElementById('downloadDepositBtn');
+            
+            if (!currentDeposit) {
+                if (downloadSourceBtn) downloadSourceBtn.disabled = true;
+                if (downloadDepositBtn) downloadDepositBtn.disabled = true;
+            }
+
+            console.log(`✅ Deposit page initialized with USER ISOLATION for: ${getCurrentUserId()}`);
+        });
+
+        // DEBUG FUNCTION - Test user isolation
+        function debugUserIsolation() {
+            console.log('=== USER ISOLATION DEBUG ===');
+            console.log('Current User:', getCurrentUserId());
+            console.log('User Storage Key for files:', getUserStorageKey('uploaded_files'));
+            console.log('User Storage Key for deposits:', getUserStorageKey('deposits'));
+            console.log('User Files:', loadUploadedFiles());
+            console.log('User Deposits:', loadUserDeposits());
+            
+            // Show ALL localStorage keys for debugging
+            console.log('\n=== ALL STORAGE KEYS ===');
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.includes('uploaded_files') || key.includes('deposits') || key.includes('deposit_progress')) {
+                    console.log(`${key}: ${localStorage.getItem(key).substring(0, 100)}...`);
+                }
+            }
+        }
+
+        // Auto-save form data as user types
+        document.getElementById('depositAmount').addEventListener('input', function() {
+            const key = getUserStorageKey('temp_amount');
+            localStorage.setItem(key, this.value);
+        });
+
+        document.getElementById('depositPurpose').addEventListener('change', function() {
+            const key = getUserStorageKey('temp_purpose');
+            localStorage.setItem(key, this.value);
+        });
+
+        // Restore form data on page load
+        function restoreFormData() {
+            const tempAmountKey = getUserStorageKey('temp_amount');
+            const tempPurposeKey = getUserStorageKey('temp_purpose');
+            
+            const tempAmount = localStorage.getItem(tempAmountKey);
+            const tempPurpose = localStorage.getItem(tempPurposeKey);
+            
+            if (tempAmount) {
+                document.getElementById('depositAmount').value = tempAmount;
+            }
+            if (tempPurpose) {
+                document.getElementById('depositPurpose').value = tempPurpose;
+            }
+        }
+
+        // Load temp data when page loads
+        setTimeout(restoreFormData, 100);
+
+    </script>
+</body>
+</html><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -122,6 +1176,11 @@
         .icon-x {
             mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12'/%3E%3C/svg%3E");
         }
+
+        .icon-users {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m22 0v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75M13 7a4 4 0 11-8 0 4 4 0 018 0z'/%3E%3C/svg%3E");
+        }
+
         /* Sidebar Styles */
         .sidebar {
             position: fixed;
@@ -391,7 +1450,7 @@
         }
 
         .currency-input::before {
-            content: '$';
+            content: ';
             position: absolute;
             left: 16px;
             top: 50%;
@@ -458,6 +1517,7 @@
             opacity: 0.5;
             cursor: not-allowed;
         }
+
         /* Bank Details */
         .bank-details-grid {
             display: grid;
@@ -679,9 +1739,9 @@
         }
 
         .status-rejected {
-    background: rgba(239, 68, 68, 0.1);
-    color: var(--error);
-}
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+        }
 
         .status-completed {
             background: rgba(16, 185, 129, 0.1);
@@ -713,18 +1773,17 @@
             position: relative;
         }
 
-.step:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 40px;
-    height: 2px;
-    background: var(--border-color);
-    z-index: 0;
-}
-
+        .step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 2px;
+            background: var(--border-color);
+            z-index: 0;
+        }
 
         .step.completed:not(:last-child)::after {
             background: var(--success);
@@ -820,1023 +1879,3 @@
                 padding-left: 24px;
             }
         }
-    </style>
-</head>
-<body>
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <div class="logo-container">
-                <img src="https://i.ibb.co/8DfYwWdG/Aequitas-White-Logo.png" alt="Aequitas Capital Partners" class="logo">
-            </div>
-            <button class="theme-toggle" onclick="toggleTheme()">
-                <span class="icon icon-moon"></span>
-            </button>
-        </div>
-
-        <nav class="sidebar-nav">
-            <div class="nav-section">
-                <div class="nav-section-title">Account</div>
-                <button class="nav-item" onclick="navigateTo('dashboard')">
-                    <span class="icon icon-dashboard"></span>
-                    <span>Overview</span>
-                </button>
-                <button class="nav-item" onclick="navigateTo('statements')">
-                    <span class="icon icon-document"></span>
-                    <span>Statements</span>
-                </button>
-            </div>
-
-            <div class="nav-section">
-                <div class="nav-section-title">Trading</div>
-                <button class="nav-item active" onclick="navigateTo('deposit')">
-                    <span class="icon icon-money"></span>
-                    <span>Deposit</span>
-                </button>
-                <button class="nav-item" onclick="navigateTo('withdraw')">
-                    <span class="icon icon-bank"></span>
-                    <span>Withdraw</span>
-                </button>
-            </div>
-
-            <div class="nav-section">
-                <div class="nav-section-title">Settings</div>
-                <button class="nav-item" onclick="navigateTo('profile')">
-                    <span class="icon icon-user"></span>
-                    <span>Profile</span>
-                </button>
-                <button class="nav-item" onclick="navigateTo('support')">
-                    <span class="icon icon-chat"></span>
-                    <span>Support</span>
-                </button>
-            </div>
-
-            <!-- Admin Section -->
-            <div class="nav-section" id="adminSection" style="display: none;">
-                <div class="nav-section-title">Admin</div>
-                <button class="nav-item" onclick="navigateTo('admin')">
-                    <span class="icon icon-user"></span>
-                    <span>Client Management</span>
-                </button>
-            </div>
-        </nav>
-
-        <div class="sidebar-footer">
-            <div class="user-info">
-                <div class="user-avatar" id="userAvatar">A</div>
-                <div class="user-details">
-                    <h4 id="userName">Admin User</h4>
-                    <p id="userEmail">admin@aequitascap.com</p>
-                </div>
-            </div>
-            <button class="logout-btn" onclick="logout()">
-                <span class="icon icon-logout"></span>
-                <span>Logout</span>
-            </button>
-        </div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="main-content">
-        <div class="top-bar">
-            <h1 class="page-title">Deposit Funds</h1>
-            <div class="top-user-info">
-                <span>Welcome back,</span>
-                <span id="topUserName">Admin</span>
-            </div>
-        </div>
-
-        <div class="deposit-content">
-            <!-- Progress Steps -->
-            <div class="steps">
-                <div class="step" id="step1">
-                    <div class="step-circle">1</div>
-                    <div class="step-label">Enter Amount</div>
-                </div>
-                <div class="step" id="step2">
-                    <div class="step-circle">2</div>
-                    <div class="step-label">Download Forms</div>
-                </div>
-                <div class="step" id="step3">
-                    <div class="step-circle">3</div>
-                    <div class="step-label">Submit Documents</div>
-                </div>
-                <div class="step" id="step4">
-                    <div class="step-circle">4</div>
-                    <div class="step-label">Transfer Funds</div>
-                </div>
-            </div>
-
-            <div class="form-grid">
-                <!-- Deposit Amount Form -->
-                <div class="card">
-                    <div class="card-header">
-                        <span class="icon icon-money card-icon"></span>
-                        <h2 class="card-title">Deposit Amount</h2>
-                    </div>
-
-                    <form id="depositForm">
-                        <div class="form-group">
-                            <label class="form-label" for="depositAmount">Amount to Deposit</label>
-                            <div class="currency-input">
-                                <input type="number" id="depositAmount" class="form-input" placeholder="0.00" min="1000" step="0.01" required>
-                            </div>
-                            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
-                                Minimum deposit: $1,000
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label" for="depositPurpose">Purpose of Deposit</label>
-                            <select id="depositPurpose" class="form-input" required>
-                                <option value="">Select purpose</option>
-                                <option value="initial">Initial Investment</option>
-                                <option value="additional">Additional Capital</option>
-                                <option value="reinvestment">Profit Reinvestment</option>
-                            </select>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary">
-                            <span class="icon icon-check"></span>
-                            Confirm Deposit Amount
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Required Forms -->
-                <div class="card">
-                    <div class="card-header">
-                        <span class="icon icon-document card-icon"></span>
-                        <h2 class="card-title">Required Forms</h2>
-                    </div>
-
-                    <div style="margin-bottom: 20px;">
-                        <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 16px;">
-                            Please download, complete, and submit the following forms:
-                        </p>
-
-                        <div style="display: flex; flex-direction: column; gap: 12px;">
-                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg-secondary); border-radius: 8px;">
-                                <div>
-                                    <div style="font-weight: 500; font-size: 14px;">Source of Funds Declaration</div>
-                                    <div style="font-size: 12px; color: var(--text-secondary);">Required for all deposits</div>
-                                </div>
-                                <button type="button" class="btn btn-outline" id="downloadSourceBtn" onclick="downloadSourceOfFundsForm()" disabled>
-                                    <span class="icon icon-download"></span>
-                                    Download
-                                </button>
-                            </div>
-
-                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg-secondary); border-radius: 8px;">
-                                <div>
-                                    <div style="font-weight: 500; font-size: 14px;">Deposit Request Form</div>
-                                    <div style="font-size: 12px; color: var(--text-secondary);">Internal processing form</div>
-                                </div>
-                                <button type="button" class="btn btn-outline" id="downloadDepositBtn" onclick="downloadDepositForm()" disabled>
-                                    <span class="icon icon-download"></span>
-                                    Download
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="file-upload" onclick="document.getElementById('formsUpload').click()">
-                        <div class="icon icon-upload file-upload-icon"></div>
-                        <div class="file-upload-text">Upload completed forms</div>
-                        <div class="file-upload-subtext">PDF files only, max 10MB each</div>
-                        <input type="file" id="formsUpload" class="file-input" multiple accept=".pdf" onchange="handleFileUpload(event, 'forms')">
-                    </div>
-
-                    <div class="uploaded-files" id="uploadedForms"></div>
-                </div>
-            </div>
-            <!-- Bank Details -->
-            <div class="card">
-                <div class="card-header">
-                    <span class="icon icon-bank card-icon"></span>
-                    <h2 class="card-title">Bank Transfer Details</h2>
-                </div>
-
-                <p style="color: var(--text-secondary); margin-bottom: 20px;">
-                    Use the following bank details to transfer your deposit. Please ensure you include your account identification number in the payment reference.
-                </p>
-
-                <div class="bank-details-grid">
-                    <div class="bank-detail-item">
-                        <div class="bank-detail-label">Recipient</div>
-                        <div class="bank-detail-value">
-                            Bilderlings Pay Limited
-                            <button class="copy-btn" onclick="copyToClipboard('Bilderlings Pay Limited')">
-                                <span class="icon icon-copy"></span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="bank-detail-item">
-                        <div class="bank-detail-label">Registration Number</div>
-                        <div class="bank-detail-value">
-                            09908958
-                            <button class="copy-btn" onclick="copyToClipboard('09908958')">
-                                <span class="icon icon-copy"></span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="bank-detail-item">
-                        <div class="bank-detail-label">Address</div>
-                        <div class="bank-detail-value">
-                            13 Regent Street, London, SW1Y 4LR
-                            <button class="copy-btn" onclick="copyToClipboard('13 Regent Street, London, SW1Y 4LR')">
-                                <span class="icon icon-copy"></span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="bank-detail-item">
-                        <div class="bank-detail-label">Country</div>
-                        <div class="bank-detail-value">United Kingdom</div>
-                    </div>
-
-                    <div class="bank-detail-item">
-                        <div class="bank-detail-label">Bank Name</div>
-                        <div class="bank-detail-value">
-                            iFAST Global Bank Limited
-                            <button class="copy-btn" onclick="copyToClipboard('iFAST Global Bank Limited')">
-                                <span class="icon icon-copy"></span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="bank-detail-item">
-                        <div class="bank-detail-label">Account Number</div>
-                        <div class="bank-detail-value">
-                            00 0407 89
-                            <button class="copy-btn" onclick="copyToClipboard('00 0407 89')">
-                                <span class="icon icon-copy"></span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="bank-detail-item">
-                        <div class="bank-detail-label">IBAN</div>
-                        <div class="bank-detail-value">
-                            GB83 EZYR 0436 3000 0407 89
-                            <button class="copy-btn" onclick="copyToClipboard('GB83 EZYR 0436 3000 0407 89')">
-                                <span class="icon icon-copy"></span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="bank-detail-item">
-                        <div class="bank-detail-label">Sort Code</div>
-                        <div class="bank-detail-value">
-                            04 36 30
-                            <button class="copy-btn" onclick="copyToClipboard('04 36 30')">
-                                <span class="icon icon-copy"></span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="bank-detail-item">
-                        <div class="bank-detail-label">SWIFT Code</div>
-                        <div class="bank-detail-value">
-                            EZYRGB3L
-                            <button class="copy-btn" onclick="copyToClipboard('EZYRGB3L')">
-                                <span class="icon icon-copy"></span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="bank-detail-item">
-                        <div class="bank-detail-label">Bank Address</div>
-                        <div class="bank-detail-value">
-                            Sierra Quebec Bravo 77 Marsh Wall London, E14 9SH, UK
-                            <button class="copy-btn" onclick="copyToClipboard('Sierra Quebec Bravo 77 Marsh Wall London, E14 9SH, UK')">
-                                <span class="icon icon-copy"></span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="bank-detail-item">
-                        <div class="bank-detail-label">Bank Country</div>
-                        <div class="bank-detail-value">United Kingdom</div>
-                    </div>
-
-                    <div class="bank-detail-item">
-                        <div class="bank-detail-label">Payment Reference</div>
-                        <div class="bank-detail-value">
-                            <span id="accountReference">KC5230</span>
-                            <button class="copy-btn" onclick="copyToClipboard(document.getElementById('accountReference').textContent)">
-                                <span class="icon icon-copy"></span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 16px; margin-top: 20px;">
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                        <span class="icon icon-clock" style="color: var(--warning);"></span>
-                        <strong style="color: var(--warning);">Important</strong>
-                    </div>
-                    <p style="font-size: 14px; color: var(--text-secondary);">
-    <strong>CRITICAL:</strong> You MUST include the payment reference KC5230 in your bank transfer. 
-    Failure to include this reference will result in delays or rejection of your deposit. 
-    This reference is essential for proper allocation of your funds to your account.
-</p>
-                </div>
-            </div>
-
-            <!-- Deposit History -->
-            <div class="card">
-                <div class="card-header">
-                    <span class="icon icon-clock card-icon"></span>
-                    <h2 class="card-title">Deposit History & Status</h2>
-                </div>
-
-                <div class="timeline" id="depositTimeline">
-                    <!-- Timeline items will be populated by JavaScript -->
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Complete Working JavaScript with USER ISOLATION FIX -->
-    <script>
-        // === USER ISOLATION SYSTEM ===
-        // CRITICAL FIX: This prevents users from seeing each other's files!
-        
-        function getCurrentUserId() {
-            const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
-            return userData.id || userData.email || 'anonymous';
-        }
-
-        function getUserStorageKey(baseKey) {
-            const userId = getCurrentUserId();
-            return `${userId}_${baseKey}`;
-        }
-
-        // User-isolated storage functions
-        function saveUploadedFiles(uploadedFiles) {
-            const key = getUserStorageKey('uploaded_files');
-            localStorage.setItem(key, JSON.stringify(uploadedFiles));
-            console.log(`💾 Files saved for user: ${getCurrentUserId()}`);
-        }
-
-        function loadUploadedFiles() {
-            const key = getUserStorageKey('uploaded_files');
-            const files = localStorage.getItem(key);
-            return files ? JSON.parse(files) : { forms: [] };
-        }
-
-        function saveUserDeposits(deposits) {
-            const key = getUserStorageKey('deposits');
-            localStorage.setItem(key, JSON.stringify(deposits));
-            console.log(`💾 Deposits saved for user: ${getCurrentUserId()}`);
-        }
-
-        function loadUserDeposits() {
-            const key = getUserStorageKey('deposits');
-            const deposits = localStorage.getItem(key);
-            return deposits ? JSON.parse(deposits) : [];
-        }
-
-        function saveDepositProgress(step) {
-            const key = getUserStorageKey('deposit_progress');
-            localStorage.setItem(key, step.toString());
-        }
-
-        function loadDepositProgress() {
-            const key = getUserStorageKey('deposit_progress');
-            return localStorage.getItem(key) || '1';
-        }
-
-        // === END USER ISOLATION SYSTEM ===
-
-        let currentTheme = 'light';
-        let uploadedFiles = {
-            forms: []
-        };
-        let currentDeposit = null;
-        let depositHistory = [];
-
-        // Load existing data with USER ISOLATION
-        function loadExistingData() {
-            // Load user-specific deposits (not shared!)
-            depositHistory = loadUserDeposits();
-            
-            // Load user-specific files (not shared!)
-            uploadedFiles = loadUploadedFiles();
-            
-            // Clean up files for deposits that are no longer pending
-            if (uploadedFiles.forms) {
-                uploadedFiles.forms = uploadedFiles.forms.filter(file => {
-                    const deposit = depositHistory.find(d => d.id === file.depositId);
-                    return deposit && deposit.status === 'pending';
-                });
-                
-                saveUploadedFiles(uploadedFiles);
-                renderUploadedFiles('forms');
-            }
-
-            // Load user-specific progress
-            const savedProgress = loadDepositProgress();
-            if (savedProgress) {
-                updateProgressSteps(parseInt(savedProgress));
-            }
-
-            updateDepositTimeline();
-            console.log(`📂 Loaded data for user: ${getCurrentUserId()}`);
-        }
-        
-        // Theme Toggle
-        function toggleTheme() {
-            currentTheme = currentTheme === 'light' ? 'dark' : 'light';
-            document.documentElement.setAttribute('data-theme', currentTheme);
-            
-            const themeToggle = document.querySelector('.theme-toggle .icon');
-            themeToggle.className = currentTheme === 'light' ? 'icon icon-moon' : 'icon icon-sun';
-            
-            localStorage.setItem('aequitas_theme', currentTheme);
-        }
-
-        // Navigation
-        function navigateTo(page) {
-            console.log(`Navigation to: ${page}`);
-            
-            if (page === 'dashboard') {
-                window.location.href = 'dashboard.html';
-            } else if (page === 'admin') {
-                window.location.href = 'admin.html';
-            } else if (page !== 'deposit') {
-                alert(`${page.charAt(0).toUpperCase() + page.slice(1)} page coming soon!`);
-            }
-        }
-
-        // Logout
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                localStorage.removeItem('aequitas_auth_token');
-                localStorage.removeItem('aequitas_user_data');
-                window.location.href = 'login.html';
-            }
-        }
-
-        // Copy to clipboard with visual feedback
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                const button = event.target.closest('.copy-btn');
-                const originalHTML = button.innerHTML;
-                button.innerHTML = '<span class="icon icon-check"></span>';
-                button.style.color = 'var(--success)';
-                
-                setTimeout(() => {
-                    button.innerHTML = originalHTML;
-                    button.style.color = '';
-                }, 1000);
-
-                showNotification('Copied to clipboard!', 'success');
-            }).catch(() => {
-                showNotification('Failed to copy', 'error');
-            });
-        }
-
-        // Track form downloads
-        function trackFormDownload(formType, amount) {
-            const downloads = JSON.parse(localStorage.getItem('aequitas_form_downloads') || '[]');
-            downloads.push({
-                type: formType,
-                amount: amount,
-                timestamp: new Date().toISOString(),
-                depositId: currentDeposit?.id
-            });
-            localStorage.setItem('aequitas_form_downloads', JSON.stringify(downloads));
-        }
-
-        // FIXED File Upload with USER ISOLATION
-        async function handleFileUpload(event, type) {
-            const files = Array.from(event.target.files);
-            
-            if (!currentDeposit) {
-                showNotification('Please submit deposit request first before uploading files.', 'warning');
-                event.target.value = '';
-                return;
-            }
-            
-            for (const file of files) {
-                // Validate file type and size
-                if (file.type !== 'application/pdf') {
-                    showNotification(`${file.name} is not a PDF file. Only PDF files are allowed.`, 'error');
-                    continue;
-                }
-                
-                if (file.size > 10 * 1024 * 1024) { // 10MB limit
-                    showNotification(`${file.name} is too large. Maximum file size is 10MB.`, 'error');
-                    continue;
-                }
-                
-                try {
-                    showNotification('Uploading file...', 'info');
-                    
-                    // Convert file to base64 for upload
-                    const fileData = await new Promise((resolve) => {
-                        const reader = new FileReader();
-                        reader.onload = (e) => resolve(e.target.result);
-                        reader.readAsDataURL(file);
-                    });
-                    
-                    // Upload to backend with USER ID
-                    const response = await fetch('/api/upload', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            fileName: file.name,
-                            fileData: fileData,
-                            depositId: currentDeposit.id,
-                            userId: getCurrentUserId() // CRITICAL: Include user ID!
-                        })
-                    });
-                    
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                        // Add to USER-SPECIFIC local storage
-                        const fileObj = {
-                            id: result.file.id,
-                            name: file.name,
-                            size: formatFileSize(file.size),
-                            uploadDate: new Date().toISOString(),
-                            depositId: currentDeposit.id,
-                            url: result.file.url, // Real download URL from Vercel Blob!
-                            status: 'uploaded',
-                            userId: getCurrentUserId() // Tag with user ID
-                        };
-                        
-                        uploadedFiles[type].push(fileObj);
-                        saveUploadedFiles(uploadedFiles); // FIXED: User-isolated storage!
-                        
-                        showNotification(`${file.name} uploaded successfully!`, 'success');
-                        
-                        // Update progress if forms are uploaded
-                        if (type === 'forms' && uploadedFiles.forms.length > 0) {
-                            updateProgressSteps(3);
-                            saveDepositProgress(3); // FIXED: User-isolated storage!
-                        }
-                    } else {
-                        throw new Error(result.error || 'Upload failed');
-                    }
-                    
-                } catch (error) {
-                    console.error('Upload error:', error);
-                    showNotification(`Upload failed: ${error.message}`, 'error');
-                }
-            }
-            
-            renderUploadedFiles(type);
-            event.target.value = ''; // Clear the input for next upload
-        }
-
-        // Render uploaded files with enhanced display
-        function renderUploadedFiles(type) {
-            const container = document.getElementById(`uploaded${type.charAt(0).toUpperCase() + type.slice(1)}`);
-            
-            if (uploadedFiles[type].length === 0) {
-                container.innerHTML = '';
-                return;
-            }
-            
-            container.innerHTML = uploadedFiles[type].map((file, index) => `
-                <div class="uploaded-file">
-                    <div class="file-info">
-                        <span class="icon icon-document"></span>
-                        <div>
-                            <div class="file-name">${file.name}</div>
-                            <div class="file-size">${file.size} • Uploaded ${new Date(file.uploadDate).toLocaleDateString()}</div>
-                            <div style="font-size: 11px; color: var(--success); margin-top: 2px;">
-                                <span class="icon icon-check" style="width: 12px; height: 12px;"></span>
-                                Successfully uploaded
-                            </div>
-                        </div>
-                    </div>
-                    <button class="remove-file" onclick="removeFile('${type}', ${index})">Remove</button>
-                </div>
-            `).join('');
-        }
-
-        // Remove uploaded file - USER ISOLATED
-        function removeFile(type, index) {
-            if (confirm('Are you sure you want to remove this file?')) {
-                uploadedFiles[type].splice(index, 1);
-                saveUploadedFiles(uploadedFiles); // FIXED: User-isolated storage!
-                renderUploadedFiles(type);
-                showNotification('File removed successfully.', 'success');
-                
-                // Update progress if no forms left
-                if (type === 'forms' && uploadedFiles.forms.length === 0) {
-                    updateProgressSteps(2);
-                    saveDepositProgress(2); // FIXED: User-isolated storage!
-                }
-            }
-        }
-
-        // Format file size
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-        }
-        
-        function updateProgressSteps(activeStep) {
-            const steps = document.querySelectorAll('.step');
-            
-            steps.forEach((step, index) => {
-                step.classList.remove('active', 'completed');
-                
-                if (index < activeStep - 1) {
-                    step.classList.add('completed');
-                    step.querySelector('.step-circle').innerHTML = '<span class="icon icon-check"></span>';
-                } else if (index === activeStep - 1) {
-                    step.classList.add('active');
-                } else {
-                    step.querySelector('.step-circle').textContent = index + 1;
-                }
-            });
-        }
-
-        // FIXED Deposit Form Submission with USER ISOLATION
-        document.getElementById('depositForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const amount = document.getElementById('depositAmount').value;
-            const purpose = document.getElementById('depositPurpose').value;
-            
-            if (!amount || !purpose) {
-                showNotification('Please fill in all required fields.', 'error');
-                return;
-            }
-            
-            if (parseFloat(amount) < 1000) {
-                showNotification('Minimum deposit amount is $1,000.', 'error');
-                return;
-            }
-            
-            // Generate reference number
-            const reference = 'ACP' + Date.now().toString().slice(-6);
-            
-            // Create deposit object with USER ID
-            currentDeposit = {
-                id: 'dep_' + Date.now(),
-                amount: parseFloat(amount),
-                purpose: purpose,
-                reference: reference,
-                status: 'pending',
-                createdAt: new Date().toISOString(),
-                userId: getCurrentUserId() // CRITICAL: Tag with current user!
-            };
-            
-            // Add to USER-SPECIFIC deposit history
-            depositHistory.push(currentDeposit);
-            saveUserDeposits(depositHistory); // FIXED: User-isolated storage!
-            
-            // Update progress steps - STEP 1 COMPLETED, STEP 2 ACTIVE
-            updateProgressSteps(2);
-            saveDepositProgress(2); // FIXED: User-isolated storage!
-            
-            // Update timeline
-            updateDepositTimeline();
-            
-            // Enable download buttons
-            document.getElementById('downloadSourceBtn').disabled = false;
-            document.getElementById('downloadDepositBtn').disabled = false;
-            
-            showNotification(`Deposit request for $${parseFloat(amount).toLocaleString()} submitted successfully! Your reference is: ${reference}`, 'success');
-        });
-
-        function downloadDepositForm() {
-            if (!currentDeposit) {
-                showNotification('Please submit deposit request first to generate your reference number.', 'warning');
-                return;
-            }
-            
-            const link = document.createElement('a');
-            link.href = 'forms/deposit-request-form.pdf';
-            link.download = 'deposit-request-form.pdf';
-            link.style.display = 'none';
-            document.body.appendChild(link);
-            
-            // Handle download failure
-            link.onerror = function() {
-                showNotification('Error downloading file. Please contact support.', 'error');
-            };
-            
-            link.click();
-            document.body.removeChild(link);
-            
-            showNotification('Deposit Request Form downloaded! CRITICAL: Include KC5230 in your bank transfer reference.', 'success');
-            
-            // Track download
-            trackFormDownload('deposit_request', currentDeposit.amount);
-        }
-
-        function downloadSourceOfFundsForm() {
-            const depositAmount = document.getElementById('depositAmount').value;
-            const depositPurpose = document.getElementById('depositPurpose').value;
-            
-            if (!depositAmount || !depositPurpose) {
-                showNotification('Please enter deposit amount and purpose first.', 'warning');
-                return;
-            }
-            
-            // Try different path formats
-            const link = document.createElement('a');
-            link.href = 'forms/source-of-funds-declaration.pdf';
-            link.download = 'source-of-funds-declaration.pdf';
-            link.style.display = 'none';
-            document.body.appendChild(link);
-            
-            // Handle download failure
-            link.onerror = function() {
-                showNotification('Error downloading file. Please contact support.', 'error');
-            };
-            
-            link.click();
-            document.body.removeChild(link);
-            
-            showNotification('Source of Funds Declaration downloaded! Please complete and upload.', 'success');
-            
-            // Track download
-            trackFormDownload('source_of_funds', depositAmount);
-        }
-
-        function updateDepositTimeline() {
-            const timeline = document.getElementById('depositTimeline');
-            
-            // Only show current user's deposits - USER ISOLATED!
-            const userDeposits = depositHistory.map(d => ({
-                id: d.id,
-                title: `Deposit Request - ${d.reference}`,
-                description: `${d.amount.toLocaleString()} deposit for ${d.purpose} - ${getStatusDescription(d.status)}`,
-                date: new Date(d.createdAt).toLocaleDateString(),
-                status: d.status,
-                amount: d.amount,
-                showDownload: d.status === 'completed'
-            }));
-            
-            if (userDeposits.length === 0) {
-                timeline.innerHTML = `
-                    <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
-                        <div style="font-size: 18px; margin-bottom: 8px;">No deposits yet</div>
-                        <div style="font-size: 14px;">Your deposit history will appear here once you submit a request.</div>
-                    </div>
-                `;
-                return;
-            }
-            
-            timeline.innerHTML = userDeposits.map(deposit => `
-                <div class="timeline-item ${deposit.status}">
-                    <div class="timeline-content">
-                        <div class="timeline-header">
-                            <div class="timeline-title">${deposit.title}</div>
-                            <div class="timeline-date">${deposit.date}</div>
-                        </div>
-                        <div class="timeline-description">
-                            ${deposit.description}
-                        </div>
-                        <div class="timeline-actions">
-                            <span class="status-badge status-${deposit.status}">
-                                <span class="icon icon-${getStatusIcon(deposit.status)}"></span>
-                                ${deposit.status.charAt(0).toUpperCase() + deposit.status.slice(1)}
-                            </span>
-                            ${deposit.showDownload ? `
-                                <button class="btn btn-secondary" onclick="downloadDocument('${deposit.id}')">
-                                    <span class="icon icon-download"></span>
-                                    Download Receipt
-                                </button>
-                            ` : ''}
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // Helper functions for timeline
-        function getStatusDescription(status) {
-            switch(status) {
-                case 'pending': return 'Awaiting document review and approval';
-                case 'approved': return 'Approved - proceed with bank transfer';
-                case 'completed': return 'Funds received and allocated';
-                case 'rejected': return 'Please contact support for details';
-                default: return 'Status unknown';
-            }
-        }
-
-        function getStatusIcon(status) {
-            switch(status) {
-                case 'completed': return 'check';
-                case 'approved': return 'check';
-                case 'pending': return 'clock';
-                case 'rejected': return 'x';
-                default: return 'clock';
-            }
-        }
-
-        // Download document functionality
-        function downloadDocument(docId) {
-            showNotification(`Document ${docId} download initiated.`, 'success');
-            
-            const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
-            const fileName = `Receipt_${docId}_${userData.firstName || 'Client'}.pdf`;
-            
-            const receiptContent = `AEQUITAS CAPITAL PARTNERS
-DEPOSIT RECEIPT
-
-Document ID: ${docId}
-Client: ${userData.firstName || ''} ${userData.lastName || ''}
-Date: ${new Date().toLocaleDateString()}
-
-This serves as confirmation of your deposit transaction.
-Please retain this receipt for your records.
-
-For questions, contact: support@aequitascap.com`;
-
-            const blob = new Blob([receiptContent], { type: 'text/plain' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = fileName;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-        }
-        
-        // Enhanced notification system
-        function showNotification(message, type = 'info') {
-            const existingNotifications = document.querySelectorAll('.notification');
-            existingNotifications.forEach(n => n.remove());
-
-            const notification = document.createElement('div');
-            notification.className = `notification notification-${type}`;
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 16px 20px;
-                border-radius: 8px;
-                color: white;
-                font-weight: 500;
-                z-index: 10001;
-                max-width: 400px;
-                word-wrap: break-word;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-                animation: slideInRight 0.3s ease-out;
-                ${type === 'success' ? 'background: linear-gradient(135deg, #10b981, #059669);' : ''}
-                ${type === 'error' ? 'background: linear-gradient(135deg, #ef4444, #dc2626);' : ''}
-                ${type === 'warning' ? 'background: linear-gradient(135deg, #f59e0b, #d97706);' : ''}
-                ${type === 'info' ? 'background: linear-gradient(135deg, #3b82f6, #2563eb);' : ''}
-            `;
-            
-            notification.innerHTML = `
-                <div style="display: flex; align-items: flex-start; gap: 8px;">
-                    <span class="icon icon-${type === 'success' ? 'check' : 'clock'}" style="margin-top: 2px;"></span>
-                    <span>${message}</span>
-                </div>
-            `;
-            
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.style.animation = 'slideOutRight 0.3s ease-in';
-                    setTimeout(() => notification.remove(), 300);
-                }
-            }, 5000);
-        }
-
-        // Add CSS for notification animations
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideInRight {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
-            }
-            @keyframes slideOutRight {
-                from { transform: translateX(0); opacity: 1; }
-                to { transform: translateX(100%); opacity: 0; }
-            }
-        `;
-        document.head.appendChild(style);
-
-        // Initialize page
-        document.addEventListener('DOMContentLoaded', function() {
-            // Check authentication
-            const authToken = localStorage.getItem('aequitas_auth_token');
-            if (!authToken) {
-                showNotification('Please log in to access this page.', 'warning');
-                setTimeout(() => {
-                    window.location.href = 'login.html';
-                }, 2000);
-                return;
-            }
-
-            // Load saved theme
-            const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
-            if (savedTheme === 'dark') {
-                currentTheme = 'dark';
-                document.documentElement.setAttribute('data-theme', 'dark');
-                const themeToggle = document.querySelector('.theme-toggle .icon');
-                if (themeToggle) themeToggle.className = 'icon icon-sun';
-            }
-
-            // Load user data and update UI
-            const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
-            const firstName = userData.firstName || 'User';
-            const lastName = userData.lastName || '';
-            const email = userData.email || '';
-            
-            // Update user info elements
-            const userNameEl = document.getElementById('userName');
-            const userEmailEl = document.getElementById('userEmail');
-            const topUserNameEl = document.getElementById('topUserName');
-            const userAvatarEl = document.getElementById('userAvatar');
-            
-            if (userNameEl) userNameEl.textContent = `${firstName} ${lastName}`;
-            if (userEmailEl) userEmailEl.textContent = email;
-            if (topUserNameEl) topUserNameEl.textContent = firstName;
-            if (userAvatarEl) userAvatarEl.textContent = firstName.charAt(0).toUpperCase();
-
-            // Show admin section if user is admin
-            if (userData.role === 'admin') {
-                const adminSection = document.getElementById('adminSection');
-                if (adminSection) adminSection.style.display = 'block';
-            }
-
-            // Load existing data with USER ISOLATION
-            loadExistingData();
-            
-            // Initially disable download buttons until deposit is submitted
-            const downloadSourceBtn = document.getElementById('downloadSourceBtn');
-            const downloadDepositBtn = document.getElementById('downloadDepositBtn');
-            
-            if (!currentDeposit) {
-                if (downloadSourceBtn) downloadSourceBtn.disabled = true;
-                if (downloadDepositBtn) downloadDepositBtn.disabled = true;
-            }
-
-            console.log(`✅ Deposit page initialized with USER ISOLATION for: ${getCurrentUserId()}`);
-        });
-
-        // DEBUG FUNCTION - Test user isolation
-        function debugUserIsolation() {
-            console.log('=== USER ISOLATION DEBUG ===');
-            console.log('Current User:', getCurrentUserId());
-            console.log('User Storage Key for files:', getUserStorageKey('uploaded_files'));
-            console.log('User Storage Key for deposits:', getUserStorageKey('deposits'));
-            console.log('User Files:', loadUploadedFiles());
-            console.log('User Deposits:', loadUserDeposits());
-            
-            // Show ALL localStorage keys for debugging
-            console.log('\n=== ALL STORAGE KEYS ===');
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key.includes('uploaded_files') || key.includes('deposits') || key.includes('deposit_progress')) {
-                    console.log(`${key}: ${localStorage.getItem(key).substring(0, 100)}...`);
-                }
-            }
-        }
-
-        // Auto-save form data as user types
-        document.getElementById('depositAmount').addEventListener('input', function() {
-            const key = getUserStorageKey('temp_amount');
-            localStorage.setItem(key, this.value);
-        });
-
-        document.getElementById('depositPurpose').addEventListener('change', function() {
-            const key = getUserStorageKey('temp_purpose');
-            localStorage.setItem(key, this.value);
-        });
-
-        // Restore form data on page load
-        function restoreFormData() {
-            const tempAmountKey = getUserStorageKey('temp_amount');
-            const tempPurposeKey = getUserStorageKey('temp_purpose');
-            
-            const tempAmount = localStorage.getItem(tempAmountKey);
-            const tempPurpose = localStorage.getItem(tempPurposeKey);
-            
-            if (tempAmount) {
-                document.getElementById('depositAmount').value = tempAmount;
-            }
-            if (tempPurpose) {
-                document.getElementById('depositPurpose').value = tempPurpose;
-            }
-        }
-
-        // Load temp data when page loads
-        setTimeout(restoreFormData, 100);
-
-    </script>
-</body>
-</html>
