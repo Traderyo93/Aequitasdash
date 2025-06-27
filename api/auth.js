@@ -1,4 +1,4 @@
-// api/auth.js - COMPLETE AUTHENTICATION API WITH PASSWORD CHANGE FLOW
+// api/auth.js - COMPLETE AUTHENTICATION API WITH FIXED PASSWORD CHANGE
 const { sql } = require('@vercel/postgres');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -61,8 +61,8 @@ module.exports = async function handler(req, res) {
 
     console.log('✅ Password verified for:', email);
 
-    // HANDLE PASSWORD CHANGE REQUEST
-    if (user.password_must_change && newPassword) {
+    // HANDLE PASSWORD CHANGE REQUEST - FIXED VERSION
+    if (newPassword) {
       console.log('🔄 Processing password change for user:', email);
       
       // Validate new password
@@ -99,7 +99,7 @@ module.exports = async function handler(req, res) {
       
       // Update password in database
       try {
-        await sql`
+        const updateResult = await sql`
           UPDATE users 
           SET 
             password_hash = ${newPasswordHash}, 
@@ -107,9 +107,43 @@ module.exports = async function handler(req, res) {
             updated_at = NOW(),
             last_login = NOW()
           WHERE id = ${user.id}
+          RETURNING id, email, role, first_name, last_name
         `;
         
+        if (updateResult.rows.length === 0) {
+          throw new Error('Failed to update user record');
+        }
+        
         console.log('✅ Password changed successfully for user:', email);
+        
+        // Generate NEW JWT token for the user with updated password
+        const token = jwt.sign(
+          { id: user.id, email: user.email, role: user.role },
+          process.env.JWT_SECRET || 'aequitas-secret-key-2025',
+          { expiresIn: '24h' }
+        );
+
+        console.log('🎫 New JWT token generated after password change:', email);
+
+        return res.status(200).json({
+          success: true,
+          passwordChanged: true,
+          token: token,
+          user: {
+            id: user.id,
+            email: user.email,
+            role: user.role,
+            firstName: user.first_name,
+            lastName: user.last_name,
+            accountValue: parseFloat(user.account_value || 0),
+            startingBalance: parseFloat(user.starting_balance || 0),
+            setupStatus: user.setup_status,
+            setupStep: user.setup_step,
+            setupRequired: user.setup_status !== 'approved'
+          },
+          message: 'Password changed successfully'
+        });
+        
       } catch (updateError) {
         console.error('💥 Failed to update password:', updateError);
         return res.status(500).json({
@@ -117,34 +151,6 @@ module.exports = async function handler(req, res) {
           error: 'Failed to update password'
         });
       }
-      
-      // Generate JWT token for the newly authenticated user
-      const token = jwt.sign(
-        { id: user.id, email: user.email, role: user.role },
-        process.env.JWT_SECRET || 'aequitas-secret-key-2025',
-        { expiresIn: '24h' }
-      );
-
-      console.log('🎫 JWT token generated for password change user:', email);
-
-      return res.status(200).json({
-        success: true,
-        token: token,
-        user: {
-          id: user.id,
-          email: user.email,
-          role: user.role,
-          firstName: user.first_name,
-          lastName: user.last_name,
-          accountValue: parseFloat(user.account_value || 0),
-          startingBalance: parseFloat(user.starting_balance || 0),
-          setupStatus: user.setup_status,
-          setupStep: user.setup_step,
-          setupRequired: user.setup_status !== 'approved'
-        },
-        passwordChanged: true,
-        message: 'Password changed successfully'
-      });
     }
 
     // CHECK IF PASSWORD CHANGE IS REQUIRED (first login scenario)
