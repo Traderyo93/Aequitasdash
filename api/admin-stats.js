@@ -1,4 +1,3 @@
-
 // api/admin-stats.js - FIXED VERSION WITH PROPER CLIENT FILTERING
 const { sql } = require('@vercel/postgres');
 const jwt = require('jsonwebtoken');
@@ -63,14 +62,13 @@ module.exports = async function handler(req, res) {
       console.log('📊 Could not check schema:', schemaError.message);
     }
     
-    // 1. TOTAL APPROVED CLIENTS ONLY - Exclude pending, admin, deleted
+    // 1. TOTAL APPROVED CLIENTS - Based on role, not setup_status
     let totalClients = 0;
     try {
       const totalClientsResult = await sql`
         SELECT COUNT(*) as count
         FROM users 
-        WHERE role = 'client' 
-        AND (setup_status = 'approved' OR setup_status IS NULL)
+        WHERE role = 'client'
       `;
       totalClients = parseInt(totalClientsResult.rows[0].count) || 0;
     } catch (clientCountError) {
@@ -84,14 +82,13 @@ module.exports = async function handler(req, res) {
       totalClients = parseInt(fallbackResult.rows[0].count) || 0;
     }
     
-    // 2. TOTAL CLIENT BALANCES - Only approved clients
+    // 2. TOTAL CLIENT BALANCES - All clients
     let totalClientBalances = 0;
     try {
       const totalBalancesResult = await sql`
         SELECT COALESCE(SUM(account_value), 0) as total
         FROM users 
         WHERE role = 'client'
-        AND (setup_status = 'approved' OR setup_status IS NULL)
       `;
       totalClientBalances = parseFloat(totalBalancesResult.rows[0].total || 0);
     } catch (balanceError) {
@@ -151,31 +148,29 @@ module.exports = async function handler(req, res) {
       console.log('📊 No deposits table yet for pending count');
     }
     
-    // 5. APPROVED CLIENTS ONLY - Proper filtering
+    // 5. ALL CLIENTS - Show clients regardless of setup_status
     let allClientsResult;
     try {
-      // Try with setup_status column first
       allClientsResult = await sql`
         SELECT 
           id, email, first_name, last_name, phone, address, 
           account_value, starting_balance, created_at, last_login, role
         FROM users 
-        WHERE role = 'client' 
-        AND (setup_status = 'approved' OR setup_status IS NULL)
+        WHERE role = 'client'
         ORDER BY created_at DESC
       `;
-      console.log('📊 Found approved clients with setup_status filter:', allClientsResult.rows.length);
-    } catch (setupStatusError) {
-      console.log('📊 setup_status column not available, using role-based filter');
-      // Fallback: use role-based filtering only
+      console.log('📊 Found clients:', allClientsResult.rows.length);
+    } catch (clientQueryError) {
+      console.log('📊 Error fetching clients, using fallback');
+      // Fallback: basic columns only
       allClientsResult = await sql`
         SELECT 
           id, email, first_name, last_name, created_at, role
         FROM users 
-        WHERE role NOT IN ('admin', 'pending', 'deleted')
+        WHERE role = 'client'
         ORDER BY created_at DESC
       `;
-      console.log('📊 Found clients with role filter:', allClientsResult.rows.length);
+      console.log('📊 Found clients with fallback query:', allClientsResult.rows.length);
     }
     
     // 6. ALL DEPOSITS (if table exists)
@@ -218,14 +213,13 @@ module.exports = async function handler(req, res) {
       depositGrowth = 0;
     }
     
-    // 8. NEW APPROVED CLIENTS THIS MONTH
+    // 8. NEW CLIENTS THIS MONTH
     let newClients = 0;
     try {
       const newClientsResult = await sql`
         SELECT COUNT(*) as count
         FROM users 
         WHERE role = 'client'
-        AND (setup_status = 'approved' OR setup_status IS NULL)
         AND EXTRACT(MONTH FROM created_at) = ${currentMonth}
         AND EXTRACT(YEAR FROM created_at) = ${currentYear}
       `;
