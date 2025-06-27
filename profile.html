@@ -1714,13 +1714,4 @@ function loadAccountStats(apiStats = null) {
 
     </script>
 </body>
-</html>(userData.accountValue || 0);
-                document.getElementById('memberSince').textContent = apiStats.memberSince;
-                document.getElementById('totalDeposits').textContent = formatCurrency(apiStats.totalDeposits);
-                document.getElementById('totalWithdrawals').textContent = formatCurrency(apiStats.totalWithdrawals);
-            } else {
-                // Fallback to basic data
-                const accountValue = userData.accountValue || 2850000;
-                const joinDate = userData.created_at || userData.joinDate || '2024-01-01';
-                
-                document.getElementById('accountBalance').textContent = formatCurrency
+</html>
