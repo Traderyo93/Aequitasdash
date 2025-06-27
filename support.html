@@ -1420,52 +1420,60 @@
         });
 
         // Initialize page
-        document.addEventListener('DOMContentLoaded', async function() {
-            // Check authentication
-            const authToken = localStorage.getItem('aequitas_auth_token');
-            const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
-            
-            if (!authToken) {
-                showNotification('Please log in to access this page.', 'warning');
-                setTimeout(() => {
-                    window.location.href = 'login.html';
-                }, 2000);
-                return;
+        document.addEventListener('DOMContentLoaded', function() {
+            // Async initialization function
+            async function initializePage() {
+                // Check authentication
+                const authToken = localStorage.getItem('aequitas_auth_token');
+                const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
+                
+                if (!authToken) {
+                    showNotification('Please log in to access this page.', 'warning');
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2000);
+                    return;
+                }
+
+                // Load saved theme
+                const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
+                if (savedTheme === 'dark') {
+                    currentTheme = 'dark';
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    const themeToggle = document.querySelector('.theme-toggle .icon');
+                    if (themeToggle) themeToggle.className = 'icon icon-sun';
+                }
+
+                // Load user data and update UI
+                const firstName = userData.firstName || 'User';
+                const lastName = userData.lastName || '';
+                const email = userData.email || 'user@example.com';
+                
+                // Update user info elements
+                const userNameEl = document.getElementById('userName');
+                const userEmailEl = document.getElementById('userEmail');
+                const topUserNameEl = document.getElementById('topUserName');
+                const userAvatarEl = document.getElementById('userAvatar');
+                
+                if (userNameEl) userNameEl.textContent = `${firstName} ${lastName}`.trim();
+                if (userEmailEl) userEmailEl.textContent = email;
+                if (topUserNameEl) topUserNameEl.textContent = firstName;
+                if (userAvatarEl) userAvatarEl.textContent = firstName.charAt(0).toUpperCase();
+
+                // Show admin section if user is admin
+                if (userData.role === 'admin') {
+                    const adminSection = document.getElementById('adminSection');
+                    if (adminSection) adminSection.style.display = 'block';
+                }
+
+                // Load support tickets
+                await loadSupportTickets();
             }
-
-            // Load saved theme
-            const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
-            if (savedTheme === 'dark') {
-                currentTheme = 'dark';
-                document.documentElement.setAttribute('data-theme', 'dark');
-                const themeToggle = document.querySelector('.theme-toggle .icon');
-                if (themeToggle) themeToggle.className = 'icon icon-sun';
-            }
-
-            // Load user data and update UI
-            const firstName = userData.firstName || 'User';
-            const lastName = userData.lastName || '';
-            const email = userData.email || 'user@example.com';
             
-            // Update user info elements
-            const userNameEl = document.getElementById('userName');
-            const userEmailEl = document.getElementById('userEmail');
-            const topUserNameEl = document.getElementById('topUserName');
-            const userAvatarEl = document.getElementById('userAvatar');
-            
-            if (userNameEl) userNameEl.textContent = `${firstName} ${lastName}`.trim();
-            if (userEmailEl) userEmailEl.textContent = email;
-            if (topUserNameEl) topUserNameEl.textContent = firstName;
-            if (userAvatarEl) userAvatarEl.textContent = firstName.charAt(0).toUpperCase();
-
-            // Show admin section if user is admin
-            if (userData.role === 'admin') {
-                const adminSection = document.getElementById('adminSection');
-                if (adminSection) adminSection.style.display = 'block';
-            }
-
-            // Load support tickets
-            await loadSupportTickets();
+            // Call the async initialization
+            initializePage().catch(error => {
+                console.error('Initialization error:', error);
+            });
         });
     </script>
 </body>
