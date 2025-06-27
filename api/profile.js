@@ -1,0 +1,1572 @@
+<!-- Password Change Modal -->
+    <div class="modal" id="passwordModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 10000; align-items: center; justify-content: center;">
+        <div class="modal-content" style="background: var(--bg-primary); border-radius: 16px; padding: 32px; max-width: 500px; width: 90%; margin: 20px; border: 1px solid var(--border-color);">
+            <div class="modal-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+                <h3 style="font-size: 20px; font-weight: 600; color: var(--text-primary);">Change Password</h3>
+                <button onclick="closePasswordModal()" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 4px;">
+                    <span class="icon icon-x"></span>
+                </button>
+            </div>
+            
+            <form id="passwordChangeForm">
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label">Current Password</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="currentPassword" class="form-input" required>
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('currentPassword')">
+                            <span class="icon icon-eye"></span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label">New Password</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="newPassword" class="form-input" required>
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('newPassword')">
+                            <span class="icon icon-eye"></span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 24px;">
+                    <label class="form-label">Confirm New Password</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="confirmPassword" class="form-input" required>
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('confirmPassword')">
+                            <span class="icon icon-eye"></span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="closePasswordModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="changePasswordBtn">
+                        <span class="icon icon-save"></span>
+                        Change Password
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Aequitas Capital Partners</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Geist:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Light Theme */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-tertiary: #64748b;
+            --border-color: #e2e8f0;
+            --sidebar-bg: #1e293b;
+            --sidebar-text: #94a3b8;
+            --sidebar-text-active: #ffffff;
+            --sidebar-hover: rgba(59, 130, 246, 0.1);
+            --sidebar-active: rgba(59, 130, 246, 0.2);
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --info: #06b6d4;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-tertiary: #94a3b8;
+            --border-color: #334155;
+            --sidebar-bg: #0f172a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        /* Icons */
+        .icon {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            background: currentColor;
+            mask-size: contain;
+            mask-repeat: no-repeat;
+            mask-position: center;
+        }
+
+        .icon-dashboard {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2'/%3E%3C/svg%3E");
+        }
+
+        .icon-document {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'/%3E%3C/svg%3E");
+        }
+
+        .icon-money {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z'/%3E%3C/svg%3E");
+        }
+
+        .icon-bank {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4'/%3E%3C/svg%3E");
+        }
+
+        .icon-user {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'/%3E%3C/svg%3E");
+        }
+
+        .icon-chat {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z'/%3E%3C/svg%3E");
+        }
+
+        .icon-moon {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z'/%3E%3C/svg%3E");
+        }
+
+        .icon-sun {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z'/%3E%3C/svg%3E");
+        }
+
+        .icon-logout {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1'/%3E%3C/svg%3E");
+        }
+
+        .icon-edit {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7m-1.5-9.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 8.5-8.5z'/%3E%3C/svg%3E");
+        }
+
+        .icon-lock {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z'/%3E%3C/svg%3E");
+        }
+
+        .icon-eye {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M15 12a3 3 0 11-6 0 3 3 0 016 0z'/%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z'/%3E%3C/svg%3E");
+        }
+
+        .icon-eye-off {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24'/%3E%3Cline stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' x1='1' y1='1' x2='23' y2='23'/%3E%3C/svg%3E");
+        }
+
+        .icon-save {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z'/%3E%3Cpolyline stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' points='17,21 17,13 7,13 7,21'/%3E%3Cpolyline stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' points='7,3 7,8 15,8'/%3E%3C/svg%3E");
+        }
+
+        .icon-check {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 13l4 4L19 7'/%3E%3C/svg%3E");
+        }
+
+        .icon-x {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12'/%3E%3C/svg%3E");
+        }
+
+        .icon-clock {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'/%3E%3C/svg%3E");
+        }
+
+        .icon-calendar {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M3 9h18m-9-7v4m0 10v4m6-4h4M3 9h4m5-7h4m-9 18h4m0-4v4m6-7v4'/%3E%3C/svg%3E");
+        }
+
+        .icon-shield {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/%3E%3C/svg%3E");
+        }
+
+        .icon-download {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4'/%3E%3C/svg%3E");
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo {
+            max-width: 140px;
+            height: auto;
+            filter: brightness(1.1);
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--sidebar-text);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .theme-toggle:hover {
+            background: var(--sidebar-hover);
+            color: var(--sidebar-text-active);
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 20px 0;
+            overflow-y: auto;
+        }
+
+        .nav-section {
+            margin-bottom: 24px;
+        }
+
+        .nav-section-title {
+            color: var(--accent);
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0 20px 12px 20px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .nav-item:hover {
+            background: var(--sidebar-hover);
+            color: var(--sidebar-text-active);
+        }
+
+        .nav-item.active {
+            background: var(--sidebar-active);
+            color: var(--accent);
+            border-right: 3px solid var(--accent);
+        }
+
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .user-details h4 {
+            color: var(--sidebar-text-active);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .user-details p {
+            color: var(--sidebar-text);
+            font-size: 12px;
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: var(--sidebar-text);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .top-user-info {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .profile-content {
+            padding: 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 24px;
+        }
+
+        /* Profile Cards */
+        .card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: between;
+            gap: 12px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            flex: 1;
+        }
+
+        .card-icon {
+            width: 24px;
+            height: 24px;
+            color: var(--accent);
+        }
+
+        /* Profile Header */
+        .profile-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+            font-weight: 700;
+            margin: 0 auto 16px;
+            border: 4px solid var(--bg-primary);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .profile-email {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        .profile-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 20px;
+            color: var(--success);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Account Stats */
+        .account-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Forms */
+        .form-section {
+            margin-bottom: 32px;
+        }
+
+        .form-section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .form-input {
+            padding: 12px 14px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-input:disabled {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            cursor: not-allowed;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* Password Input */
+        .password-input-wrapper {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .password-toggle:hover {
+            color: var(--accent);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--accent);
+            border: 2px solid var(--accent);
+        }
+
+        .btn-outline:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-sm {
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            margin-left: 24px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--border-color);
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-left: 32px;
+            margin-bottom: 24px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 8px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 3px solid var(--bg-primary);
+            z-index: 1;
+        }
+
+        .timeline-item.account-opened::before {
+            background: var(--success);
+        }
+
+        .timeline-item.deposit::before {
+            background: var(--accent);
+        }
+
+        .timeline-item.withdrawal::before {
+            background: var(--warning);
+        }
+
+        .timeline-item.document::before {
+            background: var(--info);
+        }
+
+        .timeline-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-left: 8px;
+        }
+
+        .timeline-header {
+            display: flex;
+            align-items: center;
+            justify-content: between;
+            margin-bottom: 8px;
+        }
+
+        .timeline-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            flex: 1;
+        }
+
+        .timeline-date {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .timeline-description {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .timeline-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Document Grid */
+        .document-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .document-item {
+            padding: 12px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+
+        .document-item:hover {
+            border-color: var(--accent);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .document-icon {
+            width: 16px;
+            height: 16px;
+            color: var(--accent);
+        }
+
+        .document-name {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .profile-content {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .profile-content {
+                padding: 16px;
+            }
+
+            .account-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .card {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-container">
+                <img src="https://i.ibb.co/8DfYwWdG/Aequitas-White-Logo.png" alt="Aequitas Capital Partners" class="logo">
+            </div>
+            <button class="theme-toggle" onclick="toggleTheme()">
+                <span class="icon icon-moon"></span>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Account</div>
+                <a href="dashboard.html" class="nav-item">
+                    <span class="icon icon-dashboard"></span>
+                    <span>Overview</span>
+                </a>
+                <a href="statements.html" class="nav-item">
+                    <span class="icon icon-document"></span>
+                    <span>Statements</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Trading</div>
+                <a href="deposit.html" class="nav-item">
+                    <span class="icon icon-money"></span>
+                    <span>Deposit</span>
+                </a>
+                <a href="withdraw.html" class="nav-item">
+                    <span class="icon icon-bank"></span>
+                    <span>Withdraw</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Settings</div>
+                <a href="profile.html" class="nav-item active">
+                    <span class="icon icon-user"></span>
+                    <span>Profile</span>
+                </a>
+                <a href="support.html" class="nav-item">
+                    <span class="icon icon-chat"></span>
+                    <span>Support</span>
+                </a>
+            </div>
+
+            <!-- Admin Section -->
+            <div class="nav-section" id="adminSection" style="display: none;">
+                <div class="nav-section-title">Admin</div>
+                <a href="admin.html" class="nav-item">
+                    <span class="icon icon-user"></span>
+                    <span>Client Management</span>
+                </a>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">U</div>
+                <div class="user-details">
+                    <h4 id="userName">Loading...</h4>
+                    <p id="userEmail">Loading...</p>
+                </div>
+            </div>
+            <button class="logout-btn" onclick="logout()">
+                <span class="icon icon-logout"></span>
+                <span>Logout</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="top-bar">
+            <h1 class="page-title">Account Profile</h1>
+            <div class="top-user-info">
+                <span>Manage your account,</span>
+                <span id="topUserName">User</span>
+            </div>
+        </div>
+
+        <div class="profile-content">
+            <!-- Profile Sidebar -->
+            <div class="profile-sidebar">
+                <!-- Profile Header -->
+                <div class="card">
+                    <div class="profile-header">
+                        <div class="profile-avatar" id="profileAvatar">U</div>
+                        <h2 class="profile-name" id="profileName">Loading...</h2>
+                        <p class="profile-email" id="profileEmail">Loading...</p>
+                        <div class="profile-status">
+                            <span class="icon icon-shield"></span>
+                            <span>Account Active</span>
+                        </div>
+                    </div>
+
+                    <!-- Account Stats -->
+                    <div class="account-stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="accountBalance">$0</div>
+                            <div class="stat-label">Account Value</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="memberSince">2024</div>
+                            <div class="stat-label">Member Since</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="totalDeposits">$0</div>
+                            <div class="stat-label">Total Deposits</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="totalWithdrawals">$0</div>
+                            <div class="stat-label">Total Withdrawals</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="icon icon-edit card-icon"></span>
+                        <h3 class="card-title">Quick Actions</h3>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <button class="btn btn-outline" onclick="toggleEditMode()">
+                            <span class="icon icon-edit"></span>
+                            <span id="editModeBtn">Edit Profile</span>
+                        </button>
+                        <button class="btn btn-secondary" onclick="togglePasswordSection()">
+                            <span class="icon icon-lock"></span>
+                            <span id="passwordToggleText">Change Password</span>
+                        </button>
+                        <a href="support.html" class="btn btn-secondary">
+                            <span class="icon icon-chat"></span>
+                            Contact Support
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Profile Content -->
+            <div class="main-profile">
+                <!-- Personal Information -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="icon icon-user card-icon"></span>
+                        <h3 class="card-title">Personal Information</h3>
+                        <button class="btn btn-primary" id="savePersonalBtn" style="display: none;" onclick="savePersonalInfo()">
+                            <span class="icon icon-save"></span>
+                            Save Changes
+                        </button>
+                    </div>
+
+                    <form id="personalInfoForm">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">First Name</label>
+                                <input type="text" id="firstName" class="form-input" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Last Name</label>
+                                <input type="text" id="lastName" class="form-input" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email Address</label>
+                                <input type="email" id="email" class="form-input" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Phone Number</label>
+                                <input type="tel" id="phone" class="form-input" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Date of Birth</label>
+                                <input type="date" id="dateOfBirth" class="form-input" disabled>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group full-width">
+                            <label class="form-label">Address</label>
+                            <textarea id="address" class="form-input form-textarea" disabled></textarea>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Password Change Section -->
+                <div class="card" id="passwordSection" style="display: none;">
+                    <div class="card-header">
+                        <span class="icon icon-lock card-icon"></span>
+                        <h3 class="card-title">Change Password</h3>
+                        <button class="btn btn-secondary" onclick="togglePasswordSection()">
+                            <span class="icon icon-x"></span>
+                            Cancel
+                        </button>
+                    </div>
+
+                    <form id="passwordChangeForm">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Current Password</label>
+                                <div class="password-input-wrapper">
+                                    <input type="password" id="currentPassword" class="form-input" required>
+                                    <button type="button" class="password-toggle" onclick="togglePasswordVisibility('currentPassword')">
+                                        <span class="icon icon-eye"></span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">New Password</label>
+                                <div class="password-input-wrapper">
+                                    <input type="password" id="newPassword" class="form-input" required>
+                                    <button type="button" class="password-toggle" onclick="togglePasswordVisibility('newPassword')">
+                                        <span class="icon icon-eye"></span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Confirm New Password</label>
+                                <div class="password-input-wrapper">
+                                    <input type="password" id="confirmPassword" class="form-input" required>
+                                    <button type="button" class="password-toggle" onclick="togglePasswordVisibility('confirmPassword')">
+                                        <span class="icon icon-eye"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 20px; display: flex; gap: 12px;">
+                            <button type="submit" class="btn btn-primary" id="changePasswordBtn">
+                                <span class="icon icon-save"></span>
+                                Change Password
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="togglePasswordSection()">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Account Timeline -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="icon icon-clock card-icon"></span>
+                        <h3 class="card-title">Account Timeline</h3>
+                    </div>
+
+                    <div class="timeline" id="accountTimeline">
+                        <!-- Timeline items will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password Change Modal -->
+    <div class="modal" id="passwordModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 10000; align-items: center; justify-content: center;">
+        <div class="modal-content" style="background: var(--bg-primary); border-radius: 16px; padding: 32px; max-width: 500px; width: 90%; margin: 20px; border: 1px solid var(--border-color);">
+            <div class="modal-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+                <h3 style="font-size: 20px; font-weight: 600; color: var(--text-primary);">Change Password</h3>
+                <button onclick="closePasswordModal()" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 4px;">
+                    <span class="icon icon-x"></span>
+                </button>
+            </div>
+            
+            <form id="passwordChangeForm">
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label">Current Password</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="currentPassword" class="form-input" required>
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('currentPassword')">
+                            <span class="icon icon-eye"></span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label">New Password</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="newPassword" class="form-input" required>
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('newPassword')">
+                            <span class="icon icon-eye"></span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 24px;">
+                    <label class="form-label">Confirm New Password</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="confirmPassword" class="form-input" required>
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('confirmPassword')">
+                            <span class="icon icon-eye"></span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="closePasswordModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="changePasswordBtn">
+                        <span class="icon icon-save"></span>
+                        Change Password
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentTheme = 'light';
+        let editMode = false;
+        let userData = {};
+        let timelineData = [];
+
+        // Theme Toggle
+        function toggleTheme() {
+            currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            
+            const themeToggle = document.querySelector('.theme-toggle .icon');
+            themeToggle.className = currentTheme === 'light' ? 'icon icon-moon' : 'icon icon-sun';
+            
+            localStorage.setItem('aequitas_theme', currentTheme);
+        }
+
+        // Logout
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('aequitas_auth_token');
+                localStorage.removeItem('aequitas_user_data');
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Password visibility toggle
+        function togglePasswordVisibility(inputId) {
+            const input = document.getElementById(inputId);
+            const toggle = input.nextElementSibling.querySelector('.icon');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                toggle.className = 'icon icon-eye-off';
+            } else {
+                input.type = 'password';
+                toggle.className = 'icon icon-eye';
+            }
+        }
+
+        // Toggle Edit Mode
+        function toggleEditMode() {
+            editMode = !editMode;
+            const editBtn = document.getElementById('editModeBtn');
+            const saveBtn = document.getElementById('savePersonalBtn');
+            const inputs = document.querySelectorAll('#personalInfoForm input:not([readonly]), #personalInfoForm textarea');
+            
+            if (editMode) {
+                editBtn.textContent = 'Cancel Edit';
+                saveBtn.style.display = 'inline-flex';
+                inputs.forEach(input => {
+                    input.disabled = false;
+                    if (input.id === 'email') input.disabled = true; // Keep email readonly for security
+                });
+            } else {
+                editBtn.textContent = 'Edit Profile';
+                saveBtn.style.display = 'none';
+                inputs.forEach(input => input.disabled = true);
+                
+                // Reload original data
+                populateFormFields();
+            }
+        }
+
+        // Save Personal Information
+        async function savePersonalInfo() {
+            const saveBtn = document.getElementById('savePersonalBtn');
+            const originalText = saveBtn.innerHTML;
+            
+            try {
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<span class="spinner"></span>Saving...';
+                
+                const formData = {
+                    firstName: document.getElementById('firstName').value,
+                    lastName: document.getElementById('lastName').value,
+                    phone: document.getElementById('phone').value,
+                    dateOfBirth: document.getElementById('dateOfBirth').value,
+                    address: document.getElementById('address').value
+                };
+                
+                // Save to API
+                const response = await fetch('/api/profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('aequitas_auth_token')}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (response.ok) {
+                    // Update local storage
+                    userData = { ...userData, ...formData };
+                    localStorage.setItem('aequitas_user_data', JSON.stringify(userData));
+                    
+                    // Update UI
+                    updateUserDisplay();
+                    populateFormFields(); // Refresh form with updated data
+                    
+                    showNotification('Profile updated successfully!', 'success');
+                    toggleEditMode(); // Exit edit mode
+                    
+                    // Add to timeline
+                    addTimelineEvent({
+                        type: 'profile_update',
+                        title: 'Profile Updated',
+                        description: 'Personal information has been updated',
+                        date: new Date().toISOString()
+                    });
+                } else {
+                    throw new Error('Failed to save profile');
+                }
+            } catch (error) {
+                console.error('Save error:', error);
+                showNotification('Failed to save profile changes', 'error');
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = originalText;
+            }
+        }
+
+        // Toggle Password Section
+        function togglePasswordSection() {
+            const passwordSection = document.getElementById('passwordSection');
+            const toggleText = document.getElementById('passwordToggleText');
+            
+            if (passwordSection.style.display === 'none' || !passwordSection.style.display) {
+                passwordSection.style.display = 'block';
+                toggleText.textContent = 'Hide Password';
+                
+                // Scroll to password section
+                passwordSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                passwordSection.style.display = 'none';
+                toggleText.textContent = 'Change Password';
+                
+                // Clear form
+                document.getElementById('passwordChangeForm').reset();
+            }
+        }
+
+        // Password Change
+        document.getElementById('passwordChangeForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const changeBtn = document.getElementById('changePasswordBtn');
+            
+            if (newPassword !== confirmPassword) {
+                showNotification('New passwords do not match', 'error');
+                return;
+            }
+            
+            if (newPassword.length < 8) {
+                showNotification('Password must be at least 8 characters', 'error');
+                return;
+            }
+            
+            try {
+                changeBtn.disabled = true;
+                changeBtn.innerHTML = '<span class="spinner"></span>Changing...';
+                
+                const response = await fetch('/api/auth', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: userData.email,
+                        password: currentPassword,
+                        newPassword: newPassword
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    showNotification('Password changed successfully!', 'success');
+                    togglePasswordSection(); // Hide password section
+                    
+                    // Add to timeline
+                    addTimelineEvent({
+                        type: 'security',
+                        title: 'Password Changed',
+                        description: 'Account password has been updated for security',
+                        date: new Date().toISOString()
+                    });
+                } else {
+                    throw new Error(data.error || 'Password change failed');
+                }
+            } catch (error) {
+                console.error('Password change error:', error);
+                showNotification(`Password change failed: ${error.message}`, 'error');
+            } finally {
+                changeBtn.disabled = false;
+                changeBtn.innerHTML = '<span class="icon icon-save"></span>Change Password';
+            }
+        });
+
+        // Load User Data from API
+        async function loadUserData() {
+            try {
+                console.log('📋 Loading user profile from API...');
+                
+                const response = await fetch('/api/profile', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('aequitas_auth_token')}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Profile data loaded:', data);
+                    
+                    userData = data.user;
+                    timelineData = data.timeline || [];
+                    
+                    // Update local storage with fresh data
+                    localStorage.setItem('aequitas_user_data', JSON.stringify(userData));
+                    
+                    // Update form fields
+                    populateFormFields();
+                    updateUserDisplay();
+                    loadAccountStats(data.stats);
+                    renderTimeline();
+                } else {
+                    throw new Error('Failed to load profile');
+                }
+            } catch (error) {
+                console.error('💥 Failed to load profile:', error);
+                
+                // Fallback to localStorage
+                userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
+                populateFormFields();
+                updateUserDisplay();
+                loadAccountStats();
+                loadTimeline(); // Use dummy data
+                
+                showNotification('Using cached profile data - some information may be outdated', 'warning');
+            }
+        }
+
+        // Populate Form Fields
+        function populateFormFields() {
+            document.getElementById('firstName').value = userData.firstName || userData.first_name || '';
+            document.getElementById('lastName').value = userData.lastName || userData.last_name || '';
+            document.getElementById('email').value = userData.email || '';
+            document.getElementById('phone').value = userData.phone || '';
+            document.getElementById('dateOfBirth').value = userData.dateOfBirth || userData.date_of_birth || '';
+            document.getElementById('address').value = userData.address || '';
+        }
+
+        // Update User Display
+        function updateUserDisplay() {
+            const firstName = userData.firstName || userData.first_name || 'User';
+            const lastName = userData.lastName || userData.last_name || '';
+            const email = userData.email || '';
+            const fullName = `${firstName} ${lastName}`.trim();
+            
+            // Update profile header
+            document.getElementById('profileName').textContent = fullName;
+            document.getElementById('profileEmail').textContent = email;
+            document.getElementById('profileAvatar').textContent = firstName.charAt(0).toUpperCase();
+            
+            // Update sidebar
+            document.getElementById('userName').textContent = fullName;
+            document.getElementById('userEmail').textContent = email;
+            document.getElementById('userAvatar').textContent = firstName.charAt(0).toUpperCase();
+            document.getElementById('topUserName').textContent = firstName;
+        }
+
+        // Load Account Stats
+        function loadAccountStats(apiStats = null) {
+            if (apiStats) {
+                // Use real stats from API
+                document.getElementById('accountBalance').textContent = formatCurrency(userData.accountValue || 0);
+                document.getElementById('memberSince').textContent = apiStats.memberSince;
+                document.getElementById('totalDeposits').textContent = formatCurrency(apiStats.totalDeposits);
+                document.getElementById('totalWithdrawals').textContent = formatCurrency(apiStats.totalWithdrawals);
+            } else {
+                // Fallback to basic data
+                const accountValue = userData.accountValue || 2850000;
+                const joinDate = userData.created_at || userData.joinDate || '2024-01-01';
+                
+                document.getElementById('accountBalance').textContent = formatCurrency(accountValue);
+                document.getElementById('memberSince').textContent = new Date(joinDate).getFullYear();
+                document.getElementById('totalDeposits').textContent = formatCurrency(1000000); // Placeholder
+                document.getElementById('totalWithdrawals').textContent = formatCurrency(0); // Placeholder
+            }
+        }
+
+        // Load Timeline Data
+        async function loadTimeline() {
+            // This is now handled by loadUserData() which gets timeline from API
+            // This function is kept for fallback dummy data only
+            if (timelineData.length === 0) {
+                console.log('📅 Using fallback timeline data');
+                timelineData = [
+                    {
+                        type: 'account_opened',
+                        title: 'Account Opened',
+                        description: 'Welcome to Aequitas Capital Partners! Your account has been successfully created and approved.',
+                        date: userData.created_at || '2024-01-15T10:00:00Z',
+                        documents: [
+                            { name: 'Identity Document', url: '#' },
+                            { name: 'Proof of Address', url: '#' },
+                            { name: 'Signed Memorandum', url: '#' }
+                        ]
+                    },
+                    {
+                        type: 'deposit',
+                        title: 'Initial Deposit',
+                        description: 'First deposit of $1,000,000 successfully processed and allocated to your trading account.',
+                        date: '2024-01-20T14:30:00Z',
+                        amount: 1000000
+                    }
+                ];
+            }
+            renderTimeline();
+        }
+
+        // Render Timeline
+        function renderTimeline() {
+            const timeline = document.getElementById('accountTimeline');
+            
+            if (timelineData.length === 0) {
+                timeline.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                        <div style="font-size: 16px; margin-bottom: 8px;">No activity yet</div>
+                        <div style="font-size: 14px;">Your account activity will appear here</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            timeline.innerHTML = timelineData.map(item => `
+                <div class="timeline-item ${item.type}">
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <div class="timeline-title">${item.title}</div>
+                            <div class="timeline-date">${new Date(item.date).toLocaleDateString()}</div>
+                        </div>
+                        <div class="timeline-description">${item.description}</div>
+                        
+                        ${item.amount ? `
+                            <div style="margin: 12px 0; padding: 12px; background: var(--bg-primary); border-radius: 8px; border: 1px solid var(--border-color);">
+                                <strong style="color: var(--success);">Amount: ${formatCurrency(item.amount)}</strong>
+                            </div>
+                        ` : ''}
+                        
+                        ${item.documents ? `
+                            <div class="document-grid">
+                                ${item.documents.map(doc => `
+                                    <a href="${doc.url}" class="document-item" title="Download ${doc.name}">
+                                        <span class="icon icon-download document-icon"></span>
+                                        <span class="document-name">${doc.name}</span>
+                                    </a>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                        
+                        <div class="timeline-actions">
+                            <span style="font-size: 11px; color: var(--text-tertiary);">
+                                ${new Date(item.date).toLocaleString()}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Add Timeline Event
+        function addTimelineEvent(event) {
+            timelineData.unshift(event);
+            renderTimeline();
+        }
+
+        // Format Currency
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(amount);
+        }
+
+        // Notification System
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 16px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 500;
+                z-index: 10001;
+                max-width: 400px;
+                font-size: 14px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                animation: slideInRight 0.3s ease-out;
+                ${type === 'success' ? 'background: linear-gradient(135deg, #10b981, #059669);' : ''}
+                ${type === 'error' ? 'background: linear-gradient(135deg, #ef4444, #dc2626);' : ''}
+                ${type === 'warning' ? 'background: linear-gradient(135deg, #f59e0b, #d97706);' : ''}
+                ${type === 'info' ? 'background: linear-gradient(135deg, #3b82f6, #2563eb);' : ''}
+            `;
+            
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="icon icon-${type === 'success' ? 'check' : 'clock'}" style="width: 16px; height: 16px;"></span>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.style.animation = 'slideOutRight 0.3s ease-in';
+                    setTimeout(() => notification.remove(), 300);
+                }
+            }, 5000);
+        }
+
+        // Add CSS for animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInRight {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
