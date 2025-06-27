@@ -124,6 +124,10 @@
             mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M18 15l-6-6-6 6'/%3E%3C/svg%3E");
         }
 
+        .icon-users {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m22 0v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75M13 7a4 4 0 11-8 0 4 4 0 018 0z'/%3E%3C/svg%3E");
+        }
+
         /* Sidebar */
         .sidebar {
             position: fixed;
@@ -568,47 +572,47 @@
         <nav class="sidebar-nav">
             <div class="nav-section">
                 <div class="nav-section-title">Account</div>
-                <button class="nav-item active" onclick="navigateTo('dashboard')">
+                <a href="dashboard.html" class="nav-item active">
                     <span class="icon icon-dashboard"></span>
                     <span>Overview</span>
-                </button>
-                <button class="nav-item" onclick="navigateTo('statements')">
+                </a>
+                <a href="statements.html" class="nav-item">
                     <span class="icon icon-document"></span>
                     <span>Statements</span>
-                </button>
+                </a>
             </div>
 
             <div class="nav-section">
                 <div class="nav-section-title">Trading</div>
-                <button class="nav-item" onclick="navigateTo('deposit')">
+                <a href="deposit.html" class="nav-item">
                     <span class="icon icon-money"></span>
                     <span>Deposit</span>
-                </button>
-                <button class="nav-item" onclick="navigateTo('withdraw')">
+                </a>
+                <a href="withdrawal.html" class="nav-item">
                     <span class="icon icon-bank"></span>
                     <span>Withdraw</span>
-                </button>
+                </a>
             </div>
 
             <div class="nav-section">
                 <div class="nav-section-title">Settings</div>
-                <button class="nav-item" onclick="navigateTo('profile')">
+                <a href="profile.html" class="nav-item">
                     <span class="icon icon-user"></span>
                     <span>Profile</span>
-                </button>
-                <button class="nav-item" onclick="navigateTo('support')">
+                </a>
+                <a href="support.html" class="nav-item">
                     <span class="icon icon-chat"></span>
                     <span>Support</span>
-                </button>
+                </a>
             </div>
 
             <!-- Admin Section -->
             <div class="nav-section" id="adminSection" style="display: none;">
                 <div class="nav-section-title">Admin</div>
-                <button class="nav-item" onclick="navigateTo('admin')">
-                    <span class="icon icon-user"></span>
+                <a href="admin.html" class="nav-item">
+                    <span class="icon icon-users"></span>
                     <span>Client Management</span>
-                </button>
+                </a>
             </div>
         </nav>
 
@@ -740,6 +744,49 @@
         let currentPeriod = '1M';
         let chartCollapsed = false;
         
+        // Universal Navigation System
+        function initializeNavigation() {
+            // Get current page name
+            const currentPage = window.location.pathname.split('/').pop() || 'dashboard.html';
+            
+            console.log('Current page:', currentPage);
+            
+            // Remove active class from all nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Add active class to current page
+            let currentNavItem = document.querySelector(`.nav-item[href="${currentPage}"]`);
+            
+            // Handle special cases
+            if (!currentNavItem) {
+                if (currentPage.includes('dashboard') || currentPage === '' || currentPage === 'index.html') {
+                    currentNavItem = document.querySelector(`.nav-item[href="dashboard.html"]`);
+                }
+            }
+            
+            if (currentNavItem) {
+                currentNavItem.classList.add('active');
+                console.log('Set active:', currentNavItem.href);
+            }
+            
+            // Handle navigation clicks - ensure authentication
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    const token = localStorage.getItem('aequitas_auth_token');
+                    if (!token) {
+                        e.preventDefault();
+                        showNotification('Please log in to access this page.', 'warning');
+                        setTimeout(() => {
+                            window.location.href = 'login.html';
+                        }, 1000);
+                        return;
+                    }
+                });
+            });
+        }
+        
         // Theme Toggle
         function toggleTheme() {
             currentTheme = currentTheme === 'light' ? 'dark' : 'light';
@@ -780,27 +827,6 @@
                         createEquityChart();
                     }
                 }, 300);
-            }
-        }
-
-        // FIXED Navigation - Proper hyperlinks
-        function navigateTo(page) {
-            console.log(`Navigation to: ${page}`);
-            
-            if (page === 'deposit') {
-                window.location.href = 'deposit.html';
-            } else if (page === 'dashboard') {
-                window.location.href = 'dashboard.html';
-            } else if (page === 'support') {
-                window.location.href = 'support.html';
-            } else if (page === 'admin') {
-                window.location.href = 'admin.html';
-            } else if (page === 'statements') {
-                alert('Statements page coming soon!');
-            } else if (page === 'withdraw') {
-                alert('Withdraw page coming soon!');
-            } else if (page === 'profile') {
-                alert('Profile page coming soon!');
             }
         }
 
@@ -1221,6 +1247,43 @@
             economicCalendarContainer.appendChild(economicCalendarScript);
         }
 
+        // Notification system
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 16px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 500;
+                z-index: 10001;
+                max-width: 400px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                animation: slideInRight 0.3s ease-out;
+                ${type === 'success' ? 'background: linear-gradient(135deg, #10b981, #059669);' : ''}
+                ${type === 'error' ? 'background: linear-gradient(135deg, #ef4444, #dc2626);' : ''}
+                ${type === 'warning' ? 'background: linear-gradient(135deg, #f59e0b, #d97706);' : ''}
+                ${type === 'info' ? 'background: linear-gradient(135deg, #3b82f6, #2563eb);' : ''}
+            `;
+            
+            notification.innerHTML = `
+                <div style="display: flex; align-items: flex-start; gap: 8px;">
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.style.animation = 'slideOutRight 0.3s ease-in';
+                    setTimeout(() => notification.remove(), 300);
+                }
+            }, 5000);
+        }
+
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded, initializing dashboard...');
@@ -1243,6 +1306,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const themeToggle = document.querySelector('.theme-toggle .icon');
                 themeToggle.className = 'icon icon-sun';
             }
+            
+            // Initialize navigation
+            initializeNavigation();
             
             // Load dashboard data first
             loadDashboard();
@@ -1288,5 +1354,4 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     </script>
 </body>
-</html>
 </html>
