@@ -1,4 +1,434 @@
-<!DOCTYPE html>
+</style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-container">
+                <img src="https://i.ibb.co/8DfYwWdG/Aequitas-White-Logo.png" alt="Aequitas Capital Partners" class="logo">
+            </div>
+            <button class="theme-toggle" onclick="toggleTheme()">
+                <span class="icon icon-moon"></span>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Account</div>
+                <button class="nav-item" onclick="navigateTo('dashboard')">
+                    <span class="icon icon-dashboard"></span>
+                    <span>Overview</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('statements')">
+                    <span class="icon icon-document"></span>
+                    <span>Statements</span>
+                </button>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Trading</div>
+                <button class="nav-item" onclick="navigateTo('deposit')">
+                    <span class="icon icon-money"></span>
+                    <span>Deposit</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('withdraw')">
+                    <span class="icon icon-bank"></span>
+                    <span>Withdraw</span>
+                </button>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Settings</div>
+                <button class="nav-item" onclick="navigateTo('profile')">
+                    <span class="icon icon-user"></span>
+                    <span>Profile</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('support')">
+                    <span class="icon icon-chat"></span>
+                    <span>Support</span>
+                </button>
+            </div>
+
+            <!-- Admin Section -->
+            <div class="nav-section" id="adminSection">
+                <div class="nav-section-title">Admin</div>
+                <button class="nav-item active" onclick="navigateTo('admin')">
+                    <span class="icon icon-users"></span>
+                    <span>Client Management</span>
+                </button>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">A</div>
+                <div class="user-details">
+                    <h4 id="userName">Admin User</h4>
+                    <p id="userEmail">admin@aequitascap.com</p>
+                </div>
+            </div>
+            <button class="logout-btn" onclick="logout()">
+                <span class="icon icon-logout"></span>
+                <span>Logout</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="top-bar">
+            <h1 class="page-title">Admin Dashboard</h1>
+            <div class="top-user-info">
+                <span>Welcome back,</span>
+                <span id="topUserName">Admin</span>
+            </div>
+        </div>
+
+        <div class="admin-content">
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Total Clients</span>
+                        <span class="icon icon-users stat-icon"></span>
+                    </div>
+                    <div class="stat-value" id="totalClients">0</div>
+                    <div class="stat-change positive">
+                        <span class="icon icon-check"></span>
+                        <span>+0 this month</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Monthly Deposits</span>
+                        <span class="icon icon-money stat-icon"></span>
+                    </div>
+                    <div class="stat-value" id="activeDeposits">$0</div>
+                    <div class="stat-change positive">
+                        <span class="icon icon-check"></span>
+                        <span>+0% vs last month</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Support Tickets</span>
+                        <span class="icon icon-chat stat-icon"></span>
+                    </div>
+                    <div class="stat-value" id="supportTickets">0</div>
+                    <div class="stat-change neutral">
+                        <span class="icon icon-clock"></span>
+                        <span id="pendingTickets">0 pending</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Total Client Assets</span>
+                        <span class="icon icon-check stat-icon"></span>
+                    </div>
+                    <div class="stat-value" id="systemStatus">$0</div>
+                    <div class="stat-change positive">
+                        <span class="icon icon-check"></span>
+                        <span>All accounts active</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Admin Panel -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title-section">
+                        <span class="icon icon-users card-icon"></span>
+                        <h2 class="card-title">Admin Management</h2>
+                    </div>
+                    <button class="btn btn-primary" onclick="openAddClientModal()">
+                        <span class="icon icon-plus"></span>
+                        Add New Client
+                    </button>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tabs">
+                    <button class="tab active" data-tab="clients" onclick="switchTab('clients')">All Clients</button>
+                    <button class="tab" data-tab="deposits" onclick="switchTab('deposits')">Deposit Requests</button>
+                    <button class="tab" data-tab="pending" onclick="switchTab('pending')">Pending Users</button>
+                    <button class="tab" data-tab="support" onclick="switchTab('support')">
+                        Client Support
+                        <span class="tab-badge" id="supportTabBadge" style="display: none;">0</span>
+                    </button>
+                    <button class="tab" data-tab="reports" onclick="switchTab('reports')">Reports</button>
+                </div>
+
+                <!-- Support Tab -->
+                <div class="tab-content" id="support-tab">
+                    <!-- Support Tickets Management -->
+                    <div class="search-filters">
+                        <div class="search-input">
+                            <span class="icon icon-search"></span>
+                            <input type="text" placeholder="Search support tickets..." id="supportSearch" onkeyup="filterSupportTickets()">
+                        </div>
+                        <select class="filter-select" id="supportStatusFilter" onchange="filterSupportTickets()">
+                            <option value="">All Status</option>
+                            <option value="open">Open</option>
+                            <option value="responded">Responded</option>
+                            <option value="closed">Closed</option>
+                        </select>
+                        <select class="filter-select" id="supportPriorityFilter" onchange="filterSupportTickets()">
+                            <option value="">All Priority</option>
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+
+                    <div id="supportTicketsContainer">
+                        <!-- Support tickets will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Clients Tab -->
+                <div class="tab-content active" id="clients-tab">
+                    <!-- Search and Filters -->
+                    <div class="search-filters">
+                        <div class="search-input">
+                            <span class="icon icon-search"></span>
+                            <input type="text" placeholder="Search clients..." id="clientSearch" onkeyup="filterClients()">
+                        </div>
+                        <select class="filter-select" id="statusFilter" onchange="filterClients()">
+                            <option value="">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="pending">Pending</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="exportClients()">
+                            <span class="icon icon-download"></span>
+                            Export
+                        </button>
+                    </div>
+
+                    <!-- Clients Table -->
+                    <div style="overflow-x: auto;">
+                        <table class="data-table" id="clientsTable">
+                            <thead>
+                                <tr>
+                                    <th>Client</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Total Deposits</th>
+                                    <th>Current Balance</th>
+                                    <th>Status</th>
+                                    <th>Joined</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="clientsTableBody">
+                                <!-- Dynamic content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Deposits Tab -->
+                <div class="tab-content" id="deposits-tab">
+                    <div class="search-filters">
+                        <div class="search-input">
+                            <span class="icon icon-search"></span>
+                            <input type="text" placeholder="Search deposits..." id="depositSearch" onkeyup="filterDeposits()">
+                        </div>
+                        <select class="filter-select" id="depositStatusFilter" onchange="filterDeposits()">
+                            <option value="">All Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="completed">Completed</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+
+                    <div style="overflow-x: auto;">
+                        <table class="data-table" id="depositsTable">
+                            <thead>
+                                <tr>
+                                    <th>Reference</th>
+                                    <th>Client</th>
+                                    <th>Amount</th>
+                                    <th>Purpose</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="depositsTableBody">
+                                <!-- Dynamic content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Pending Users Tab -->
+                <div class="tab-content" id="pending-tab">
+                    <div class="search-filters">
+                        <div class="search-input">
+                            <span class="icon icon-search"></span>
+                            <input type="text" placeholder="Search pending users..." id="pendingSearch" onkeyup="filterPendingUsers()">
+                        </div>
+                        <select class="filter-select" id="pendingFilter" onchange="filterPendingUsers()">
+                            <option value="">All Status</option>
+                            <option value="setup_pending">Setup Required</option>
+                            <option value="documents_pending">Documents Required</option>
+                            <option value="review_pending">Awaiting Review</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="exportPendingUsers()">
+                            <span class="icon icon-download"></span>
+                            Export
+                        </button>
+                    </div>
+
+                    <div style="overflow-x: auto;">
+                        <table class="data-table" id="pendingUsersTable">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Email</th>
+                                    <th>Setup Progress</th>
+                                    <th>Documents</th>
+                                    <th>Submitted</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pendingUsersTableBody">
+                                <!-- Dynamic content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Reports Tab -->
+                <div class="tab-content" id="reports-tab">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-title">Monthly Deposits</span>
+                                <span class="icon icon-money stat-icon"></span>
+                            </div>
+                            <div class="stat-value">$0</div>
+                            <div class="stat-change positive">
+                                <span class="icon icon-check"></span>
+                                <span>+0% vs last month</span>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-title">New Clients</span>
+                                <span class="icon icon-users stat-icon"></span>
+                            </div>
+                            <div class="stat-value">0</div>
+                            <div class="stat-change positive">
+                                <span class="icon icon-check"></span>
+                                <span>+0% vs last month</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 24px;">
+                        <button class="btn btn-primary" onclick="generateReport()">
+                            <span class="icon icon-download"></span>
+                            Generate Full Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Complete Working JavaScript with REAL DATABASE INTEGRATION AND SUPPORT SYSTEM -->
+    <script>
+        // === ADMIN SUPPORT SYSTEM VARIABLES ===
+        let currentTheme = 'light';
+        let clients = [];
+        let deposits = [];
+        let pendingUsers = [];
+        let supportTickets = []; // ALL SUPPORT TICKETS FOR ADMIN
+        let currentPage = 1;
+        let itemsPerPage = 10;
+        let currentTab = 'clients';
+        let editingClientId = null;
+        let viewingDepositId = null;
+        let totalUnreadSupport = 0; // ADMIN UNREAD COUNT
+
+        // Get auth token for API calls
+        function getAuthToken() {
+            return localStorage.getItem('aequitas_auth_token');
+        }
+
+        // === SUPPORT SYSTEM INTEGRATION ===
+
+        // Load Support Tickets (ADMIN VIEW - ALL TICKETS FROM ALL USERS)
+        async function loadSupportTickets() {
+            try {
+                console.log('📋 Loading ALL support tickets for admin...');
+                
+                const response = await fetch('/api/support', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    supportTickets = data.tickets; // ADMIN GETS ALL TICKETS
+                    totalUnreadSupport = data.totalUnread || 0; // ADMIN UNREAD COUNT
+                    
+                    updateSupportStats();
+                    updateSupportBadges();
+                    renderSupportTickets();
+                    
+                    console.log(`✅ Loaded ${supportTickets.length} support tickets, ${totalUnreadSupport} unread`);
+                } else {
+                    throw new Error(data.error || 'Failed to load support tickets');
+                }
+                
+            } catch (error) {
+                console.error('💥 Failed to load support tickets:', error);
+                showNotification('Failed to load support tickets', 'error');
+            }
+        }
+
+        // Render Support Tickets (ADMIN VIEW)
+        function renderSupportTickets() {
+            const container = document.getElementById('supportTicketsContainer');
+            const searchTerm = document.getElementById('supportSearch').value.toLowerCase();
+            const statusFilter = document.getElementById('supportStatusFilter').value;
+            const priorityFilter = document.getElementById('supportPriorityFilter').value;
+            
+            let filteredTickets = supportTickets.filter(ticket => {
+                const matchesSearch = ticket.subject.toLowerCase().includes(searchTerm) ||
+                                    (ticket.first_name && ticket.first_name.toLowerCase().includes(searchTerm)) ||
+                                    (ticket.last_name && ticket.last_name.toLowerCase().includes(searchTerm)) ||
+                                    (ticket.email && ticket.email.toLowerCase().includes(searchTerm));
+                const matchesStatus = !statusFilter || ticket.status === statusFilter;
+                const matchesPriority = !priorityFilter || ticket.priority === priorityFilter;
+                return matchesSearch && matchesStatus && matchesPriority;
+            });
+            
+            if (filteredTickets.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                        <div style="font-size: 18px; margin-bottom: 8px;">No support tickets found</div>
+                        <div style="font-size: 14px;">Client support tickets will appear here.</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = filteredTickets.map(ticket => `
+                <div class="ticket-item" data-ticket-id="${ticket<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -152,6 +582,14 @@
             mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'/%3E%3C/svg%3E");
         }
 
+        .icon-send {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m22 2-7 20-4-9-9-4 20-7z'/%3E%3C/svg%3E");
+        }
+
+        .icon-chevron-down {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+        }
+
         /* Sidebar Styles */
         .sidebar {
             position: fixed;
@@ -237,6 +675,7 @@
             width: 100%;
             text-align: left;
             cursor: pointer;
+            position: relative;
         }
 
         .nav-item:hover {
@@ -248,6 +687,31 @@
             background: var(--sidebar-active);
             color: var(--accent);
             border-right: 3px solid var(--accent);
+        }
+
+        /* Notification Badge for Support */
+        .notification-badge {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--error);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: translateY(-50%) scale(1); }
+            50% { transform: translateY(-50%) scale(1.1); }
+            100% { transform: translateY(-50%) scale(1); }
         }
 
         .sidebar-footer {
@@ -682,155 +1146,245 @@
             color: var(--error);
         }
 
-        /* Modal */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
+        .status.open {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
         }
 
-        .modal.show {
-            opacity: 1;
-            visibility: visible;
+        .status.responded {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent);
         }
 
-        .modal-content {
-            background: var(--bg-primary);
-            border-radius: 12px;
-            padding: 24px;
-            max-width: 600px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-            transform: translateY(-20px);
-            transition: transform 0.3s ease;
+        .status.closed {
+            background: rgba(156, 163, 175, 0.1);
+            color: var(--text-tertiary);
         }
 
-        .modal.show .modal-content {
-            transform: translateY(0);
+        /* Support Tickets Specific Styles */
+        .ticket-item {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            transition: all 0.2s ease;
         }
 
-        .modal-header {
+        .ticket-item:hover {
+            border-color: var(--accent);
+        }
+
+        .ticket-header {
+            padding: 16px 20px;
+            background: var(--bg-secondary);
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 24px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--border-color);
+            gap: 12px;
         }
 
-        .modal-title {
-            font-size: 20px;
+        .ticket-info {
+            flex: 1;
+        }
+
+        .ticket-title {
+            font-size: 16px;
             font-weight: 600;
             color: var(--text-primary);
+            margin-bottom: 4px;
         }
 
-        .modal-close {
+        .ticket-meta {
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .ticket-client {
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .ticket-toggle {
             background: none;
             border: none;
             color: var(--text-secondary);
             cursor: pointer;
-            padding: 8px;
-            border-radius: 6px;
+            padding: 4px;
+            border-radius: 4px;
             transition: all 0.2s ease;
         }
 
-        .modal-close:hover {
+        .ticket-toggle:hover {
             background: var(--bg-tertiary);
             color: var(--text-primary);
         }
 
-        .modal-body {
+        .ticket-content {
+            display: none;
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .ticket-content.expanded {
+            display: block;
+        }
+
+        /* Messages */
+        .messages-container {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 16px;
+            padding-right: 8px;
+        }
+
+        .message {
+            margin-bottom: 16px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .message.admin .message-bubble {
+            background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+            color: white;
+            margin-left: auto;
+        }
+
+        .message.user .message-bubble {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .message-bubble {
+            padding: 12px 16px;
+            border-radius: 12px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+
+        .message-content {
+            font-size: 14px;
+            line-height: 1.4;
+            margin-bottom: 4px;
+        }
+
+        .message-time {
+            font-size: 11px;
+            opacity: 0.7;
+        }
+
+        .reply-form {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+        }
+
+        .reply-input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 14px;
+            resize: none;
+            min-height: 40px;
+            max-height: 120px;
+        }
+
+        .reply-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .reply-btn {
+            padding: 10px 12px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .reply-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
             margin-bottom: 24px;
         }
 
-        .modal-footer {
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-            padding-top: 16px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        /* Form Grid for Modal */
-        .modal-form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-
-        .modal-form-group {
-            margin-bottom: 16px;
-        }
-
-        .modal-form-group.full-width {
-            grid-column: 1 / -1;
-        }
-
-        .modal-form-group label {
-            display: block;
+        .tab {
+            padding: 12px 20px;
+            border: none;
+            background: none;
+            color: var(--text-secondary);
+            cursor: pointer;
             font-size: 14px;
             font-weight: 500;
-            color: var(--text-primary);
-            margin-bottom: 6px;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+            position: relative;
         }
 
-        /* Pagination */
-        .pagination {
+        .tab:hover {
+            color: var(--text-primary);
+        }
+
+        .tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Support specific notification badge on tab */
+        .tab-badge {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: var(--error);
+            color: white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            font-size: 10px;
+            font-weight: 700;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            margin-top: 24px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .pagination-info {
-            color: var(--text-secondary);
-            font-size: 14px;
-        }
-
-        .pagination-controls {
-            display: flex;
-            gap: 8px;
-        }
-
-        .pagination-btn {
-            padding: 8px 12px;
-            border: 1px solid var(--border-color);
-            background: var(--bg-primary);
-            color: var(--text-secondary);
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-size: 14px;
-        }
-
-        .pagination-btn:hover:not(:disabled) {
-            background: var(--bg-tertiary);
-            color: var(--text-primary);
-        }
-
-        .pagination-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .pagination-btn.active {
-            background: var(--accent);
-            color: white;
-            border-color: var(--accent);
+            justify-content: center;
+            animation: pulse 2s infinite;
         }
 
         /* Action Buttons */
@@ -886,145 +1440,6 @@
             font-size: 12px;
         }
 
-        /* Form Styles for Admin */
-        .admin-form {
-            display: grid;
-            gap: 20px;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-
-        .form-field {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .form-field.full-width {
-            grid-column: 1 / -1;
-        }
-
-        .form-field label {
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text-primary);
-        }
-
-        .form-field input,
-        .form-field select,
-        .form-field textarea {
-            padding: 12px 16px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            font-size: 14px;
-            transition: all 0.2s ease;
-        }
-
-        .form-field input:focus,
-        .form-field select:focus,
-        .form-field textarea:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        .form-field textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        /* Tabs */
-        .tabs {
-            display: flex;
-            border-bottom: 1px solid var(--border-color);
-            margin-bottom: 24px;
-        }
-
-        .tab {
-            padding: 12px 20px;
-            border: none;
-            background: none;
-            color: var(--text-secondary);
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            border-bottom: 2px solid transparent;
-            transition: all 0.2s ease;
-        }
-
-        .tab:hover {
-            color: var(--text-primary);
-        }
-
-        .tab.active {
-            color: var(--accent);
-            border-bottom-color: var(--accent);
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Loading States */
-        .loading {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px;
-            color: var(--text-secondary);
-        }
-
-        .spinner {
-            width: 24px;
-            height: 24px;
-            border: 2px solid var(--border-color);
-            border-top: 2px solid var(--accent);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-right: 12px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Empty States */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--text-secondary);
-        }
-
-        .empty-state-icon {
-            width: 64px;
-            height: 64px;
-            margin: 0 auto 16px;
-            color: var(--text-tertiary);
-        }
-
-        .empty-state-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-        }
-
-        .empty-state-description {
-            font-size: 14px;
-            margin-bottom: 24px;
-        }
-
         /* Responsive Design */
         @media (max-width: 1024px) {
             .sidebar {
@@ -1050,14 +1465,6 @@
 
             .search-input {
                 min-width: auto;
-            }
-
-            .modal-form-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .form-row {
-                grid-template-columns: 1fr;
             }
         }
 
@@ -1087,47 +1494,12 @@
                 flex-direction: column;
             }
 
-            .modal-content {
-                margin: 20px;
-                width: calc(100% - 40px);
-            }
-
             .tabs {
                 overflow-x: auto;
                 white-space: nowrap;
             }
-
-            .pagination {
-                flex-direction: column;
-                gap: 16px;
-                align-items: stretch;
-            }
-
-            .pagination-controls {
-                justify-content: center;
-            }
         }
-
-        @media (max-width: 480px) {
-            .top-bar {
-                padding: 12px 16px;
-            }
-
-            .page-title {
-                font-size: 20px;
-            }
-
-            .btn {
-                padding: 10px 16px;
-                font-size: 13px;
-            }
-
-            .data-table th,
-            .data-table td {
-                padding: 6px;
-            }
-        }
-    </style>
+                                                           </style>
 </head>
 <body>
     <!-- Sidebar -->
@@ -1242,13 +1614,13 @@
 
                 <div class="stat-card">
                     <div class="stat-header">
-                        <span class="stat-title">Pending Requests</span>
-                        <span class="icon icon-document stat-icon"></span>
+                        <span class="stat-title">Support Tickets</span>
+                        <span class="icon icon-chat stat-icon"></span>
                     </div>
-                    <div class="stat-value" id="pendingRequests">0</div>
+                    <div class="stat-value" id="supportTickets">0</div>
                     <div class="stat-change neutral">
-                        <span class="icon icon-check"></span>
-                        <span>0 awaiting review</span>
+                        <span class="icon icon-clock"></span>
+                        <span id="pendingTickets">0 pending</span>
                     </div>
                 </div>
 
@@ -1270,7 +1642,7 @@
                 <div class="card-header">
                     <div class="card-title-section">
                         <span class="icon icon-users card-icon"></span>
-                        <h2 class="card-title">Client Management</h2>
+                        <h2 class="card-title">Admin Management</h2>
                     </div>
                     <button class="btn btn-primary" onclick="openAddClientModal()">
                         <span class="icon icon-plus"></span>
@@ -1283,7 +1655,38 @@
                     <button class="tab active" data-tab="clients" onclick="switchTab('clients')">All Clients</button>
                     <button class="tab" data-tab="deposits" onclick="switchTab('deposits')">Deposit Requests</button>
                     <button class="tab" data-tab="pending" onclick="switchTab('pending')">Pending Users</button>
+                    <button class="tab" data-tab="support" onclick="switchTab('support')">
+                        Client Support
+                        <span class="tab-badge" id="supportTabBadge" style="display: none;">0</span>
+                    </button>
                     <button class="tab" data-tab="reports" onclick="switchTab('reports')">Reports</button>
+                </div>
+
+                <!-- Support Tab -->
+                <div class="tab-content" id="support-tab">
+                    <!-- Support Tickets Management -->
+                    <div class="search-filters">
+                        <div class="search-input">
+                            <span class="icon icon-search"></span>
+                            <input type="text" placeholder="Search support tickets..." id="supportSearch" onkeyup="filterSupportTickets()">
+                        </div>
+                        <select class="filter-select" id="supportStatusFilter" onchange="filterSupportTickets()">
+                            <option value="">All Status</option>
+                            <option value="open">Open</option>
+                            <option value="responded">Responded</option>
+                            <option value="closed">Closed</option>
+                        </select>
+                        <select class="filter-select" id="supportPriorityFilter" onchange="filterSupportTickets()">
+                            <option value="">All Priority</option>
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+
+                    <div id="supportTicketsContainer">
+                        <!-- Support tickets will be loaded here -->
+                    </div>
                 </div>
 
                 <!-- Clients Tab -->
@@ -1325,16 +1728,6 @@
                                 <!-- Dynamic content -->
                             </tbody>
                         </table>
-                    </div>
-
-                    <!-- Pagination -->
-                    <div class="pagination">
-                        <div class="pagination-info" id="paginationInfo">
-                            Showing 0-0 of 0 clients
-                        </div>
-                        <div class="pagination-controls" id="paginationControls">
-                            <!-- Dynamic pagination buttons -->
-                        </div>
                     </div>
                 </div>
 
@@ -1554,15 +1947,370 @@
         </div>
     </div>
     
-    <!-- Complete Working JavaScript with REAL DATABASE INTEGRATION AND USER APPROVAL -->
+    <!-- Complete Working JavaScript with REAL DATABASE INTEGRATION AND SUPPORT SYSTEM -->
     <script>
-        // === REAL DATABASE INTEGRATION SYSTEM ===
-        
+        // === ADMIN SUPPORT SYSTEM VARIABLES ===
+        let currentTheme = 'light';
+        let clients = [];
+        let deposits = [];
+        let pendingUsers = [];
+        let supportTickets = []; // ALL SUPPORT TICKETS FOR ADMIN
+        let currentPage = 1;
+        let itemsPerPage = 10;
+        let currentTab = 'clients';
+        let editingClientId = null;
+        let viewingDepositId = null;
+        let totalUnreadSupport = 0; // ADMIN UNREAD COUNT
+
         // Get auth token for API calls
         function getAuthToken() {
             return localStorage.getItem('aequitas_auth_token');
         }
-        
+
+        // === SUPPORT SYSTEM INTEGRATION ===
+
+        // Load Support Tickets (ADMIN VIEW - ALL TICKETS FROM ALL USERS)
+        async function loadSupportTickets() {
+            try {
+                console.log('📋 Loading ALL support tickets for admin...');
+                
+                const response = await fetch('/api/support', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    supportTickets = data.tickets; // ADMIN GETS ALL TICKETS
+                    totalUnreadSupport = data.totalUnread || 0; // ADMIN UNREAD COUNT
+                    
+                    updateSupportStats();
+                    updateSupportBadges();
+                    renderSupportTickets();
+                    
+                    console.log(`✅ Loaded ${supportTickets.length} support tickets, ${totalUnreadSupport} unread`);
+                } else {
+                    throw new Error(data.error || 'Failed to load support tickets');
+                }
+                
+            } catch (error) {
+                console.error('💥 Failed to load support tickets:', error);
+                showNotification('Failed to load support tickets', 'error');
+            }
+        }
+
+        // Render Support Tickets (ADMIN VIEW)
+        function renderSupportTickets() {
+            const container = document.getElementById('supportTicketsContainer');
+            const searchTerm = document.getElementById('supportSearch').value.toLowerCase();
+            const statusFilter = document.getElementById('supportStatusFilter').value;
+            const priorityFilter = document.getElementById('supportPriorityFilter').value;
+            
+            let filteredTickets = supportTickets.filter(ticket => {
+                const matchesSearch = ticket.subject.toLowerCase().includes(searchTerm) ||
+                                    (ticket.first_name && ticket.first_name.toLowerCase().includes(searchTerm)) ||
+                                    (ticket.last_name && ticket.last_name.toLowerCase().includes(searchTerm)) ||
+                                    (ticket.email && ticket.email.toLowerCase().includes(searchTerm));
+                const matchesStatus = !statusFilter || ticket.status === statusFilter;
+                const matchesPriority = !priorityFilter || ticket.priority === priorityFilter;
+                return matchesSearch && matchesStatus && matchesPriority;
+            });
+            
+            if (filteredTickets.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                        <div style="font-size: 18px; margin-bottom: 8px;">No support tickets found</div>
+                        <div style="font-size: 14px;">Client support tickets will appear here.</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = filteredTickets.map(ticket => `
+                <div class="ticket-item" data-ticket-id="${ticket.id}">
+                    <div class="ticket-header" onclick="toggleTicket('${ticket.id}')">
+                        <div class="ticket-info">
+                            <div class="ticket-title">${ticket.subject}</div>
+                            <div class="ticket-meta">
+                                <span class="ticket-client">${ticket.first_name} ${ticket.last_name}</span>
+                                <span>${ticket.email}</span>
+                                <span class="ticket-status status-${ticket.status}">
+                                    <span class="icon icon-clock"></span>
+                                    ${getStatusLabel(ticket.status)}
+                                </span>
+                                <span>Priority: ${ticket.priority}</span>
+                                <span>Created: ${new Date(ticket.created_at).toLocaleDateString()}</span>
+                                ${ticket.unread_count_admin > 0 ? `<span style="color: var(--error); font-weight: 600;">${ticket.unread_count_admin} new message${ticket.unread_count_admin > 1 ? 's' : ''}</span>` : ''}
+                            </div>
+                        </div>
+                        <button class="ticket-toggle" id="toggle-${ticket.id}">
+                            <span class="icon icon-chevron-down"></span>
+                        </button>
+                    </div>
+                    <div class="ticket-content" id="content-${ticket.id}">
+                        <div class="messages-container" id="messages-${ticket.id}">
+                            <!-- Messages will be loaded here -->
+                        </div>
+                        <div class="reply-form">
+                            <textarea class="reply-input" id="reply-${ticket.id}" placeholder="Type your response as Henry Cohen..." rows="1"></textarea>
+                            <button class="reply-btn" onclick="sendAdminReply('${ticket.id}')">
+                                <span class="icon icon-send"></span>
+                            </button>
+                        </div>
+                        <div style="margin-top: 12px; display: flex; gap: 8px;">
+                            <button class="btn btn-sm btn-secondary" onclick="closeTicket('${ticket.id}')">
+                                Close Ticket
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Update Support Badge
+        function updateSupportBadges() {
+            const supportTabBadge = document.getElementById('supportTabBadge');
+            
+            if (totalUnreadSupport > 0) {
+                if (supportTabBadge) {
+                    supportTabBadge.textContent = totalUnreadSupport;
+                    supportTabBadge.style.display = 'inline-block';
+                }
+            } else {
+                if (supportTabBadge) {
+                    supportTabBadge.style.display = 'none';
+                }
+            }
+        }
+
+        // Update Support Stats
+        function updateSupportStats() {
+            const supportTicketsEl = document.getElementById('supportTickets');
+            const pendingTicketsEl = document.getElementById('pendingTickets');
+            
+            if (supportTicketsEl) {
+                supportTicketsEl.textContent = supportTickets.length;
+            }
+            
+            if (pendingTicketsEl) {
+                const openTickets = supportTickets.filter(t => t.status === 'open').length;
+                pendingTicketsEl.textContent = `${openTickets} pending`;
+            }
+        }
+
+        // Toggle Support Ticket Expansion (Admin)
+        async function toggleTicket(ticketId) {
+            const content = document.getElementById(`content-${ticketId}`);
+            const toggle = document.getElementById(`toggle-${ticketId}`);
+            
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                toggle.innerHTML = '<span class="icon icon-chevron-down"></span>';
+            } else {
+                content.classList.add('expanded');
+                toggle.innerHTML = '<span class="icon icon-chevron-up"></span>';
+                
+                // Load messages for this ticket
+                await loadTicketMessages(ticketId);
+                
+                // Mark as read for admin
+                await markTicketReadAdmin(ticketId);
+            }
+        }
+
+        // Load Messages for Admin Ticket View
+        async function loadTicketMessages(ticketId) {
+            try {
+                console.log(`📨 Admin loading messages for ticket: ${ticketId}`);
+                
+                const response = await fetch(`/api/support-messages?ticketId=${ticketId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    renderTicketMessages(ticketId, data.messages);
+                } else {
+                    throw new Error(data.error || 'Failed to load messages');
+                }
+                
+            } catch (error) {
+                console.error('💥 Failed to load ticket messages:', error);
+                showNotification('Failed to load messages', 'error');
+            }
+        }
+
+        // Render Messages in Admin View
+        function renderTicketMessages(ticketId, messages) {
+            const container = document.getElementById(`messages-${ticketId}`);
+            
+            if (messages.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: var(--text-secondary);">
+                        <div style="font-size: 14px;">No messages in this ticket yet.</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = messages.map(message => `
+                <div class="message ${message.sender_type}">
+                    <div class="message-avatar">
+                        ${message.sender_type === 'admin' ? 'HC' : (message.sender_name ? message.sender_name.split(' ').map(n => n[0]).join('') : 'U')}
+                    </div>
+                    <div class="message-bubble">
+                        <div class="message-content">${message.message}</div>
+                        <div class="message-time">
+                            ${message.sender_name} • ${new Date(message.created_at).toLocaleDateString()} ${new Date(message.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Scroll to bottom
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Send Admin Reply
+        async function sendAdminReply(ticketId) {
+            const replyInput = document.getElementById(`reply-${ticketId}`);
+            const message = replyInput.value.trim();
+            
+            if (!message) {
+                showNotification('Please enter a message', 'warning');
+                return;
+            }
+            
+            try {
+                console.log(`💬 Admin sending reply to ticket: ${ticketId}`);
+                
+                const response = await fetch('/api/support', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'send_message',
+                        ticketId: ticketId,
+                        message: message
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    replyInput.value = '';
+                    showNotification('Reply sent successfully!', 'success');
+                    
+                    // Reload messages
+                    await loadTicketMessages(ticketId);
+                    
+                    // Reload tickets to update unread counts
+                    await loadSupportTickets();
+                } else {
+                    throw new Error(data.error || 'Failed to send reply');
+                }
+                
+            } catch (error) {
+                console.error('💥 Failed to send admin reply:', error);
+                showNotification('Failed to send reply', 'error');
+            }
+        }
+
+        // Close Ticket (Admin Only)
+        async function closeTicket(ticketId) {
+            if (!confirm('Are you sure you want to close this ticket?')) {
+                return;
+            }
+            
+            try {
+                console.log(`🔒 Admin closing ticket: ${ticketId}`);
+                
+                const response = await fetch('/api/support', {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'close_ticket',
+                        ticketId: ticketId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Ticket closed successfully!', 'success');
+                    
+                    // Reload tickets
+                    await loadSupportTickets();
+                } else {
+                    throw new Error(data.error || 'Failed to close ticket');
+                }
+                
+            } catch (error) {
+                console.error('💥 Failed to close ticket:', error);
+                showNotification('Failed to close ticket', 'error');
+            }
+        }
+
+        // Mark Ticket as Read for Admin
+        async function markTicketReadAdmin(ticketId) {
+            try {
+                await fetch('/api/support', {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'mark_read',
+                        ticketId: ticketId
+                    })
+                });
+                
+                // Update local ticket unread count
+                const ticket = supportTickets.find(t => t.id === ticketId);
+                if (ticket) {
+                    ticket.unread_count_admin = 0;
+                    totalUnreadSupport = supportTickets.reduce((sum, t) => sum + (t.unread_count_admin || 0), 0);
+                    updateSupportBadges();
+                    updateSupportStats();
+                }
+                
+            } catch (error) {
+                console.error('Failed to mark ticket as read:', error);
+            }
+        }
+
+        // Filter Support Tickets
+        function filterSupportTickets() {
+            renderSupportTickets();
+        }
+
+        // Get Status Label for Support
+        function getStatusLabel(status) {
+            switch(status) {
+                case 'open': return 'Open';
+                case 'responded': return 'Responded';
+                case 'closed': return 'Closed';
+                default: return 'Unknown';
+            }
+        }
+
+        // === END SUPPORT SYSTEM INTEGRATION ===
+
         // Fetch real admin statistics from database
         async function fetchAdminStats() {
             try {
@@ -1588,20 +2336,20 @@
                 updateStatsDisplay(data.stats);
                 
                 // Update clients and deposits arrays with real data - FIXED mapping
-clients = data.clients.map(client => ({
-    id: client.id,
-    firstName: client.firstName || 'Unknown',  // API already returns camelCase
-    lastName: client.lastName || 'User',       // API already returns camelCase
-    email: client.email,
-    phone: client.phone || 'Not provided',
-    address: client.address || 'Not provided',
-    status: 'active',
-    joinDate: client.joinDate || 'Unknown',
-    totalDeposits: parseFloat(client.totalDeposits || 0),
-    lastActive: client.lastActive || 'Unknown',
-    accountValue: parseFloat(client.accountValue || 0),
-    startingBalance: parseFloat(client.startingBalance || 0)
-}));
+                clients = data.clients.map(client => ({
+                    id: client.id,
+                    firstName: client.firstName || 'Unknown',  // API already returns camelCase
+                    lastName: client.lastName || 'User',       // API already returns camelCase
+                    email: client.email,
+                    phone: client.phone || 'Not provided',
+                    address: client.address || 'Not provided',
+                    status: 'active',
+                    joinDate: client.joinDate || 'Unknown',
+                    totalDeposits: parseFloat(client.totalDeposits || 0),
+                    lastActive: client.lastActive || 'Unknown',
+                    accountValue: parseFloat(client.accountValue || 0),
+                    startingBalance: parseFloat(client.startingBalance || 0)
+                }));
                 
                 deposits = data.deposits;
                 
@@ -1806,18 +2554,6 @@ clients = data.clients.map(client => ({
                 throw error;
             }
         }
-        
-        // === END REAL DATABASE INTEGRATION SYSTEM ===
-
-        let currentTheme = 'light';
-        let clients = [];
-        let deposits = [];
-        let pendingUsers = [];
-        let currentPage = 1;
-        let itemsPerPage = 10;
-        let currentTab = 'clients';
-        let editingClientId = null;
-        let viewingDepositId = null;
 
         // FIXED Initialize data with REAL DATABASE INTEGRATION
         async function initializeData() {
@@ -1828,6 +2564,9 @@ clients = data.clients.map(client => ({
             
             // Also fetch pending users
             await fetchPendingUsers();
+            
+            // Also fetch support tickets
+            await loadSupportTickets();
             
             if (statsData) {
                 console.log(`✅ Admin loaded REAL data: ${clients.length} clients, ${deposits.length} deposits, ${pendingUsers.length} pending users`);
@@ -1855,6 +2594,8 @@ clients = data.clients.map(client => ({
                 window.location.href = 'dashboard.html';
             } else if (page === 'deposit') {
                 window.location.href = 'deposit.html';
+            } else if (page === 'support') {
+                window.location.href = 'support.html';
             } else if (page !== 'admin') {
                 alert(`${page.charAt(0).toUpperCase() + page.slice(1)} page coming soon!`);
             }
@@ -1893,6 +2634,10 @@ clients = data.clients.map(client => ({
             } else if (tabName === 'pending') {
                 fetchPendingUsers().then(() => {
                     renderPendingUsersTable();
+                });
+            } else if (tabName === 'support') {
+                loadSupportTickets().then(() => {
+                    renderSupportTickets();
                 });
             }
         }
@@ -2278,497 +3023,497 @@ clients = data.clients.map(client => ({
             
             updatePagination(filteredClients.length);
         }
+// Render deposits table 
+       function renderDepositsTable() {
+           const tbody = document.getElementById('depositsTableBody');
+           const searchTerm = document.getElementById('depositSearch').value.toLowerCase();
+           const statusFilter = document.getElementById('depositStatusFilter').value;
+           
+           let filteredDeposits = deposits.filter(deposit => {
+               const matchesSearch = deposit.reference.toLowerCase().includes(searchTerm) ||
+                                   deposit.clientName.toLowerCase().includes(searchTerm);
+               const matchesStatus = !statusFilter || deposit.status === statusFilter;
+               return matchesSearch && matchesStatus;
+           });
+           
+           if (filteredDeposits.length === 0) {
+               tbody.innerHTML = `
+                   <tr>
+                       <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                           <div style="font-size: 18px; margin-bottom: 8px;">No deposits found</div>
+                           <div style="font-size: 14px;">Deposit requests will appear here once clients submit them.</div>
+                       </td>
+                   </tr>
+               `;
+           } else {
+               tbody.innerHTML = filteredDeposits.map(deposit => `
+                   <tr>
+                       <td>
+                           <div style="font-weight: 500;">${deposit.reference}</div>
+                           <div style="font-size: 12px; color: var(--text-tertiary);">${deposit.id}</div>
+                       </td>
+                       <td>
+                           <div style="font-weight: 500;">${deposit.clientName}</div>
+                           <div style="font-size: 12px; color: var(--text-tertiary);">${deposit.clientEmail || ''}</div>
+                       </td>
+                       <td>${deposit.amount.toLocaleString()}</td>
+                       <td style="text-transform: capitalize;">${deposit.purpose}</td>
+                       <td><span class="status ${deposit.status}">${deposit.status}</span></td>
+                       <td>${new Date(deposit.date).toLocaleDateString()}</td>
+                       <td>
+                           <div class="action-buttons">
+                               <button class="action-btn view" onclick="viewDeposit('${deposit.id}')" title="View Details">
+                                   <span class="icon icon-eye"></span>
+                               </button>
+                               ${deposit.status === 'pending' ? `
+                                   <button class="action-btn edit" onclick="approveDepositQuick('${deposit.id}')" title="Quick Approve">
+                                       <span class="icon icon-check"></span>
+                                   </button>
+                               ` : ''}
+                           </div>
+                       </td>
+                   </tr>
+               `).join('');
+           }
+       }
 
-        // Render deposits table 
-        function renderDepositsTable() {
-            const tbody = document.getElementById('depositsTableBody');
-            const searchTerm = document.getElementById('depositSearch').value.toLowerCase();
-            const statusFilter = document.getElementById('depositStatusFilter').value;
-            
-            let filteredDeposits = deposits.filter(deposit => {
-                const matchesSearch = deposit.reference.toLowerCase().includes(searchTerm) ||
-                                    deposit.clientName.toLowerCase().includes(searchTerm);
-                const matchesStatus = !statusFilter || deposit.status === statusFilter;
-                return matchesSearch && matchesStatus;
-            });
-            
-            if (filteredDeposits.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-secondary);">
-                            <div style="font-size: 18px; margin-bottom: 8px;">No deposits found</div>
-                            <div style="font-size: 14px;">Deposit requests will appear here once clients submit them.</div>
-                        </td>
-                    </tr>
-                `;
-            } else {
-                tbody.innerHTML = filteredDeposits.map(deposit => `
-                    <tr>
-                        <td>
-                            <div style="font-weight: 500;">${deposit.reference}</div>
-                            <div style="font-size: 12px; color: var(--text-tertiary);">${deposit.id}</div>
-                        </td>
-                        <td>
-                            <div style="font-weight: 500;">${deposit.clientName}</div>
-                            <div style="font-size: 12px; color: var(--text-tertiary);">${deposit.clientEmail || ''}</div>
-                        </td>
-                        <td>${deposit.amount.toLocaleString()}</td>
-                        <td style="text-transform: capitalize;">${deposit.purpose}</td>
-                        <td><span class="status ${deposit.status}">${deposit.status}</span></td>
-                        <td>${new Date(deposit.date).toLocaleDateString()}</td>
-                        <td>
-                            <div class="action-buttons">
-                                <button class="action-btn view" onclick="viewDeposit('${deposit.id}')" title="View Details">
-                                    <span class="icon icon-eye"></span>
-                                </button>
-                                ${deposit.status === 'pending' ? `
-                                    <button class="action-btn edit" onclick="approveDepositQuick('${deposit.id}')" title="Quick Approve">
-                                        <span class="icon icon-check"></span>
-                                    </button>
-                                ` : ''}
-                            </div>
-                        </td>
-                    </tr>
-                `).join('');
-            }
-        }
+       // View deposit details
+       function viewDeposit(depositId) {
+           const deposit = deposits.find(d => d.id === depositId);
+           if (!deposit) {
+               console.error('Deposit not found:', depositId);
+               showNotification('Deposit not found!', 'error');
+               return;
+           }
+           
+           console.log('👁️ Admin viewing deposit:', deposit);
+           viewingDepositId = depositId;
+           
+           document.getElementById('depositDetailsBody').innerHTML = `
+               <div class="modal-form-grid">
+                   <div class="modal-form-group">
+                       <label>Reference Number</label>
+                       <div style="font-weight: 500;">${deposit.reference}</div>
+                   </div>
+                   <div class="modal-form-group">
+                       <label>Status</label>
+                       <span class="status ${deposit.status}">${deposit.status}</span>
+                   </div>
+                   <div class="modal-form-group">
+                       <label>Client Name</label>
+                       <div>${deposit.clientName || 'Unknown Client'}</div>
+                   </div>
+                   <div class="modal-form-group">
+                       <label>Client Email</label>
+                       <div>${deposit.clientEmail || 'Not provided'}</div>
+                   </div>
+                   <div class="modal-form-group">
+                       <label>Amount</label>
+                       <div style="font-weight: 600; color: var(--success);">${deposit.amount.toLocaleString()}</div>
+                   </div>
+                   <div class="modal-form-group">
+                       <label>Purpose</label>
+                       <div style="text-transform: capitalize;">${deposit.purpose}</div>
+                   </div>
+                   <div class="modal-form-group">
+                       <label>Date Submitted</label>
+                       <div>${new Date(deposit.date).toLocaleDateString()}</div>
+                   </div>
+                   <div class="modal-form-group full-width">
+                       <label>Bank Transfer Reference</label>
+                       <div style="padding: 12px; background: var(--bg-secondary); border-radius: 6px; font-family: monospace; font-weight: 600;">
+                           KC5230
+                       </div>
+                       <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+                           Client must include this reference in their bank transfer
+                       </div>
+                   </div>
+               </div>
+           `;
+           
+           // Show/hide action buttons based on status
+           document.getElementById('approveBtn').style.display = deposit.status === 'pending' ? 'inline-flex' : 'none';
+           document.getElementById('rejectBtn').style.display = deposit.status === 'pending' ? 'inline-flex' : 'none';
+           
+           openModal('depositModal');
+       }
+       
+       // Approve deposit
+       function approveDeposit() {
+           if (!viewingDepositId) return;
+           
+           const depositIndex = deposits.findIndex(d => d.id === viewingDepositId);
+           if (depositIndex !== -1) {
+               deposits[depositIndex].status = 'approved';
+               deposits[depositIndex].approvedAt = new Date().toISOString();
+               deposits[depositIndex].approvedBy = 'admin';
+               
+               closeModal('depositModal');
+               renderDepositsTable();
+               fetchAdminStats(); // Refresh stats
+               showNotification('Deposit approved successfully!', 'success');
+           }
+       }
 
-        // View deposit details
-        function viewDeposit(depositId) {
-            const deposit = deposits.find(d => d.id === depositId);
-            if (!deposit) {
-                console.error('Deposit not found:', depositId);
-                showNotification('Deposit not found!', 'error');
-                return;
-            }
-            
-            console.log('👁️ Admin viewing deposit:', deposit);
-            viewingDepositId = depositId;
-            
-            document.getElementById('depositDetailsBody').innerHTML = `
-                <div class="modal-form-grid">
-                    <div class="modal-form-group">
-                        <label>Reference Number</label>
-                        <div style="font-weight: 500;">${deposit.reference}</div>
-                    </div>
-                    <div class="modal-form-group">
-                        <label>Status</label>
-                        <span class="status ${deposit.status}">${deposit.status}</span>
-                    </div>
-                    <div class="modal-form-group">
-                        <label>Client Name</label>
-                        <div>${deposit.clientName || 'Unknown Client'}</div>
-                    </div>
-                    <div class="modal-form-group">
-                        <label>Client Email</label>
-                        <div>${deposit.clientEmail || 'Not provided'}</div>
-                    </div>
-                    <div class="modal-form-group">
-                        <label>Amount</label>
-                        <div style="font-weight: 600; color: var(--success);">${deposit.amount.toLocaleString()}</div>
-                    </div>
-                    <div class="modal-form-group">
-                        <label>Purpose</label>
-                        <div style="text-transform: capitalize;">${deposit.purpose}</div>
-                    </div>
-                    <div class="modal-form-group">
-                        <label>Date Submitted</label>
-                        <div>${new Date(deposit.date).toLocaleDateString()}</div>
-                    </div>
-                    <div class="modal-form-group full-width">
-                        <label>Bank Transfer Reference</label>
-                        <div style="padding: 12px; background: var(--bg-secondary); border-radius: 6px; font-family: monospace; font-weight: 600;">
-                            KC5230
-                        </div>
-                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
-                            Client must include this reference in their bank transfer
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            // Show/hide action buttons based on status
-            document.getElementById('approveBtn').style.display = deposit.status === 'pending' ? 'inline-flex' : 'none';
-            document.getElementById('rejectBtn').style.display = deposit.status === 'pending' ? 'inline-flex' : 'none';
-            
-            openModal('depositModal');
-        }
-        
-        // Approve deposit
-        function approveDeposit() {
-            if (!viewingDepositId) return;
-            
-            const depositIndex = deposits.findIndex(d => d.id === viewingDepositId);
-            if (depositIndex !== -1) {
-                deposits[depositIndex].status = 'approved';
-                deposits[depositIndex].approvedAt = new Date().toISOString();
-                deposits[depositIndex].approvedBy = 'admin';
-                
-                closeModal('depositModal');
-                renderDepositsTable();
-                fetchAdminStats(); // Refresh stats
-                showNotification('Deposit approved successfully!', 'success');
-            }
-        }
+       // Reject deposit
+       function rejectDeposit() {
+           if (!viewingDepositId) return;
+           
+           if (confirm('Are you sure you want to reject this deposit request?')) {
+               const depositIndex = deposits.findIndex(d => d.id === viewingDepositId);
+               if (depositIndex !== -1) {
+                   deposits[depositIndex].status = 'rejected';
+                   deposits[depositIndex].rejectedAt = new Date().toISOString();
+                   deposits[depositIndex].rejectedBy = 'admin';
+                   
+                   closeModal('depositModal');
+                   renderDepositsTable();
+                   fetchAdminStats(); // Refresh stats
+                   showNotification('Deposit rejected.', 'warning');
+               }
+           }
+       }
+       
+       function approveDepositQuick(depositId) {
+           const depositIndex = deposits.findIndex(d => d.id === depositId);
+           if (depositIndex !== -1) {
+               deposits[depositIndex].status = 'approved';
+               
+               renderDepositsTable();
+               fetchAdminStats(); // Refresh stats
+               showNotification('Deposit approved!', 'success');
+           }
+       }
 
-        // Reject deposit
-        function rejectDeposit() {
-            if (!viewingDepositId) return;
-            
-            if (confirm('Are you sure you want to reject this deposit request?')) {
-                const depositIndex = deposits.findIndex(d => d.id === viewingDepositId);
-                if (depositIndex !== -1) {
-                    deposits[depositIndex].status = 'rejected';
-                    deposits[depositIndex].rejectedAt = new Date().toISOString();
-                    deposits[depositIndex].rejectedBy = 'admin';
-                    
-                    closeModal('depositModal');
-                    renderDepositsTable();
-                    fetchAdminStats(); // Refresh stats
-                    showNotification('Deposit rejected.', 'warning');
-                }
-            }
-        }
-        
-        function approveDepositQuick(depositId) {
-            const depositIndex = deposits.findIndex(d => d.id === depositId);
-            if (depositIndex !== -1) {
-                deposits[depositIndex].status = 'approved';
-                
-                renderDepositsTable();
-                fetchAdminStats(); // Refresh stats
-                showNotification('Deposit approved!', 'success');
-            }
-        }
+       // Update pagination
+       function updatePagination(totalItems) {
+           const totalPages = Math.ceil(totalItems / itemsPerPage);
+           const paginationInfo = document.getElementById('paginationInfo');
+           const paginationControls = document.getElementById('paginationControls');
+           
+           const startItem = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
+           const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+           
+           paginationInfo.textContent = `Showing ${startItem}-${endItem} of ${totalItems} items`;
+           
+           if (totalPages <= 1) {
+               paginationControls.innerHTML = '';
+               return;
+           }
+           
+           let paginationHTML = '';
+           
+           // Previous button
+           paginationHTML += `
+               <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">
+                   Previous
+               </button>
+           `;
+           
+           // Page numbers
+           for (let i = 1; i <= totalPages; i++) {
+               if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                   paginationHTML += `
+                       <button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">
+                           ${i}
+                       </button>
+                   `;
+               } else if (i === currentPage - 3 || i === currentPage + 3) {
+                   paginationHTML += '<span style="padding: 8px;">...</span>';
+               }
+           }
+           
+           // Next button
+           paginationHTML += `
+               <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">
+                   Next
+               </button>
+           `;
+           
+           paginationControls.innerHTML = paginationHTML;
+       }
 
-        // Update pagination
-        function updatePagination(totalItems) {
-            const totalPages = Math.ceil(totalItems / itemsPerPage);
-            const paginationInfo = document.getElementById('paginationInfo');
-            const paginationControls = document.getElementById('paginationControls');
-            
-            const startItem = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
-            const endItem = Math.min(currentPage * itemsPerPage, totalItems);
-            
-            paginationInfo.textContent = `Showing ${startItem}-${endItem} of ${totalItems} items`;
-            
-            if (totalPages <= 1) {
-                paginationControls.innerHTML = '';
-                return;
-            }
-            
-            let paginationHTML = '';
-            
-            // Previous button
-            paginationHTML += `
-                <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">
-                    Previous
-                </button>
-            `;
-            
-            // Page numbers
-            for (let i = 1; i <= totalPages; i++) {
-                if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
-                    paginationHTML += `
-                        <button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">
-                            ${i}
-                        </button>
-                    `;
-                } else if (i === currentPage - 3 || i === currentPage + 3) {
-                    paginationHTML += '<span style="padding: 8px;">...</span>';
-                }
-            }
-            
-            // Next button
-            paginationHTML += `
-                <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">
-                    Next
-                </button>
-            `;
-            
-            paginationControls.innerHTML = paginationHTML;
-        }
+       // Change page
+       function changePage(page) {
+           currentPage = page;
+           if (currentTab === 'clients') {
+               renderClientsTable();
+           } else if (currentTab === 'deposits') {
+               renderDepositsTable();
+           }
+       }
 
-        // Change page
-        function changePage(page) {
-            currentPage = page;
-            if (currentTab === 'clients') {
-                renderClientsTable();
-            } else if (currentTab === 'deposits') {
-                renderDepositsTable();
-            }
-        }
+       // Filter functions
+       function filterClients() {
+           currentPage = 1;
+           renderClientsTable();
+       }
 
-        // Filter functions
-        function filterClients() {
-            currentPage = 1;
-            renderClientsTable();
-        }
+       function filterDeposits() {
+           currentPage = 1;
+           renderDepositsTable();
+       }
 
-        function filterDeposits() {
-            currentPage = 1;
-            renderDepositsTable();
-        }
+       // Modal functions
+       function openModal(modalId) {
+           document.getElementById(modalId).classList.add('show');
+       }
 
-        // Modal functions
-        function openModal(modalId) {
-            document.getElementById(modalId).classList.add('show');
-        }
+       function closeModal(modalId) {
+           document.getElementById(modalId).classList.remove('show');
+           if (modalId === 'clientModal') {
+               document.getElementById('clientForm').reset();
+               editingClientId = null;
+           }
+       }
 
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('show');
-            if (modalId === 'clientModal') {
-                document.getElementById('clientForm').reset();
-                editingClientId = null;
-            }
-        }
+       // Client management functions
+       function openAddClientModal() {
+           editingClientId = null;
+           document.getElementById('modalTitle').textContent = 'Add New Client';
+           document.getElementById('saveClientBtn').textContent = 'Save Client';
+           document.getElementById('clientForm').reset();
+           openModal('clientModal');
+       }
 
-        // Client management functions
-        function openAddClientModal() {
-            editingClientId = null;
-            document.getElementById('modalTitle').textContent = 'Add New Client';
-            document.getElementById('saveClientBtn').textContent = 'Save Client';
-            document.getElementById('clientForm').reset();
-            openModal('clientModal');
-        }
+       function editClient(clientId) {
+           console.log('✏️ Edit client called with ID:', clientId);
+           const client = clients.find(c => c.id === clientId);
+           console.log('📋 Found client:', client);
+           
+           if (!client) {
+               console.error('❌ Client not found:', clientId);
+               showNotification('Client not found!', 'error');
+               return;
+           }
+           
+           editingClientId = clientId;
+           console.log('📝 Set editingClientId to:', editingClientId);
+           
+           // Update modal title and button
+           document.getElementById('modalTitle').textContent = 'Edit Client';
+           document.getElementById('saveClientBtn').textContent = 'Update Client';
+           
+           // Populate form with client data - FIXED to handle undefined values
+           document.getElementById('firstName').value = client.firstName || '';
+           document.getElementById('lastName').value = client.lastName || '';
+           document.getElementById('email').value = client.email || '';
+           document.getElementById('phone').value = client.phone || '';
+           document.getElementById('address').value = client.address || '';
+           document.getElementById('initialDeposit').value = client.accountValue || 0;
+           document.getElementById('clientStatus').value = client.status || 'active';
+           document.getElementById('clientId').value = client.id;
+           
+           console.log('✅ Form populated with data');
+           console.log('Modal data check:', {
+               firstName: document.getElementById('firstName').value,
+               lastName: document.getElementById('lastName').value,
+               email: document.getElementById('email').value,
+               editingClientId: editingClientId
+           });
+           
+           openModal('clientModal');
+       }
 
-        function editClient(clientId) {
-    console.log('✏️ Edit client called with ID:', clientId);
-    const client = clients.find(c => c.id === clientId);
-    console.log('📋 Found client:', client);
-    
-    if (!client) {
-        console.error('❌ Client not found:', clientId);
-        showNotification('Client not found!', 'error');
-        return;
-    }
-    
-    editingClientId = clientId;
-    console.log('📝 Set editingClientId to:', editingClientId);
-    
-    // Update modal title and button
-    document.getElementById('modalTitle').textContent = 'Edit Client';
-    document.getElementById('saveClientBtn').textContent = 'Update Client';
-    
-    // Populate form with client data - FIXED to handle undefined values
-    document.getElementById('firstName').value = client.firstName || '';
-    document.getElementById('lastName').value = client.lastName || '';
-    document.getElementById('email').value = client.email || '';
-    document.getElementById('phone').value = client.phone || '';
-    document.getElementById('address').value = client.address || '';
-    document.getElementById('initialDeposit').value = client.accountValue || 0;
-    document.getElementById('clientStatus').value = client.status || 'active';
-    document.getElementById('clientId').value = client.id;
-    
-    console.log('✅ Form populated with data');
-    console.log('Modal data check:', {
-        firstName: document.getElementById('firstName').value,
-        lastName: document.getElementById('lastName').value,
-        email: document.getElementById('email').value,
-        editingClientId: editingClientId
-    });
-    
-    openModal('clientModal');
-}
-        function viewClient(clientId) {
-            const client = clients.find(c => c.id === clientId);
-            if (!client) return;
-            
-            // Get client deposits
-            const clientDeposits = deposits.filter(d => d.userId === clientId);
-            
-            document.getElementById('clientDetailsBody').innerHTML = `
-                <div class="modal-form-grid">
-                    <div class="modal-form-group">
-                        <label>Full Name</label>
-                        <div style="font-weight: 500;">${client.firstName} ${client.lastName}</div>
-                    </div>
-                    <div class="modal-form-group">
-                        <label>Status</label>
-                        <span class="status ${client.status}">${client.status}</span>
-                    </div>
-                    <div class="modal-form-group">
-                        <label>Email</label>
-                        <div>${client.email}</div>
-                    </div>
-                    <div class="modal-form-group">
-                        <label>Phone</label>
-                        <div>${client.phone || 'Not provided'}</div>
-                    </div>
-                    <div class="modal-form-group full-width">
-                        <label>Address</label>
-                        <div>${client.address || 'Not provided'}</div>
-                    </div>
-                    <div class="modal-form-group">
-                        <label>Join Date</label>
-                        <div>${new Date(client.joinDate).toLocaleDateString()}</div>
-                    </div>
-                    <div class="modal-form-group">
-                        <label>Current Balance</label>
-                        <div style="font-weight: 600; color: var(--success);">${client.accountValue.toLocaleString()}</div>
-                    </div>
-                    <div class="modal-form-group">
-                        <label>Total Deposits</label>
-                        <div style="font-weight: 600; color: var(--accent);">${client.totalDeposits.toLocaleString()}</div>
-                    </div>
-                    <div class="modal-form-group full-width">
-                        <label>Recent Deposits (${clientDeposits.length})</label>
-                        <div style="margin-top: 8px;">
-                            ${clientDeposits.length > 0 ? clientDeposits.slice(0, 5).map(d => `
-                                <div style="padding: 8px; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 8px;">
-                                    <div style="display: flex; justify-content: space-between;">
-                                        <span style="font-weight: 500;">${d.reference}</span>
-                                        <span class="status ${d.status}">${d.status}</span>
-                                    </div>
-                                    <div style="font-size: 12px; color: var(--text-secondary);">
-                                        ${d.amount.toLocaleString()} • ${new Date(d.date).toLocaleDateString()}
-                                    </div>
-                                </div>
-                            `).join('') : '<div style="color: var(--text-secondary);">No deposits yet</div>'}
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            editingClientId = clientId;
-            openModal('viewClientModal');
-        }
+       function viewClient(clientId) {
+           const client = clients.find(c => c.id === clientId);
+           if (!client) return;
+           
+           // Get client deposits
+           const clientDeposits = deposits.filter(d => d.userId === clientId);
+           
+           document.getElementById('clientDetailsBody').innerHTML = `
+               <div class="modal-form-grid">
+                   <div class="modal-form-group">
+                       <label>Full Name</label>
+                       <div style="font-weight: 500;">${client.firstName} ${client.lastName}</div>
+                   </div>
+                   <div class="modal-form-group">
+                       <label>Status</label>
+                       <span class="status ${client.status}">${client.status}</span>
+                   </div>
+                   <div class="modal-form-group">
+                       <label>Email</label>
+                       <div>${client.email}</div>
+                   </div>
+                   <div class="modal-form-group">
+                       <label>Phone</label>
+                       <div>${client.phone || 'Not provided'}</div>
+                   </div>
+                   <div class="modal-form-group full-width">
+                       <label>Address</label>
+                       <div>${client.address || 'Not provided'}</div>
+                   </div>
+                   <div class="modal-form-group">
+                       <label>Join Date</label>
+                       <div>${new Date(client.joinDate).toLocaleDateString()}</div>
+                   </div>
+                   <div class="modal-form-group">
+                       <label>Current Balance</label>
+                       <div style="font-weight: 600; color: var(--success);">${client.accountValue.toLocaleString()}</div>
+                   </div>
+                   <div class="modal-form-group">
+                       <label>Total Deposits</label>
+                       <div style="font-weight: 600; color: var(--accent);">${client.totalDeposits.toLocaleString()}</div>
+                   </div>
+                   <div class="modal-form-group full-width">
+                       <label>Recent Deposits (${clientDeposits.length})</label>
+                       <div style="margin-top: 8px;">
+                           ${clientDeposits.length > 0 ? clientDeposits.slice(0, 5).map(d => `
+                               <div style="padding: 8px; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 8px;">
+                                   <div style="display: flex; justify-content: space-between;">
+                                       <span style="font-weight: 500;">${d.reference}</span>
+                                       <span class="status ${d.status}">${d.status}</span>
+                                   </div>
+                                   <div style="font-size: 12px; color: var(--text-secondary);">
+                                       ${d.amount.toLocaleString()} • ${new Date(d.date).toLocaleDateString()}
+                                   </div>
+                               </div>
+                           `).join('') : '<div style="color: var(--text-secondary);">No deposits yet</div>'}
+                       </div>
+                   </div>
+               </div>
+           `;
+           
+           editingClientId = clientId;
+           openModal('viewClientModal');
+       }
 
-        function editClientFromView() {
-            closeModal('viewClientModal');
-            editClient(editingClientId);
-        }
+       function editClientFromView() {
+           closeModal('viewClientModal');
+           editClient(editingClientId);
+       }
 
-        function deleteClient(clientId) {
-            const client = clients.find(c => c.id === clientId);
-            if (!client) return;
-            
-            if (confirm(`Are you sure you want to delete client ${client.firstName} ${client.lastName}? This action cannot be undone and will remove them from the database.`)) {
-                // Delete from database
-                deleteUserInDatabase(clientId)
-                    .then(() => {
-                        // Remove from local array
-                        clients = clients.filter(c => c.id !== clientId);
-                        
-                        renderClientsTable();
-                        fetchAdminStats(); // Refresh stats
-                        showNotification(`Client ${client.firstName} ${client.lastName} has been deleted from database.`, 'success');
-                    })
-                    .catch(error => {
-                        showNotification(`Failed to delete client: ${error.message}`, 'error');
-                    });
-            }
-        }
+       function deleteClient(clientId) {
+           const client = clients.find(c => c.id === clientId);
+           if (!client) return;
+           
+           if (confirm(`Are you sure you want to delete client ${client.firstName} ${client.lastName}? This action cannot be undone and will remove them from the database.`)) {
+               // Delete from database
+               deleteUserInDatabase(clientId)
+                   .then(() => {
+                       // Remove from local array
+                       clients = clients.filter(c => c.id !== clientId);
+                       
+                       renderClientsTable();
+                       fetchAdminStats(); // Refresh stats
+                       showNotification(`Client ${client.firstName} ${client.lastName} has been deleted from database.`, 'success');
+                   })
+                   .catch(error => {
+                       showNotification(`Failed to delete client: ${error.message}`, 'error');
+                   });
+           }
+       }
 
-        // Form submission - CREATE REAL USER IN DATABASE
-        document.getElementById('clientForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const submitBtn = document.getElementById('saveClientBtn');
-            const originalText = submitBtn.textContent;
-            
-            try {
-                // Show loading state
-                submitBtn.disabled = true;
-                submitBtn.textContent = 'Creating...';
-                
-                const formData = new FormData(e.target);
-                const clientData = {
-                    firstName: formData.get('firstName'),
-                    lastName: formData.get('lastName'),
-                    email: formData.get('email'),
-                    phone: formData.get('phone'),
-                    address: formData.get('address'),
-                    initialDeposit: parseFloat(formData.get('initialDeposit')) || 0,
-                    status: formData.get('status') || 'active'
-                };
-                
-                if (editingClientId) {
-                    // Update existing client in database
-                    const updatedUser = await updateUserInDatabase(editingClientId, {
-                        firstName: clientData.firstName,
-                        lastName: clientData.lastName,
-                        phone: clientData.phone,
-                        address: clientData.address,
-                        accountValue: clientData.initialDeposit
-                    });
-                    
-                    // Update local clients array
-                    const clientIndex = clients.findIndex(c => c.id === editingClientId);
-                    if (clientIndex !== -1) {
-                        clients[clientIndex] = {
-                            ...clients[clientIndex],
-                            firstName: updatedUser.first_name,
-                            lastName: updatedUser.last_name,
-                            email: updatedUser.email,
-                            phone: updatedUser.phone,
-                            address: updatedUser.address,
-                            accountValue: parseFloat(updatedUser.account_value)
-                        };
-                    }
-                    
-                    showNotification('Client updated successfully in database!', 'success');
-                } else {
-                    // Create new client in database
-                    const newUser = await createUserInDatabase(clientData);
-                    
+       // Form submission - CREATE REAL USER IN DATABASE
+       document.getElementById('clientForm').addEventListener('submit', async function(e) {
+           e.preventDefault();
+           
+           const submitBtn = document.getElementById('saveClientBtn');
+           const originalText = submitBtn.textContent;
+           
+           try {
+               // Show loading state
+               submitBtn.disabled = true;
+               submitBtn.textContent = 'Creating...';
+               
+               const formData = new FormData(e.target);
+               const clientData = {
+                   firstName: formData.get('firstName'),
+                   lastName: formData.get('lastName'),
+                   email: formData.get('email'),
+                   phone: formData.get('phone'),
+                   address: formData.get('address'),
+                   initialDeposit: parseFloat(formData.get('initialDeposit')) || 0,
+                   status: formData.get('status') || 'active'
+               };
+               
+               if (editingClientId) {
+                   // Update existing client in database
+                   const updatedUser = await updateUserInDatabase(editingClientId, {
+                       firstName: clientData.firstName,
+                       lastName: clientData.lastName,
+                       phone: clientData.phone,
+                       address: clientData.address,
+                       accountValue: clientData.initialDeposit
+                   });
+                   
+                   // Update local clients array
+                   const clientIndex = clients.findIndex(c => c.id === editingClientId);
+                   if (clientIndex !== -1) {
+                       clients[clientIndex] = {
+                           ...clients[clientIndex],
+                           firstName: updatedUser.first_name,
+                           lastName: updatedUser.last_name,
+                           email: updatedUser.email,
+                           phone: updatedUser.phone,
+                           address: updatedUser.address,
+                           accountValue: parseFloat(updatedUser.account_value)
+                       };
+                   }
+                   
+                   showNotification('Client updated successfully in database!', 'success');
+               } else {
+                   // Create new client in database
+                   const newUser = await createUserInDatabase(clientData);
+                   
                    const newClient = {
-    id: newUser.id,
-    firstName: newUser.first_name || newUser.firstName,
-    lastName: newUser.last_name || newUser.lastName,
-    email: newUser.email,
-    phone: newUser.phone,
-    address: newUser.address,
-    status: 'active',
-    joinDate: newUser.created_at ? newUser.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
-    totalDeposits: 0,
-    accountValue: parseFloat(newUser.account_value || 0),
-    startingBalance: parseFloat(newUser.account_value || 0),
-    lastActive: newUser.created_at ? newUser.created_at.split('T')[0] : new Date().toISOString().split('T')[0]
-};
-                    
-                    clients.push(newClient);
-                    
-                    showNotification('New client created successfully in database!', 'success');
-                }
-                
-                // Refresh the stats and tables
-                await fetchAdminStats();
-                
-                closeModal('clientModal');
-                renderClientsTable();
-                
-            } catch (error) {
-                console.error('Failed to save client:', error);
-                showNotification(`Failed to save client: ${error.message}`, 'error');
-            } finally {
-                // Reset button state
-                submitBtn.disabled = false;
-                submitBtn.textContent = originalText;
-            }
-        });
+                       id: newUser.id,
+                       firstName: newUser.first_name || newUser.firstName,
+                       lastName: newUser.last_name || newUser.lastName,
+                       email: newUser.email,
+                       phone: newUser.phone,
+                       address: newUser.address,
+                       status: 'active',
+                       joinDate: newUser.created_at ? newUser.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+                       totalDeposits: 0,
+                       accountValue: parseFloat(newUser.account_value || 0),
+                       startingBalance: parseFloat(newUser.account_value || 0),
+                       lastActive: newUser.created_at ? newUser.created_at.split('T')[0] : new Date().toISOString().split('T')[0]
+                   };
+                   
+                   clients.push(newClient);
+                   
+                   showNotification('New client created successfully in database!', 'success');
+               }
+               
+               // Refresh the stats and tables
+               await fetchAdminStats();
+               
+               closeModal('clientModal');
+               renderClientsTable();
+               
+           } catch (error) {
+               console.error('Failed to save client:', error);
+               showNotification(`Failed to save client: ${error.message}`, 'error');
+           } finally {
+               // Reset button state
+               submitBtn.disabled = false;
+               submitBtn.textContent = originalText;
+           }
+       });
 
-        // Export and reporting functions
-        function exportClients() {
-            const csvContent = "data:text/csv;charset=utf-8," 
-                + "ID,First Name,Last Name,Email,Phone,Status,Join Date,Total Deposits,Current Balance\n"
-                + clients.map(client => 
-                    `${client.id},${client.firstName},${client.lastName},${client.email},${client.phone || ''},${client.status},${client.joinDate},${client.totalDeposits},${client.accountValue}`
-                ).join("\n");
-            
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `clients_export_${new Date().toISOString().split('T')[0]}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            showNotification('Clients exported successfully!', 'success');
-        }
+       // Export and reporting functions
+       function exportClients() {
+           const csvContent = "data:text/csv;charset=utf-8," 
+               + "ID,First Name,Last Name,Email,Phone,Status,Join Date,Total Deposits,Current Balance\n"
+               + clients.map(client => 
+                   `${client.id},${client.firstName},${client.lastName},${client.email},${client.phone || ''},${client.status},${client.joinDate},${client.totalDeposits},${client.accountValue}`
+               ).join("\n");
+           
+           const encodedUri = encodeURI(csvContent);
+           const link = document.createElement("a");
+           link.setAttribute("href", encodedUri);
+           link.setAttribute("download", `clients_export_${new Date().toISOString().split('T')[0]}.csv`);
+           document.body.appendChild(link);
+           link.click();
+           document.body.removeChild(link);
+           
+           showNotification('Clients exported successfully!', 'success');
+       }
 
-        function generateReport() {
-            const reportContent = `AEQUITAS CAPITAL PARTNERS
+       function generateReport() {
+           const reportContent = `AEQUITAS CAPITAL PARTNERS
 ADMIN DASHBOARD REPORT
 Generated: ${new Date().toLocaleDateString()}
 
@@ -2791,188 +3536,189 @@ Completed Deposits: ${deposits.filter(d => d.status === 'completed').length}
 
 TOP CLIENTS BY ACCOUNT VALUE:
 ${clients
-    .sort((a, b) => b.accountValue - a.accountValue)
-    .slice(0, 10)
-    .map((client, index) => `${index + 1}. ${client.firstName} ${client.lastName} - ${client.accountValue.toLocaleString()}`)
-    .join('\n')}
+   .sort((a, b) => b.accountValue - a.accountValue)
+   .slice(0, 10)
+   .map((client, index) => `${index + 1}. ${client.firstName} ${client.lastName} - ${client.accountValue.toLocaleString()}`)
+   .join('\n')}
 
 ==========================================
 
 RECENT DEPOSIT ACTIVITY:
 ${deposits
-    .sort((a, b) => new Date(b.date) - new Date(a.date))
-    .slice(0, 10)
-    .map(deposit => `${deposit.reference} - ${deposit.clientName} - ${deposit.amount.toLocaleString()} - ${deposit.status}`)
-    .join('\n')}
+   .sort((a, b) => new Date(b.date) - new Date(a.date))
+   .slice(0, 10)
+   .map(deposit => `${deposit.reference} - ${deposit.clientName} - ${deposit.amount.toLocaleString()} - ${deposit.status}`)
+   .join('\n')}
 
 ==========================================
 
 PENDING USER APPROVALS:
 ${pendingUsers.length > 0 ? pendingUsers.map(user => 
-    `${user.first_name} ${user.last_name} (${user.email}) - ${getStatusLabel(user.setup_status)} - ${user.setup_progress || 0}% complete`
+   `${user.first_name} ${user.last_name} (${user.email}) - ${getStatusLabel(user.setup_status)} - ${user.setup_progress || 0}% complete`
 ).join('\n') : 'No pending users requiring approval'}
 
 ==========================================
 
 This report was generated automatically by the Aequitas Capital Partners Admin Dashboard.
 For questions, contact: admin@aequitascap.com`;
-            
-            const blob = new Blob([reportContent], { type: 'text/plain' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `admin_report_${new Date().toISOString().split('T')[0]}.txt`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-            
-            showNotification('Report generated successfully!', 'success');
-        }
+           
+           const blob = new Blob([reportContent], { type: 'text/plain' });
+           const url = window.URL.createObjectURL(blob);
+           const a = document.createElement('a');
+           a.href = url;
+           a.download = `admin_report_${new Date().toISOString().split('T')[0]}.txt`;
+           document.body.appendChild(a);
+           a.click();
+           window.URL.revokeObjectURL(url);
+           document.body.removeChild(a);
+           
+           showNotification('Report generated successfully!', 'success');
+       }
 
-        // Enhanced notification system
-        function showNotification(message, type = 'info') {
-            const existingNotifications = document.querySelectorAll('.notification');
-            existingNotifications.forEach(n => n.remove());
+       // Enhanced notification system
+       function showNotification(message, type = 'info') {
+           const existingNotifications = document.querySelectorAll('.notification');
+           existingNotifications.forEach(n => n.remove());
 
-            const notification = document.createElement('div');
-            notification.className = `notification notification-${type}`;
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 16px 20px;
-                border-radius: 8px;
-                color: white;
-                font-weight: 500;
-                z-index: 10001;
-                max-width: 400px;
-                word-wrap: break-word;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-                animation: slideInRight 0.3s ease-out;
-                ${type === 'success' ? 'background: linear-gradient(135deg, #10b981, #059669);' : ''}
-                ${type === 'error' ? 'background: linear-gradient(135deg, #ef4444, #dc2626);' : ''}
-                ${type === 'warning' ? 'background: linear-gradient(135deg, #f59e0b, #d97706);' : ''}
-                ${type === 'info' ? 'background: linear-gradient(135deg, #3b82f6, #2563eb);' : ''}
-            `;
-            
-            notification.innerHTML = `
-                <div style="display: flex; align-items: flex-start; gap: 8px;">
-                    <span class="icon icon-${type === 'success' ? 'check' : 'clock'}" style="margin-top: 2px;"></span>
-                    <span>${message}</span>
-                </div>
-            `;
-            
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.style.animation = 'slideOutRight 0.3s ease-in';
-                    setTimeout(() => notification.remove(), 300);
-                }
-            }, 5000);
-        }
+           const notification = document.createElement('div');
+           notification.className = `notification notification-${type}`;
+           notification.style.cssText = `
+               position: fixed;
+               top: 20px;
+               right: 20px;
+               padding: 16px 20px;
+               border-radius: 8px;
+               color: white;
+               font-weight: 500;
+               z-index: 10001;
+               max-width: 400px;
+               word-wrap: break-word;
+               box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+               animation: slideInRight 0.3s ease-out;
+               ${type === 'success' ? 'background: linear-gradient(135deg, #10b981, #059669);' : ''}
+               ${type === 'error' ? 'background: linear-gradient(135deg, #ef4444, #dc2626);' : ''}
+               ${type === 'warning' ? 'background: linear-gradient(135deg, #f59e0b, #d97706);' : ''}
+               ${type === 'info' ? 'background: linear-gradient(135deg, #3b82f6, #2563eb);' : ''}
+           `;
+           
+           notification.innerHTML = `
+               <div style="display: flex; align-items: flex-start; gap: 8px;">
+                   <span class="icon icon-${type === 'success' ? 'check' : 'clock'}" style="margin-top: 2px;"></span>
+                   <span>${message}</span>
+               </div>
+           `;
+           
+           document.body.appendChild(notification);
+           
+           setTimeout(() => {
+               if (notification.parentNode) {
+                   notification.style.animation = 'slideOutRight 0.3s ease-in';
+                   setTimeout(() => notification.remove(), 300);
+               }
+           }, 5000);
+       }
 
-        // Add CSS for notification animations
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideInRight {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
-            }
-            @keyframes slideOutRight {
-                from { transform: translateX(0); opacity: 1; }
-                to { transform: translateX(100%); opacity: 0; }
-            }
-        `;
-        document.head.appendChild(style);
+       // Add CSS for notification animations
+       const style = document.createElement('style');
+       style.textContent = `
+           @keyframes slideInRight {
+               from { transform: translateX(100%); opacity: 0; }
+               to { transform: translateX(0); opacity: 1; }
+           }
+           @keyframes slideOutRight {
+               from { transform: translateX(0); opacity: 1; }
+               to { transform: translateX(100%); opacity: 0; }
+           }
+       `;
+       document.head.appendChild(style);
 
-        // Close modal when clicking outside
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('modal')) {
-                const modalId = e.target.id;
-                closeModal(modalId);
-            }
-        });
+       // Close modal when clicking outside
+       document.addEventListener('click', function(e) {
+           if (e.target.classList.contains('modal')) {
+               const modalId = e.target.id;
+               closeModal(modalId);
+           }
+       });
 
-        // Keyboard shortcuts
-        document.addEventListener('keydown', function(e) {
-            // ESC to close modals
-            if (e.key === 'Escape') {
-                const openModal = document.querySelector('.modal.show');
-                if (openModal) {
-                    closeModal(openModal.id);
-                }
-            }
-            
-            // Ctrl+N for new client
-            if (e.ctrlKey && e.key === 'n') {
-                e.preventDefault();
-                openAddClientModal();
-            }
-        });
+       // Keyboard shortcuts
+       document.addEventListener('keydown', function(e) {
+           // ESC to close modals
+           if (e.key === 'Escape') {
+               const openModal = document.querySelector('.modal.show');
+               if (openModal) {
+                   closeModal(openModal.id);
+               }
+           }
+           
+           // Ctrl+N for new client
+           if (e.ctrlKey && e.key === 'n') {
+               e.preventDefault();
+               openAddClientModal();
+           }
+       });
 
-        // Initialize page
-        document.addEventListener('DOMContentLoaded', function() {
-            // Check authentication and admin privileges
-            const authToken = localStorage.getItem('aequitas_auth_token');
-            const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
-            
-            if (!authToken) {
-                showNotification('Please log in to access this page.', 'warning');
-                setTimeout(() => {
-                    window.location.href = 'login.html';
-                }, 2000);
-                return;
-            }
-            
-            if (userData.role !== 'admin') {
-                showNotification('Access denied. Admin privileges required.', 'error');
-                setTimeout(() => {
-                    window.location.href = 'dashboard.html';
-                }, 2000);
-                return;
-            }
+       // Initialize page
+       document.addEventListener('DOMContentLoaded', function() {
+           // Check authentication and admin privileges
+           const authToken = localStorage.getItem('aequitas_auth_token');
+           const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
+           
+           if (!authToken) {
+               showNotification('Please log in to access this page.', 'warning');
+               setTimeout(() => {
+                   window.location.href = 'login.html';
+               }, 2000);
+               return;
+           }
+           
+           if (userData.role !== 'admin') {
+               showNotification('Access denied. Admin privileges required.', 'error');
+               setTimeout(() => {
+                   window.location.href = 'dashboard.html';
+               }, 2000);
+               return;
+           }
 
-            // Load saved theme
-            const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
-            if (savedTheme === 'dark') {
-                currentTheme = 'dark';
-                document.documentElement.setAttribute('data-theme', 'dark');
-                const themeToggle = document.querySelector('.theme-toggle .icon');
-                if (themeToggle) themeToggle.className = 'icon icon-sun';
-            }
+           // Load saved theme
+           const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
+           if (savedTheme === 'dark') {
+               currentTheme = 'dark';
+               document.documentElement.setAttribute('data-theme', 'dark');
+               const themeToggle = document.querySelector('.theme-toggle .icon');
+               if (themeToggle) themeToggle.className = 'icon icon-sun';
+           }
 
-            // Load user data and update UI
-            const firstName = userData.firstName || 'Admin';
-            const lastName = userData.lastName || 'User';
-            const email = userData.email || 'admin@aequitascap.com';
-            
-            // Update user info elements
-            const userNameEl = document.getElementById('userName');
-            const userEmailEl = document.getElementById('userEmail');
-            const topUserNameEl = document.getElementById('topUserName');
-            const userAvatarEl = document.getElementById('userAvatar');
-            
-            if (userNameEl) userNameEl.textContent = `${firstName} ${lastName}`;
-            if (userEmailEl) userEmailEl.textContent = email;
-            if (topUserNameEl) topUserNameEl.textContent = firstName;
-            if (userAvatarEl) userAvatarEl.textContent = firstName.charAt(0).toUpperCase();
+           // Load user data and update UI
+           const firstName = userData.firstName || 'Admin';
+           const lastName = userData.lastName || 'User';
+           const email = userData.email || 'admin@aequitascap.com';
+           
+           // Update user info elements
+           const userNameEl = document.getElementById('userName');
+           const userEmailEl = document.getElementById('userEmail');
+           const topUserNameEl = document.getElementById('topUserName');
+           const userAvatarEl = document.getElementById('userAvatar');
+           
+           if (userNameEl) userNameEl.textContent = `${firstName} ${lastName}`;
+           if (userEmailEl) userEmailEl.textContent = email;
+           if (topUserNameEl) topUserNameEl.textContent = firstName;
+           if (userAvatarEl) userAvatarEl.textContent = firstName.charAt(0).toUpperCase();
 
-            // Show admin section if user is admin
-            if (userData.role === 'admin') {
-                const adminSection = document.getElementById('adminSection');
-                if (adminSection) adminSection.style.display = 'block';
-            }
+           // Show admin section if user is admin
+           if (userData.role === 'admin') {
+               const adminSection = document.getElementById('adminSection');
+               if (adminSection) adminSection.style.display = 'block';
+           }
 
-            // Initialize data and render with REAL DATABASE DATA
-            initializeData().then(() => {
-                renderClientsTable();
-                console.log(`✅ Admin dashboard initialized with REAL database data - ${clients.length} clients, ${deposits.length} deposits, ${pendingUsers.length} pending users`);
-                showNotification(`Admin Dashboard loaded with ${clients.length} real clients from database!`, 'success');
-            });
-        });
+           // Initialize data and render with REAL DATABASE DATA
+           initializeData().then(() => {
+               renderClientsTable();
+               console.log(`✅ Admin dashboard initialized with REAL database data - ${clients.length} clients, ${deposits.length} deposits, ${pendingUsers.length} pending users`);
+               showNotification(`Admin Dashboard loaded with ${clients.length} real clients from database!`, 'success');
+           });
+       });
 
-    </script>
+   </script>
 </body>
 </html>
+        
