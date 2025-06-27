@@ -1387,47 +1387,78 @@
                     loadAccountStats(data.stats);
                     renderTimeline();
                 } else {
-                    throw new Error('Failed to load profile');
+                    const errorText = await response.text();
+                    throw new Error(`API responded with ${response.status}: ${errorText}`);
                 }
             } catch (error) {
                 console.error('💥 Failed to load profile:', error);
                 
                 // Fallback to localStorage
-                userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
+                const cachedData = localStorage.getItem('aequitas_user_data');
+                if (cachedData) {
+                    try {
+                        userData = JSON.parse(cachedData);
+                        console.log('📦 Using cached user data:', userData);
+                    } catch (parseError) {
+                        console.error('Failed to parse cached data:', parseError);
+                        userData = {};
+                    }
+                } else {
+                    userData = {};
+                }
+                
+                // Ensure userData has basic structure
+                if (!userData.email) {
+                    userData = {
+                        email: 'user@example.com',
+                        firstName: 'User',
+                        lastName: 'Name',
+                        accountValue: 0,
+                        created_at: new Date().toISOString()
+                    };
+                }
+                
                 populateFormFields();
                 updateUserDisplay();
-                loadAccountStats();
+                loadAccountStats(); // Call without apiStats to use fallback
                 loadTimeline(); // Use dummy data
                 
                 showNotification('Using cached profile data - some information may be outdated', 'warning');
             }
         }
 
-        // FIXED - Populate Form Fields with proper date handling
+        // FIXED - Populate Form Fields with proper date handling and error checking
         function populateFormFields() {
-            document.getElementById('firstName').value = userData.firstName || userData.first_name || '';
-            document.getElementById('lastName').value = userData.lastName || userData.last_name || '';
-            document.getElementById('email').value = userData.email || '';
-            document.getElementById('phone').value = userData.phone || '';
-            
-            // FIXED: Convert ISO date to YYYY-MM-DD format for input
-            const dateOfBirth = userData.dateOfBirth || userData.date_of_birth;
-            if (dateOfBirth) {
-                try {
-                    // Convert ISO date to YYYY-MM-DD format for HTML date input
-                    const date = new Date(dateOfBirth);
-                    if (!isNaN(date.getTime())) {
-                        const year = date.getFullYear();
-                        const month = String(date.getMonth() + 1).padStart(2, '0');
-                        const day = String(date.getDate()).padStart(2, '0');
-                        document.getElementById('dateOfBirth').value = `${year}-${month}-${day}`;
+            try {
+                document.getElementById('firstName').value = userData.firstName || userData.first_name || '';
+                document.getElementById('lastName').value = userData.lastName || userData.last_name || '';
+                document.getElementById('email').value = userData.email || '';
+                document.getElementById('phone').value = userData.phone || '';
+                
+                // FIXED: Convert ISO date to YYYY-MM-DD format for input
+                const dateOfBirth = userData.dateOfBirth || userData.date_of_birth;
+                if (dateOfBirth) {
+                    try {
+                        // Convert ISO date to YYYY-MM-DD format for HTML date input
+                        const date = new Date(dateOfBirth);
+                        if (!isNaN(date.getTime())) {
+                            const year = date.getFullYear();
+                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                            const day = String(date.getDate()).padStart(2, '0');
+                            document.getElementById('dateOfBirth').value = `${year}-${month}-${day}`;
+                        }
+                    } catch (dateError) {
+                        console.error('Date conversion error:', dateError);
+                        document.getElementById('dateOfBirth').value = '';
                     }
-                } catch (dateError) {
-                    console.error('Date conversion error:', dateError);
+                } else {
+                    document.getElementById('dateOfBirth').value = '';
                 }
+                
+                document.getElementById('address').value = userData.address || '';
+            } catch (error) {
+                console.error('Error populating form fields:', error);
             }
-            
-            document.getElementById('address').value = userData.address || '';
         }
 
         // Update User Display
