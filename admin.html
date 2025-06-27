@@ -1,434 +1,4 @@
-</style>
-</head>
-<body>
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <div class="logo-container">
-                <img src="https://i.ibb.co/8DfYwWdG/Aequitas-White-Logo.png" alt="Aequitas Capital Partners" class="logo">
-            </div>
-            <button class="theme-toggle" onclick="toggleTheme()">
-                <span class="icon icon-moon"></span>
-            </button>
-        </div>
-
-        <nav class="sidebar-nav">
-            <div class="nav-section">
-                <div class="nav-section-title">Account</div>
-                <button class="nav-item" onclick="navigateTo('dashboard')">
-                    <span class="icon icon-dashboard"></span>
-                    <span>Overview</span>
-                </button>
-                <button class="nav-item" onclick="navigateTo('statements')">
-                    <span class="icon icon-document"></span>
-                    <span>Statements</span>
-                </button>
-            </div>
-
-            <div class="nav-section">
-                <div class="nav-section-title">Trading</div>
-                <button class="nav-item" onclick="navigateTo('deposit')">
-                    <span class="icon icon-money"></span>
-                    <span>Deposit</span>
-                </button>
-                <button class="nav-item" onclick="navigateTo('withdraw')">
-                    <span class="icon icon-bank"></span>
-                    <span>Withdraw</span>
-                </button>
-            </div>
-
-            <div class="nav-section">
-                <div class="nav-section-title">Settings</div>
-                <button class="nav-item" onclick="navigateTo('profile')">
-                    <span class="icon icon-user"></span>
-                    <span>Profile</span>
-                </button>
-                <button class="nav-item" onclick="navigateTo('support')">
-                    <span class="icon icon-chat"></span>
-                    <span>Support</span>
-                </button>
-            </div>
-
-            <!-- Admin Section -->
-            <div class="nav-section" id="adminSection">
-                <div class="nav-section-title">Admin</div>
-                <button class="nav-item active" onclick="navigateTo('admin')">
-                    <span class="icon icon-users"></span>
-                    <span>Client Management</span>
-                </button>
-            </div>
-        </nav>
-
-        <div class="sidebar-footer">
-            <div class="user-info">
-                <div class="user-avatar" id="userAvatar">A</div>
-                <div class="user-details">
-                    <h4 id="userName">Admin User</h4>
-                    <p id="userEmail">admin@aequitascap.com</p>
-                </div>
-            </div>
-            <button class="logout-btn" onclick="logout()">
-                <span class="icon icon-logout"></span>
-                <span>Logout</span>
-            </button>
-        </div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="main-content">
-        <div class="top-bar">
-            <h1 class="page-title">Admin Dashboard</h1>
-            <div class="top-user-info">
-                <span>Welcome back,</span>
-                <span id="topUserName">Admin</span>
-            </div>
-        </div>
-
-        <div class="admin-content">
-            <!-- Stats Grid -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <span class="stat-title">Total Clients</span>
-                        <span class="icon icon-users stat-icon"></span>
-                    </div>
-                    <div class="stat-value" id="totalClients">0</div>
-                    <div class="stat-change positive">
-                        <span class="icon icon-check"></span>
-                        <span>+0 this month</span>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <span class="stat-title">Monthly Deposits</span>
-                        <span class="icon icon-money stat-icon"></span>
-                    </div>
-                    <div class="stat-value" id="activeDeposits">$0</div>
-                    <div class="stat-change positive">
-                        <span class="icon icon-check"></span>
-                        <span>+0% vs last month</span>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <span class="stat-title">Support Tickets</span>
-                        <span class="icon icon-chat stat-icon"></span>
-                    </div>
-                    <div class="stat-value" id="supportTickets">0</div>
-                    <div class="stat-change neutral">
-                        <span class="icon icon-clock"></span>
-                        <span id="pendingTickets">0 pending</span>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <span class="stat-title">Total Client Assets</span>
-                        <span class="icon icon-check stat-icon"></span>
-                    </div>
-                    <div class="stat-value" id="systemStatus">$0</div>
-                    <div class="stat-change positive">
-                        <span class="icon icon-check"></span>
-                        <span>All accounts active</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Main Admin Panel -->
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title-section">
-                        <span class="icon icon-users card-icon"></span>
-                        <h2 class="card-title">Admin Management</h2>
-                    </div>
-                    <button class="btn btn-primary" onclick="openAddClientModal()">
-                        <span class="icon icon-plus"></span>
-                        Add New Client
-                    </button>
-                </div>
-
-                <!-- Tabs -->
-                <div class="tabs">
-                    <button class="tab active" data-tab="clients" onclick="switchTab('clients')">All Clients</button>
-                    <button class="tab" data-tab="deposits" onclick="switchTab('deposits')">Deposit Requests</button>
-                    <button class="tab" data-tab="pending" onclick="switchTab('pending')">Pending Users</button>
-                    <button class="tab" data-tab="support" onclick="switchTab('support')">
-                        Client Support
-                        <span class="tab-badge" id="supportTabBadge" style="display: none;">0</span>
-                    </button>
-                    <button class="tab" data-tab="reports" onclick="switchTab('reports')">Reports</button>
-                </div>
-
-                <!-- Support Tab -->
-                <div class="tab-content" id="support-tab">
-                    <!-- Support Tickets Management -->
-                    <div class="search-filters">
-                        <div class="search-input">
-                            <span class="icon icon-search"></span>
-                            <input type="text" placeholder="Search support tickets..." id="supportSearch" onkeyup="filterSupportTickets()">
-                        </div>
-                        <select class="filter-select" id="supportStatusFilter" onchange="filterSupportTickets()">
-                            <option value="">All Status</option>
-                            <option value="open">Open</option>
-                            <option value="responded">Responded</option>
-                            <option value="closed">Closed</option>
-                        </select>
-                        <select class="filter-select" id="supportPriorityFilter" onchange="filterSupportTickets()">
-                            <option value="">All Priority</option>
-                            <option value="high">High</option>
-                            <option value="medium">Medium</option>
-                            <option value="low">Low</option>
-                        </select>
-                    </div>
-
-                    <div id="supportTicketsContainer">
-                        <!-- Support tickets will be loaded here -->
-                    </div>
-                </div>
-
-                <!-- Clients Tab -->
-                <div class="tab-content active" id="clients-tab">
-                    <!-- Search and Filters -->
-                    <div class="search-filters">
-                        <div class="search-input">
-                            <span class="icon icon-search"></span>
-                            <input type="text" placeholder="Search clients..." id="clientSearch" onkeyup="filterClients()">
-                        </div>
-                        <select class="filter-select" id="statusFilter" onchange="filterClients()">
-                            <option value="">All Status</option>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                            <option value="pending">Pending</option>
-                        </select>
-                        <button class="btn btn-secondary" onclick="exportClients()">
-                            <span class="icon icon-download"></span>
-                            Export
-                        </button>
-                    </div>
-
-                    <!-- Clients Table -->
-                    <div style="overflow-x: auto;">
-                        <table class="data-table" id="clientsTable">
-                            <thead>
-                                <tr>
-                                    <th>Client</th>
-                                    <th>Email</th>
-                                    <th>Phone</th>
-                                    <th>Total Deposits</th>
-                                    <th>Current Balance</th>
-                                    <th>Status</th>
-                                    <th>Joined</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="clientsTableBody">
-                                <!-- Dynamic content -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Deposits Tab -->
-                <div class="tab-content" id="deposits-tab">
-                    <div class="search-filters">
-                        <div class="search-input">
-                            <span class="icon icon-search"></span>
-                            <input type="text" placeholder="Search deposits..." id="depositSearch" onkeyup="filterDeposits()">
-                        </div>
-                        <select class="filter-select" id="depositStatusFilter" onchange="filterDeposits()">
-                            <option value="">All Status</option>
-                            <option value="pending">Pending</option>
-                            <option value="approved">Approved</option>
-                            <option value="completed">Completed</option>
-                            <option value="rejected">Rejected</option>
-                        </select>
-                    </div>
-
-                    <div style="overflow-x: auto;">
-                        <table class="data-table" id="depositsTable">
-                            <thead>
-                                <tr>
-                                    <th>Reference</th>
-                                    <th>Client</th>
-                                    <th>Amount</th>
-                                    <th>Purpose</th>
-                                    <th>Status</th>
-                                    <th>Date</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="depositsTableBody">
-                                <!-- Dynamic content -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Pending Users Tab -->
-                <div class="tab-content" id="pending-tab">
-                    <div class="search-filters">
-                        <div class="search-input">
-                            <span class="icon icon-search"></span>
-                            <input type="text" placeholder="Search pending users..." id="pendingSearch" onkeyup="filterPendingUsers()">
-                        </div>
-                        <select class="filter-select" id="pendingFilter" onchange="filterPendingUsers()">
-                            <option value="">All Status</option>
-                            <option value="setup_pending">Setup Required</option>
-                            <option value="documents_pending">Documents Required</option>
-                            <option value="review_pending">Awaiting Review</option>
-                        </select>
-                        <button class="btn btn-secondary" onclick="exportPendingUsers()">
-                            <span class="icon icon-download"></span>
-                            Export
-                        </button>
-                    </div>
-
-                    <div style="overflow-x: auto;">
-                        <table class="data-table" id="pendingUsersTable">
-                            <thead>
-                                <tr>
-                                    <th>User</th>
-                                    <th>Email</th>
-                                    <th>Setup Progress</th>
-                                    <th>Documents</th>
-                                    <th>Submitted</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="pendingUsersTableBody">
-                                <!-- Dynamic content -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Reports Tab -->
-                <div class="tab-content" id="reports-tab">
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-header">
-                                <span class="stat-title">Monthly Deposits</span>
-                                <span class="icon icon-money stat-icon"></span>
-                            </div>
-                            <div class="stat-value">$0</div>
-                            <div class="stat-change positive">
-                                <span class="icon icon-check"></span>
-                                <span>+0% vs last month</span>
-                            </div>
-                        </div>
-
-                        <div class="stat-card">
-                            <div class="stat-header">
-                                <span class="stat-title">New Clients</span>
-                                <span class="icon icon-users stat-icon"></span>
-                            </div>
-                            <div class="stat-value">0</div>
-                            <div class="stat-change positive">
-                                <span class="icon icon-check"></span>
-                                <span>+0% vs last month</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style="margin-top: 24px;">
-                        <button class="btn btn-primary" onclick="generateReport()">
-                            <span class="icon icon-download"></span>
-                            Generate Full Report
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Complete Working JavaScript with REAL DATABASE INTEGRATION AND SUPPORT SYSTEM -->
-    <script>
-        // === ADMIN SUPPORT SYSTEM VARIABLES ===
-        let currentTheme = 'light';
-        let clients = [];
-        let deposits = [];
-        let pendingUsers = [];
-        let supportTickets = []; // ALL SUPPORT TICKETS FOR ADMIN
-        let currentPage = 1;
-        let itemsPerPage = 10;
-        let currentTab = 'clients';
-        let editingClientId = null;
-        let viewingDepositId = null;
-        let totalUnreadSupport = 0; // ADMIN UNREAD COUNT
-
-        // Get auth token for API calls
-        function getAuthToken() {
-            return localStorage.getItem('aequitas_auth_token');
-        }
-
-        // === SUPPORT SYSTEM INTEGRATION ===
-
-        // Load Support Tickets (ADMIN VIEW - ALL TICKETS FROM ALL USERS)
-        async function loadSupportTickets() {
-            try {
-                console.log('📋 Loading ALL support tickets for admin...');
-                
-                const response = await fetch('/api/support', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${getAuthToken()}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    supportTickets = data.tickets; // ADMIN GETS ALL TICKETS
-                    totalUnreadSupport = data.totalUnread || 0; // ADMIN UNREAD COUNT
-                    
-                    updateSupportStats();
-                    updateSupportBadges();
-                    renderSupportTickets();
-                    
-                    console.log(`✅ Loaded ${supportTickets.length} support tickets, ${totalUnreadSupport} unread`);
-                } else {
-                    throw new Error(data.error || 'Failed to load support tickets');
-                }
-                
-            } catch (error) {
-                console.error('💥 Failed to load support tickets:', error);
-                showNotification('Failed to load support tickets', 'error');
-            }
-        }
-
-        // Render Support Tickets (ADMIN VIEW)
-        function renderSupportTickets() {
-            const container = document.getElementById('supportTicketsContainer');
-            const searchTerm = document.getElementById('supportSearch').value.toLowerCase();
-            const statusFilter = document.getElementById('supportStatusFilter').value;
-            const priorityFilter = document.getElementById('supportPriorityFilter').value;
-            
-            let filteredTickets = supportTickets.filter(ticket => {
-                const matchesSearch = ticket.subject.toLowerCase().includes(searchTerm) ||
-                                    (ticket.first_name && ticket.first_name.toLowerCase().includes(searchTerm)) ||
-                                    (ticket.last_name && ticket.last_name.toLowerCase().includes(searchTerm)) ||
-                                    (ticket.email && ticket.email.toLowerCase().includes(searchTerm));
-                const matchesStatus = !statusFilter || ticket.status === statusFilter;
-                const matchesPriority = !priorityFilter || ticket.priority === priorityFilter;
-                return matchesSearch && matchesStatus && matchesPriority;
-            });
-            
-            if (filteredTickets.length === 0) {
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
-                        <div style="font-size: 18px; margin-bottom: 8px;">No support tickets found</div>
-                        <div style="font-size: 14px;">Client support tickets will appear here.</div>
-                    </div>
-                `;
-                return;
-            }
-            
-            container.innerHTML = filteredTickets.map(ticket => `
-                <div class="ticket-item" data-ticket-id="${ticket<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -588,6 +158,10 @@
 
         .icon-chevron-down {
             mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+        }
+
+        .icon-chevron-up {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M18 15l-6-6-6 6'/%3E%3C/svg%3E");
         }
 
         /* Sidebar Styles */
@@ -1136,7 +710,7 @@
             color: var(--warning);
         }
 
-        .status.approved {
+        .status.approved, .status.completed {
             background: rgba(59, 130, 246, 0.1);
             color: var(--accent);
         }
@@ -1440,6 +1014,196 @@
             font-size: 12px;
         }
 
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            padding: 20px;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-primary);
+            border-radius: 12px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-footer {
+            padding: 24px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        /* Form Styles */
+        .admin-form {
+            display: grid;
+            gap: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-field.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-field label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .form-field input,
+        .form-field textarea,
+        .form-field select {
+            padding: 12px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+
+        .form-field input:focus,
+        .form-field textarea:focus,
+        .form-field select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-field textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* Modal form grid for details view */
+        .modal-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .modal-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .modal-form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .modal-form-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .modal-form-group div {
+            font-size: 14px;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* Withdrawal specific styles */
+        .withdrawal-details {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 12px 0;
+        }
+
+        .bank-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            font-size: 13px;
+        }
+
+        .bank-detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .bank-detail-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .bank-detail-value {
+            color: var(--text-primary);
+            font-weight: 600;
+            word-break: break-all;
+        }
+
         /* Responsive Design */
         @media (max-width: 1024px) {
             .sidebar {
@@ -1498,8 +1262,17 @@
                 overflow-x: auto;
                 white-space: nowrap;
             }
+
+            .form-row,
+            .modal-form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .bank-details {
+                grid-template-columns: 1fr;
+            }
         }
-                                                           </style>
+    </style>
 </head>
 <body>
     <!-- Sidebar -->
@@ -1654,6 +1427,7 @@
                 <div class="tabs">
                     <button class="tab active" data-tab="clients" onclick="switchTab('clients')">All Clients</button>
                     <button class="tab" data-tab="deposits" onclick="switchTab('deposits')">Deposit Requests</button>
+                    <button class="tab" data-tab="withdrawals" onclick="switchTab('withdrawals')">Withdrawal Requests</button>
                     <button class="tab" data-tab="pending" onclick="switchTab('pending')">Pending Users</button>
                     <button class="tab" data-tab="support" onclick="switchTab('support')">
                         Client Support
@@ -1761,6 +1535,55 @@
                                 </tr>
                             </thead>
                             <tbody id="depositsTableBody">
+                                <!-- Dynamic content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Withdrawals Tab -->
+                <div class="tab-content" id="withdrawals-tab">
+                    <div class="search-filters">
+                        <div class="search-input">
+                            <span class="icon icon-search"></span>
+                            <input type="text" placeholder="Search withdrawals..." id="withdrawalSearch" onkeyup="filterWithdrawals()">
+                        </div>
+                        <select class="filter-select" id="withdrawalStatusFilter" onchange="filterWithdrawals()">
+                            <option value="">All Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="completed">Completed</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                        <select class="filter-select" id="withdrawalReasonFilter" onchange="filterWithdrawals()">
+                            <option value="">All Reasons</option>
+                            <option value="profit_taking">Profit Taking</option>
+                            <option value="partial_withdrawal">Partial Withdrawal</option>
+                            <option value="closing_account">Closing Account</option>
+                            <option value="emergency">Emergency</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="exportWithdrawals()">
+                            <span class="icon icon-download"></span>
+                            Export
+                        </button>
+                    </div>
+
+                    <div style="overflow-x: auto;">
+                        <table class="data-table" id="withdrawalsTable">
+                            <thead>
+                                <tr>
+                                    <th>Reference</th>
+                                    <th>Client</th>
+                                    <th>Amount</th>
+                                    <th>Reason</th>
+                                    <th>Bank Details</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="withdrawalsTableBody">
                                 <!-- Dynamic content -->
                             </tbody>
                         </table>
@@ -1946,6 +1769,27 @@
             </div>
         </div>
     </div>
+
+    <!-- Withdrawal Details Modal -->
+    <div class="modal" id="withdrawalModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Withdrawal Request Details</h3>
+                <button class="modal-close" onclick="closeModal('withdrawalModal')">
+                    <span class="icon icon-x"></span>
+                </button>
+            </div>
+            <div class="modal-body" id="withdrawalDetailsBody">
+                <!-- Dynamic content -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('withdrawalModal')">Close</button>
+                <button type="button" class="btn btn-success" onclick="approveWithdrawal()" id="approveWithdrawalBtn">Approve</button>
+                <button type="button" class="btn btn-danger" onclick="rejectWithdrawal()" id="rejectWithdrawalBtn">Reject</button>
+                <button type="button" class="btn btn-primary" onclick="completeWithdrawal()" id="completeWithdrawalBtn" style="display: none;">Mark Complete</button>
+            </div>
+        </div>
+    </div>
     
     <!-- Complete Working JavaScript with REAL DATABASE INTEGRATION AND SUPPORT SYSTEM -->
     <script>
@@ -1953,6 +1797,7 @@
         let currentTheme = 'light';
         let clients = [];
         let deposits = [];
+        let withdrawals = []; // NEW: Withdrawal management
         let pendingUsers = [];
         let supportTickets = []; // ALL SUPPORT TICKETS FOR ADMIN
         let currentPage = 1;
@@ -1960,11 +1805,410 @@
         let currentTab = 'clients';
         let editingClientId = null;
         let viewingDepositId = null;
+        let viewingWithdrawalId = null; // NEW: For viewing withdrawal details
         let totalUnreadSupport = 0; // ADMIN UNREAD COUNT
 
         // Get auth token for API calls
         function getAuthToken() {
             return localStorage.getItem('aequitas_auth_token');
+        }
+
+        // === WITHDRAWAL MANAGEMENT FUNCTIONS ===
+
+        // Load withdrawals from API
+        async function loadWithdrawals() {
+            try {
+                console.log('💰 Loading withdrawal requests...');
+                
+                const response = await fetch('/api/withdrawal', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    withdrawals = data.withdrawals || [];
+                    console.log(`✅ Loaded ${withdrawals.length} withdrawal requests`);
+                } else {
+                    throw new Error(data.error || 'Failed to load withdrawals');
+                }
+                
+            } catch (error) {
+                console.error('💥 Failed to load withdrawals:', error);
+                withdrawals = [];
+                showNotification('Failed to load withdrawal requests', 'error');
+            }
+        }
+
+        // Render withdrawals table
+        function renderWithdrawalsTable() {
+            const tbody = document.getElementById('withdrawalsTableBody');
+            const searchTerm = document.getElementById('withdrawalSearch').value.toLowerCase();
+            const statusFilter = document.getElementById('withdrawalStatusFilter').value;
+            const reasonFilter = document.getElementById('withdrawalReasonFilter').value;
+            
+            let filteredWithdrawals = withdrawals.filter(withdrawal => {
+                const matchesSearch = withdrawal.reference.toLowerCase().includes(searchTerm) ||
+                                    withdrawal.client_name.toLowerCase().includes(searchTerm) ||
+                                    (withdrawal.client_email && withdrawal.client_email.toLowerCase().includes(searchTerm));
+                const matchesStatus = !statusFilter || withdrawal.status === statusFilter;
+                const matchesReason = !reasonFilter || withdrawal.reason === reasonFilter;
+                return matchesSearch && matchesStatus && matchesReason;
+            });
+            
+            if (filteredWithdrawals.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                            <div style="font-size: 18px; margin-bottom: 8px;">No withdrawal requests found</div>
+                            <div style="font-size: 14px;">Client withdrawal requests will appear here.</div>
+                        </td>
+                    </tr>
+                `;
+            } else {
+                tbody.innerHTML = filteredWithdrawals.map(withdrawal => `
+                    <tr>
+                        <td>
+                            <div style="font-weight: 500;">${withdrawal.reference}</div>
+                            <div style="font-size: 12px; color: var(--text-tertiary);">${withdrawal.id}</div>
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div class="client-avatar">${withdrawal.client_name.charAt(0)}</div>
+                                <div>
+                                    <div style="font-weight: 500;">${withdrawal.client_name}</div>
+                                    <div style="font-size: 12px; color: var(--text-tertiary);">${withdrawal.client_email || ''}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="font-weight: 600; color: var(--error);">${withdrawal.amount.toLocaleString()}</td>
+                        <td style="text-transform: capitalize;">${formatWithdrawalReason(withdrawal.reason)}</td>
+                        <td>
+                            <div style="font-size: 12px;">
+                                <div style="font-weight: 500;">${withdrawal.bank_name}</div>
+                                <div style="color: var(--text-secondary);">${withdrawal.iban.substring(0, 8)}...</div>
+                            </div>
+                        </td>
+                        <td><span class="status ${withdrawal.status}">${withdrawal.status}</span></td>
+                        <td>${new Date(withdrawal.created_at).toLocaleDateString()}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn view" onclick="viewWithdrawal('${withdrawal.id}')" title="View Details">
+                                    <span class="icon icon-eye"></span>
+                                </button>
+                                ${withdrawal.status === 'pending' ? `
+                                    <button class="action-btn edit" onclick="approveWithdrawalQuick('${withdrawal.id}')" title="Quick Approve">
+                                        <span class="icon icon-check"></span>
+                                    </button>
+                                ` : ''}
+                                ${withdrawal.status === 'approved' ? `
+                                    <button class="action-btn edit" onclick="completeWithdrawalQuick('${withdrawal.id}')" title="Mark Complete">
+                                        <span class="icon icon-check"></span>
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        // Format withdrawal reason
+        function formatWithdrawalReason(reason) {
+            const reasons = {
+                'profit_taking': 'Profit Taking',
+                'partial_withdrawal': 'Partial Withdrawal',
+                'closing_account': 'Closing Account',
+                'emergency': 'Emergency',
+                'other': 'Other'
+            };
+            return reasons[reason] || reason;
+        }
+
+        // View withdrawal details
+        function viewWithdrawal(withdrawalId) {
+            const withdrawal = withdrawals.find(w => w.id === withdrawalId);
+            if (!withdrawal) {
+                console.error('Withdrawal not found:', withdrawalId);
+                showNotification('Withdrawal not found!', 'error');
+                return;
+            }
+            
+            console.log('👁️ Admin viewing withdrawal:', withdrawal);
+            viewingWithdrawalId = withdrawalId;
+            
+            document.getElementById('withdrawalDetailsBody').innerHTML = `
+                <div class="modal-form-grid">
+                    <div class="modal-form-group">
+                        <label>Reference Number</label>
+                        <div style="font-weight: 500;">${withdrawal.reference}</div>
+                    </div>
+                    <div class="modal-form-group">
+                        <label>Status</label>
+                        <span class="status ${withdrawal.status}">${withdrawal.status}</span>
+                    </div>
+                    <div class="modal-form-group">
+                        <label>Client Name</label>
+                        <div>${withdrawal.client_name}</div>
+                    </div>
+                    <div class="modal-form-group">
+                        <label>Client Email</label>
+                        <div>${withdrawal.client_email || 'Not provided'}</div>
+                    </div>
+                    <div class="modal-form-group">
+                        <label>Amount</label>
+                        <div style="font-weight: 600; color: var(--error);">${withdrawal.amount.toLocaleString()}</div>
+                    </div>
+                    <div class="modal-form-group">
+                        <label>Reason</label>
+                        <div style="text-transform: capitalize;">${formatWithdrawalReason(withdrawal.reason)}</div>
+                    </div>
+                    <div class="modal-form-group">
+                        <label>Date Submitted</label>
+                        <div>${new Date(withdrawal.created_at).toLocaleDateString()}</div>
+                    </div>
+                    ${withdrawal.approved_by ? `
+                        <div class="modal-form-group">
+                            <label>Approved By</label>
+                            <div>${withdrawal.approved_by}</div>
+                        </div>
+                    ` : ''}
+                    ${withdrawal.rejected_by ? `
+                        <div class="modal-form-group">
+                            <label>Rejected By</label>
+                            <div>${withdrawal.rejected_by}</div>
+                        </div>
+                    ` : ''}
+                    ${withdrawal.details ? `
+                        <div class="modal-form-group full-width">
+                            <label>Additional Details</label>
+                            <div style="padding: 12px; background: var(--bg-secondary); border-radius: 6px;">${withdrawal.details}</div>
+                        </div>
+                    ` : ''}
+                </div>
+                
+                <div class="withdrawal-details">
+                    <h4 style="margin-bottom: 16px; font-size: 16px; font-weight: 600; color: var(--text-primary);">Bank Details</h4>
+                    <div class="bank-details">
+                        <div class="bank-detail-item">
+                            <span class="bank-detail-label">Account Name:</span>
+                            <span class="bank-detail-value">${withdrawal.account_name}</span>
+                        </div>
+                        <div class="bank-detail-item">
+                            <span class="bank-detail-label">IBAN:</span>
+                            <span class="bank-detail-value">${withdrawal.iban}</span>
+                        </div>
+                        <div class="bank-detail-item">
+                            <span class="bank-detail-label">SWIFT Code:</span>
+                            <span class="bank-detail-value">${withdrawal.swift_code || 'Not provided'}</span>
+                        </div>
+                        <div class="bank-detail-item">
+                            <span class="bank-detail-label">Bank Name:</span>
+                            <span class="bank-detail-value">${withdrawal.bank_name}</span>
+                        </div>
+                        ${withdrawal.bank_address ? `
+                            <div class="bank-detail-item" style="grid-column: 1 / -1;">
+                                <span class="bank-detail-label">Bank Address:</span>
+                                <span class="bank-detail-value">${withdrawal.bank_address}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+                
+                ${withdrawal.withdrawal_form_url ? `
+                    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span style="font-weight: 500;">Withdrawal Form:</span>
+                            <button class="btn btn-sm btn-outline" onclick="downloadWithdrawalForm('${withdrawal.withdrawal_form_url}', '${withdrawal.withdrawal_form_filename}')">
+                                <span class="icon icon-download"></span>
+                                Download ${withdrawal.withdrawal_form_filename}
+                            </button>
+                        </div>
+                    </div>
+                ` : ''}
+                
+                ${withdrawal.admin_notes ? `
+                    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+                        <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Admin Notes</label>
+                        <div style="margin-top: 6px; padding: 12px; background: var(--bg-secondary); border-radius: 6px;">${withdrawal.admin_notes}</div>
+                    </div>
+                ` : ''}
+            `;
+            
+            // Show/hide action buttons based on status
+            document.getElementById('approveWithdrawalBtn').style.display = withdrawal.status === 'pending' ? 'inline-flex' : 'none';
+            document.getElementById('rejectWithdrawalBtn').style.display = withdrawal.status === 'pending' ? 'inline-flex' : 'none';
+            document.getElementById('completeWithdrawalBtn').style.display = withdrawal.status === 'approved' ? 'inline-flex' : 'none';
+            
+            openModal('withdrawalModal');
+        }
+
+        // Download withdrawal form
+        function downloadWithdrawalForm(url, filename) {
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification('Downloading withdrawal form...', 'success');
+        }
+
+        // Approve withdrawal
+        async function approveWithdrawal() {
+            if (!viewingWithdrawalId) return;
+            
+            const adminNotes = prompt('Optional admin notes for approval:');
+            
+            try {
+                await updateWithdrawalStatus(viewingWithdrawalId, 'approved', adminNotes);
+                closeModal('withdrawalModal');
+                showNotification('Withdrawal approved successfully!', 'success');
+            } catch (error) {
+                showNotification('Failed to approve withdrawal', 'error');
+            }
+        }
+
+        // Reject withdrawal
+        async function rejectWithdrawal() {
+            if (!viewingWithdrawalId) return;
+            
+            const adminNotes = prompt('Please provide a reason for rejection:');
+            if (adminNotes === null) return; // User cancelled
+            
+            if (!adminNotes.trim()) {
+                showNotification('Rejection reason is required', 'warning');
+                return;
+            }
+            
+            try {
+                await updateWithdrawalStatus(viewingWithdrawalId, 'rejected', adminNotes);
+                closeModal('withdrawalModal');
+                showNotification('Withdrawal rejected.', 'warning');
+            } catch (error) {
+                showNotification('Failed to reject withdrawal', 'error');
+            }
+        }
+
+        // Complete withdrawal
+        async function completeWithdrawal() {
+            if (!viewingWithdrawalId) return;
+            
+            if (!confirm('Mark this withdrawal as completed? This action indicates the funds have been transferred.')) {
+                return;
+            }
+            
+            const adminNotes = prompt('Optional completion notes:');
+            
+            try {
+                await updateWithdrawalStatus(viewingWithdrawalId, 'completed', adminNotes);
+                closeModal('withdrawalModal');
+                showNotification('Withdrawal marked as completed!', 'success');
+            } catch (error) {
+                showNotification('Failed to complete withdrawal', 'error');
+            }
+        }
+
+        // Quick approve withdrawal
+        async function approveWithdrawalQuick(withdrawalId) {
+            try {
+                await updateWithdrawalStatus(withdrawalId, 'approved', 'Quick approval');
+                showNotification('Withdrawal approved!', 'success');
+            } catch (error) {
+                showNotification('Failed to approve withdrawal', 'error');
+            }
+        }
+
+        // Quick complete withdrawal
+        async function completeWithdrawalQuick(withdrawalId) {
+            if (!confirm('Mark this withdrawal as completed?')) return;
+            
+            try {
+                await updateWithdrawalStatus(withdrawalId, 'completed', 'Completed via quick action');
+                showNotification('Withdrawal completed!', 'success');
+            } catch (error) {
+                showNotification('Failed to complete withdrawal', 'error');
+            }
+        }
+
+        // Update withdrawal status (API call)
+        async function updateWithdrawalStatus(withdrawalId, status, adminNotes) {
+            console.log(`📝 Updating withdrawal ${withdrawalId} to ${status}`);
+            
+            const response = await fetch('/api/withdrawal', {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${getAuthToken()}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    withdrawalId: withdrawalId,
+                    status: status,
+                    adminNotes: adminNotes
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to update withdrawal status');
+            }
+            
+            // Update local withdrawal in array
+            const withdrawalIndex = withdrawals.findIndex(w => w.id === withdrawalId);
+            if (withdrawalIndex !== -1) {
+                withdrawals[withdrawalIndex].status = status;
+                withdrawals[withdrawalIndex].admin_notes = adminNotes;
+                
+                if (status === 'approved') {
+                    withdrawals[withdrawalIndex].approved_by = 'Admin';
+                    withdrawals[withdrawalIndex].approved_at = new Date().toISOString();
+                } else if (status === 'rejected') {
+                    withdrawals[withdrawalIndex].rejected_by = 'Admin';
+                    withdrawals[withdrawalIndex].rejected_at = new Date().toISOString();
+                }
+            }
+            
+            // Refresh table
+            renderWithdrawalsTable();
+            
+            // Refresh stats
+            fetchAdminStats();
+        }
+
+        // Filter withdrawals
+        function filterWithdrawals() {
+            renderWithdrawalsTable();
+        }
+
+        // Export withdrawals
+        function exportWithdrawals() {
+            if (withdrawals.length === 0) {
+                showNotification('No withdrawals to export', 'warning');
+                return;
+            }
+            
+            const csvContent = "data:text/csv;charset=utf-8," 
+                + "Reference,Client Name,Client Email,Amount,Reason,Bank Name,IBAN,Status,Date,Admin Notes\n"
+                + withdrawals.map(withdrawal => 
+                    `${withdrawal.reference},"${withdrawal.client_name}","${withdrawal.client_email || ''}",${withdrawal.amount},"${formatWithdrawalReason(withdrawal.reason)}","${withdrawal.bank_name}","${withdrawal.iban}",${withdrawal.status},${new Date(withdrawal.created_at).toLocaleDateString()},"${withdrawal.admin_notes || ''}"`
+                ).join("\n");
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `withdrawal_requests_export_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification('Withdrawals exported successfully!', 'success');
         }
 
         // === SUPPORT SYSTEM INTEGRATION ===
@@ -2335,11 +2579,11 @@
                 // Update stats display
                 updateStatsDisplay(data.stats);
                 
-                // Update clients and deposits arrays with real data - FIXED mapping
+                // Update clients and deposits arrays with real data
                 clients = data.clients.map(client => ({
                     id: client.id,
-                    firstName: client.firstName || 'Unknown',  // API already returns camelCase
-                    lastName: client.lastName || 'User',       // API already returns camelCase
+                    firstName: client.firstName || 'Unknown',
+                    lastName: client.lastName || 'User',
                     email: client.email,
                     phone: client.phone || 'Not provided',
                     address: client.address || 'Not provided',
@@ -2568,8 +2812,11 @@
             // Also fetch support tickets
             await loadSupportTickets();
             
+            // Also fetch withdrawals
+            await loadWithdrawals();
+            
             if (statsData) {
-                console.log(`✅ Admin loaded REAL data: ${clients.length} clients, ${deposits.length} deposits, ${pendingUsers.length} pending users`);
+                console.log(`✅ Admin loaded REAL data: ${clients.length} clients, ${deposits.length} deposits, ${pendingUsers.length} pending users, ${withdrawals.length} withdrawals`);
             } else {
                 console.log('⚠️ Failed to load real data, using empty state');
             }
@@ -2594,6 +2841,8 @@
                 window.location.href = 'dashboard.html';
             } else if (page === 'deposit') {
                 window.location.href = 'deposit.html';
+            } else if (page === 'withdraw') {
+                window.location.href = 'withdrawal.html';
             } else if (page === 'support') {
                 window.location.href = 'support.html';
             } else if (page !== 'admin') {
@@ -2631,6 +2880,8 @@
                 renderClientsTable();
             } else if (tabName === 'deposits') {
                 renderDepositsTable();
+            } else if (tabName === 'withdrawals') {
+                renderWithdrawalsTable();
             } else if (tabName === 'pending') {
                 fetchPendingUsers().then(() => {
                     renderPendingUsersTable();
@@ -3023,497 +3274,497 @@
             
             updatePagination(filteredClients.length);
         }
-// Render deposits table 
-       function renderDepositsTable() {
-           const tbody = document.getElementById('depositsTableBody');
-           const searchTerm = document.getElementById('depositSearch').value.toLowerCase();
-           const statusFilter = document.getElementById('depositStatusFilter').value;
-           
-           let filteredDeposits = deposits.filter(deposit => {
-               const matchesSearch = deposit.reference.toLowerCase().includes(searchTerm) ||
-                                   deposit.clientName.toLowerCase().includes(searchTerm);
-               const matchesStatus = !statusFilter || deposit.status === statusFilter;
-               return matchesSearch && matchesStatus;
-           });
-           
-           if (filteredDeposits.length === 0) {
-               tbody.innerHTML = `
-                   <tr>
-                       <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-secondary);">
-                           <div style="font-size: 18px; margin-bottom: 8px;">No deposits found</div>
-                           <div style="font-size: 14px;">Deposit requests will appear here once clients submit them.</div>
-                       </td>
-                   </tr>
-               `;
-           } else {
-               tbody.innerHTML = filteredDeposits.map(deposit => `
-                   <tr>
-                       <td>
-                           <div style="font-weight: 500;">${deposit.reference}</div>
-                           <div style="font-size: 12px; color: var(--text-tertiary);">${deposit.id}</div>
-                       </td>
-                       <td>
-                           <div style="font-weight: 500;">${deposit.clientName}</div>
-                           <div style="font-size: 12px; color: var(--text-tertiary);">${deposit.clientEmail || ''}</div>
-                       </td>
-                       <td>${deposit.amount.toLocaleString()}</td>
-                       <td style="text-transform: capitalize;">${deposit.purpose}</td>
-                       <td><span class="status ${deposit.status}">${deposit.status}</span></td>
-                       <td>${new Date(deposit.date).toLocaleDateString()}</td>
-                       <td>
-                           <div class="action-buttons">
-                               <button class="action-btn view" onclick="viewDeposit('${deposit.id}')" title="View Details">
-                                   <span class="icon icon-eye"></span>
-                               </button>
-                               ${deposit.status === 'pending' ? `
-                                   <button class="action-btn edit" onclick="approveDepositQuick('${deposit.id}')" title="Quick Approve">
-                                       <span class="icon icon-check"></span>
-                                   </button>
-                               ` : ''}
-                           </div>
-                       </td>
-                   </tr>
-               `).join('');
-           }
-       }
 
-       // View deposit details
-       function viewDeposit(depositId) {
-           const deposit = deposits.find(d => d.id === depositId);
-           if (!deposit) {
-               console.error('Deposit not found:', depositId);
-               showNotification('Deposit not found!', 'error');
-               return;
-           }
-           
-           console.log('👁️ Admin viewing deposit:', deposit);
-           viewingDepositId = depositId;
-           
-           document.getElementById('depositDetailsBody').innerHTML = `
-               <div class="modal-form-grid">
-                   <div class="modal-form-group">
-                       <label>Reference Number</label>
-                       <div style="font-weight: 500;">${deposit.reference}</div>
-                   </div>
-                   <div class="modal-form-group">
-                       <label>Status</label>
-                       <span class="status ${deposit.status}">${deposit.status}</span>
-                   </div>
-                   <div class="modal-form-group">
-                       <label>Client Name</label>
-                       <div>${deposit.clientName || 'Unknown Client'}</div>
-                   </div>
-                   <div class="modal-form-group">
-                       <label>Client Email</label>
-                       <div>${deposit.clientEmail || 'Not provided'}</div>
-                   </div>
-                   <div class="modal-form-group">
-                       <label>Amount</label>
-                       <div style="font-weight: 600; color: var(--success);">${deposit.amount.toLocaleString()}</div>
-                   </div>
-                   <div class="modal-form-group">
-                       <label>Purpose</label>
-                       <div style="text-transform: capitalize;">${deposit.purpose}</div>
-                   </div>
-                   <div class="modal-form-group">
-                       <label>Date Submitted</label>
-                       <div>${new Date(deposit.date).toLocaleDateString()}</div>
-                   </div>
-                   <div class="modal-form-group full-width">
-                       <label>Bank Transfer Reference</label>
-                       <div style="padding: 12px; background: var(--bg-secondary); border-radius: 6px; font-family: monospace; font-weight: 600;">
-                           KC5230
-                       </div>
-                       <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
-                           Client must include this reference in their bank transfer
-                       </div>
-                   </div>
-               </div>
-           `;
-           
-           // Show/hide action buttons based on status
-           document.getElementById('approveBtn').style.display = deposit.status === 'pending' ? 'inline-flex' : 'none';
-           document.getElementById('rejectBtn').style.display = deposit.status === 'pending' ? 'inline-flex' : 'none';
-           
-           openModal('depositModal');
-       }
-       
-       // Approve deposit
-       function approveDeposit() {
-           if (!viewingDepositId) return;
-           
-           const depositIndex = deposits.findIndex(d => d.id === viewingDepositId);
-           if (depositIndex !== -1) {
-               deposits[depositIndex].status = 'approved';
-               deposits[depositIndex].approvedAt = new Date().toISOString();
-               deposits[depositIndex].approvedBy = 'admin';
-               
-               closeModal('depositModal');
-               renderDepositsTable();
-               fetchAdminStats(); // Refresh stats
-               showNotification('Deposit approved successfully!', 'success');
-           }
-       }
+        // Render deposits table 
+        function renderDepositsTable() {
+            const tbody = document.getElementById('depositsTableBody');
+            const searchTerm = document.getElementById('depositSearch').value.toLowerCase();
+            const statusFilter = document.getElementById('depositStatusFilter').value;
+            
+            let filteredDeposits = deposits.filter(deposit => {
+                const matchesSearch = deposit.reference.toLowerCase().includes(searchTerm) ||
+                                    deposit.clientName.toLowerCase().includes(searchTerm);
+                const matchesStatus = !statusFilter || deposit.status === statusFilter;
+                return matchesSearch && matchesStatus;
+            });
+            
+            if (filteredDeposits.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                            <div style="font-size: 18px; margin-bottom: 8px;">No deposits found</div>
+                            <div style="font-size: 14px;">Deposit requests will appear here once clients submit them.</div>
+                        </td>
+                    </tr>
+                `;
+            } else {
+                tbody.innerHTML = filteredDeposits.map(deposit => `
+                    <tr>
+                        <td>
+                            <div style="font-weight: 500;">${deposit.reference}</div>
+                            <div style="font-size: 12px; color: var(--text-tertiary);">${deposit.id}</div>
+                        </td>
+                        <td>
+                            <div style="font-weight: 500;">${deposit.clientName}</div>
+                            <div style="font-size: 12px; color: var(--text-tertiary);">${deposit.clientEmail || ''}</div>
+                        </td>
+                        <td>${deposit.amount.toLocaleString()}</td>
+                        <td style="text-transform: capitalize;">${deposit.purpose}</td>
+                        <td><span class="status ${deposit.status}">${deposit.status}</span></td>
+                        <td>${new Date(deposit.date).toLocaleDateString()}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn view" onclick="viewDeposit('${deposit.id}')" title="View Details">
+                                    <span class="icon icon-eye"></span>
+                                </button>
+                                ${deposit.status === 'pending' ? `
+                                    <button class="action-btn edit" onclick="approveDepositQuick('${deposit.id}')" title="Quick Approve">
+                                        <span class="icon icon-check"></span>
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
 
-       // Reject deposit
-       function rejectDeposit() {
-           if (!viewingDepositId) return;
-           
-           if (confirm('Are you sure you want to reject this deposit request?')) {
-               const depositIndex = deposits.findIndex(d => d.id === viewingDepositId);
-               if (depositIndex !== -1) {
-                   deposits[depositIndex].status = 'rejected';
-                   deposits[depositIndex].rejectedAt = new Date().toISOString();
-                   deposits[depositIndex].rejectedBy = 'admin';
-                   
-                   closeModal('depositModal');
-                   renderDepositsTable();
-                   fetchAdminStats(); // Refresh stats
-                   showNotification('Deposit rejected.', 'warning');
-               }
-           }
-       }
-       
-       function approveDepositQuick(depositId) {
-           const depositIndex = deposits.findIndex(d => d.id === depositId);
-           if (depositIndex !== -1) {
-               deposits[depositIndex].status = 'approved';
-               
-               renderDepositsTable();
-               fetchAdminStats(); // Refresh stats
-               showNotification('Deposit approved!', 'success');
-           }
-       }
+        // View deposit details
+        function viewDeposit(depositId) {
+            const deposit = deposits.find(d => d.id === depositId);
+            if (!deposit) {
+                console.error('Deposit not found:', depositId);
+                showNotification('Deposit not found!', 'error');
+                return;
+            }
+            
+            console.log('👁️ Admin viewing deposit:', deposit);
+            viewingDepositId = depositId;
+            
+            document.getElementById('depositDetailsBody').innerHTML = `
+                <div class="modal-form-grid">
+                    <div class="modal-form-group">
+                        <label>Reference Number</label>
+                        <div style="font-weight: 500;">${deposit.reference}</div>
+                    </div>
+                    <div class="modal-form-group">
+                        <label>Status</label>
+                        <span class="status ${deposit.status}">${deposit.status}</span>
+                    </div>
+                    <div class="modal-form-group">
+                        <label>Client Name</label>
+                        <div>${deposit.clientName || 'Unknown Client'}</div>
+                    </div>
+                    <div class="modal-form-group">
+                        <label>Client Email</label>
+                        <div>${deposit.clientEmail || 'Not provided'}</div>
+                    </div>
+                    <div class="modal-form-group">
+                        <label>Amount</label>
+                        <div style="font-weight: 600; color: var(--success);">${deposit.amount.toLocaleString()}</div>
+                    </div>
+                    <div class="modal-form-group">
+                        <label>Purpose</label>
+                        <div style="text-transform: capitalize;">${deposit.purpose}</div>
+                    </div>
+                    <div class="modal-form-group">
+                        <label>Date Submitted</label>
+                        <div>${new Date(deposit.date).toLocaleDateString()}</div>
+                    </div>
+                    <div class="modal-form-group full-width">
+                        <label>Bank Transfer Reference</label>
+                        <div style="padding: 12px; background: var(--bg-secondary); border-radius: 6px; font-family: monospace; font-weight: 600;">
+                            KC5230
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+                            Client must include this reference in their bank transfer
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Show/hide action buttons based on status
+            document.getElementById('approveBtn').style.display = deposit.status === 'pending' ? 'inline-flex' : 'none';
+            document.getElementById('rejectBtn').style.display = deposit.status === 'pending' ? 'inline-flex' : 'none';
+            
+            openModal('depositModal');
+        }
+        
+        // Approve deposit
+        function approveDeposit() {
+            if (!viewingDepositId) return;
+            
+            const depositIndex = deposits.findIndex(d => d.id === viewingDepositId);
+            if (depositIndex !== -1) {
+                deposits[depositIndex].status = 'approved';
+                deposits[depositIndex].approvedAt = new Date().toISOString();
+                deposits[depositIndex].approvedBy = 'admin';
+                
+                closeModal('depositModal');
+                renderDepositsTable();
+                fetchAdminStats(); // Refresh stats
+                showNotification('Deposit approved successfully!', 'success');
+            }
+        }
 
-       // Update pagination
-       function updatePagination(totalItems) {
-           const totalPages = Math.ceil(totalItems / itemsPerPage);
-           const paginationInfo = document.getElementById('paginationInfo');
-           const paginationControls = document.getElementById('paginationControls');
-           
-           const startItem = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
-           const endItem = Math.min(currentPage * itemsPerPage, totalItems);
-           
-           paginationInfo.textContent = `Showing ${startItem}-${endItem} of ${totalItems} items`;
-           
-           if (totalPages <= 1) {
-               paginationControls.innerHTML = '';
-               return;
-           }
-           
-           let paginationHTML = '';
-           
-           // Previous button
-           paginationHTML += `
-               <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">
-                   Previous
-               </button>
-           `;
-           
-           // Page numbers
-           for (let i = 1; i <= totalPages; i++) {
-               if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
-                   paginationHTML += `
-                       <button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">
-                           ${i}
-                       </button>
-                   `;
-               } else if (i === currentPage - 3 || i === currentPage + 3) {
-                   paginationHTML += '<span style="padding: 8px;">...</span>';
-               }
-           }
-           
-           // Next button
-           paginationHTML += `
-               <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">
-                   Next
-               </button>
-           `;
-           
-           paginationControls.innerHTML = paginationHTML;
-       }
+        // Reject deposit
+        function rejectDeposit() {
+            if (!viewingDepositId) return;
+            
+            if (confirm('Are you sure you want to reject this deposit request?')) {
+                const depositIndex = deposits.findIndex(d => d.id === viewingDepositId);
+                if (depositIndex !== -1) {
+                    deposits[depositIndex].status = 'rejected';
+                    deposits[depositIndex].rejectedAt = new Date().toISOString();
+                    deposits[depositIndex].rejectedBy = 'admin';
+                    
+                    closeModal('depositModal');
+                    renderDepositsTable();
+                    fetchAdminStats(); // Refresh stats
+                    showNotification('Deposit rejected.', 'warning');
+                }
+            }
+        }
+        
+        function approveDepositQuick(depositId) {
+            const depositIndex = deposits.findIndex(d => d.id === depositId);
+            if (depositIndex !== -1) {
+                deposits[depositIndex].status = 'approved';
+                
+                renderDepositsTable();
+                fetchAdminStats(); // Refresh stats
+                showNotification('Deposit approved!', 'success');
+            }
+        }
 
-       // Change page
-       function changePage(page) {
-           currentPage = page;
-           if (currentTab === 'clients') {
-               renderClientsTable();
-           } else if (currentTab === 'deposits') {
-               renderDepositsTable();
-           }
-       }
+        // Update pagination
+        function updatePagination(totalItems) {
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            const paginationInfo = document.getElementById('paginationInfo');
+            const paginationControls = document.getElementById('paginationControls');
+            
+            const startItem = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
+            const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+            
+            if (paginationInfo) {
+                paginationInfo.textContent = `Showing ${startItem}-${endItem} of ${totalItems} items`;
+            }
+            
+            if (paginationControls && totalPages > 1) {
+                let paginationHTML = '';
+                
+                // Previous button
+                paginationHTML += `
+                    <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">
+                        Previous
+                    </button>
+                `;
+                
+                // Page numbers
+                for (let i = 1; i <= totalPages; i++) {
+                    if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                        paginationHTML += `
+                            <button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">
+                                ${i}
+                            </button>
+                        `;
+                    } else if (i === currentPage - 3 || i === currentPage + 3) {
+                        paginationHTML += '<span style="padding: 8px;">...</span>';
+                    }
+                }
+                
+                // Next button
+                paginationHTML += `
+                    <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">
+                        Next
+                    </button>
+                `;
+                
+                paginationControls.innerHTML = paginationHTML;
+            }
+        }
 
-       // Filter functions
-       function filterClients() {
-           currentPage = 1;
-           renderClientsTable();
-       }
+        // Change page
+        function changePage(page) {
+            currentPage = page;
+            if (currentTab === 'clients') {
+                renderClientsTable();
+            } else if (currentTab === 'deposits') {
+                renderDepositsTable();
+            }
+        }
 
-       function filterDeposits() {
-           currentPage = 1;
-           renderDepositsTable();
-       }
+        // Filter functions
+        function filterClients() {
+            currentPage = 1;
+            renderClientsTable();
+        }
 
-       // Modal functions
-       function openModal(modalId) {
-           document.getElementById(modalId).classList.add('show');
-       }
+        function filterDeposits() {
+            currentPage = 1;
+            renderDepositsTable();
+        }
 
-       function closeModal(modalId) {
-           document.getElementById(modalId).classList.remove('show');
-           if (modalId === 'clientModal') {
-               document.getElementById('clientForm').reset();
-               editingClientId = null;
-           }
-       }
+        // Modal functions
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('show');
+        }
 
-       // Client management functions
-       function openAddClientModal() {
-           editingClientId = null;
-           document.getElementById('modalTitle').textContent = 'Add New Client';
-           document.getElementById('saveClientBtn').textContent = 'Save Client';
-           document.getElementById('clientForm').reset();
-           openModal('clientModal');
-       }
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+            if (modalId === 'clientModal') {
+                document.getElementById('clientForm').reset();
+                editingClientId = null;
+            }
+        }
 
-       function editClient(clientId) {
-           console.log('✏️ Edit client called with ID:', clientId);
-           const client = clients.find(c => c.id === clientId);
-           console.log('📋 Found client:', client);
-           
-           if (!client) {
-               console.error('❌ Client not found:', clientId);
-               showNotification('Client not found!', 'error');
-               return;
-           }
-           
-           editingClientId = clientId;
-           console.log('📝 Set editingClientId to:', editingClientId);
-           
-           // Update modal title and button
-           document.getElementById('modalTitle').textContent = 'Edit Client';
-           document.getElementById('saveClientBtn').textContent = 'Update Client';
-           
-           // Populate form with client data - FIXED to handle undefined values
-           document.getElementById('firstName').value = client.firstName || '';
-           document.getElementById('lastName').value = client.lastName || '';
-           document.getElementById('email').value = client.email || '';
-           document.getElementById('phone').value = client.phone || '';
-           document.getElementById('address').value = client.address || '';
-           document.getElementById('initialDeposit').value = client.accountValue || 0;
-           document.getElementById('clientStatus').value = client.status || 'active';
-           document.getElementById('clientId').value = client.id;
-           
-           console.log('✅ Form populated with data');
-           console.log('Modal data check:', {
-               firstName: document.getElementById('firstName').value,
-               lastName: document.getElementById('lastName').value,
-               email: document.getElementById('email').value,
-               editingClientId: editingClientId
-           });
-           
-           openModal('clientModal');
-       }
+        // Client management functions
+        function openAddClientModal() {
+            editingClientId = null;
+            document.getElementById('modalTitle').textContent = 'Add New Client';
+            document.getElementById('saveClientBtn').textContent = 'Save Client';
+            document.getElementById('clientForm').reset();
+            openModal('clientModal');
+        }
 
-       function viewClient(clientId) {
-           const client = clients.find(c => c.id === clientId);
-           if (!client) return;
-           
-           // Get client deposits
-           const clientDeposits = deposits.filter(d => d.userId === clientId);
-           
-           document.getElementById('clientDetailsBody').innerHTML = `
-               <div class="modal-form-grid">
-                   <div class="modal-form-group">
-                       <label>Full Name</label>
-                       <div style="font-weight: 500;">${client.firstName} ${client.lastName}</div>
-                   </div>
-                   <div class="modal-form-group">
-                       <label>Status</label>
-                       <span class="status ${client.status}">${client.status}</span>
-                   </div>
-                   <div class="modal-form-group">
-                       <label>Email</label>
-                       <div>${client.email}</div>
-                   </div>
-                   <div class="modal-form-group">
-                       <label>Phone</label>
-                       <div>${client.phone || 'Not provided'}</div>
-                   </div>
-                   <div class="modal-form-group full-width">
-                       <label>Address</label>
-                       <div>${client.address || 'Not provided'}</div>
-                   </div>
-                   <div class="modal-form-group">
-                       <label>Join Date</label>
-                       <div>${new Date(client.joinDate).toLocaleDateString()}</div>
-                   </div>
-                   <div class="modal-form-group">
-                       <label>Current Balance</label>
-                       <div style="font-weight: 600; color: var(--success);">${client.accountValue.toLocaleString()}</div>
-                   </div>
-                   <div class="modal-form-group">
-                       <label>Total Deposits</label>
-                       <div style="font-weight: 600; color: var(--accent);">${client.totalDeposits.toLocaleString()}</div>
-                   </div>
-                   <div class="modal-form-group full-width">
-                       <label>Recent Deposits (${clientDeposits.length})</label>
-                       <div style="margin-top: 8px;">
-                           ${clientDeposits.length > 0 ? clientDeposits.slice(0, 5).map(d => `
-                               <div style="padding: 8px; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 8px;">
-                                   <div style="display: flex; justify-content: space-between;">
-                                       <span style="font-weight: 500;">${d.reference}</span>
-                                       <span class="status ${d.status}">${d.status}</span>
-                                   </div>
-                                   <div style="font-size: 12px; color: var(--text-secondary);">
-                                       ${d.amount.toLocaleString()} • ${new Date(d.date).toLocaleDateString()}
-                                   </div>
-                               </div>
-                           `).join('') : '<div style="color: var(--text-secondary);">No deposits yet</div>'}
-                       </div>
-                   </div>
-               </div>
-           `;
-           
-           editingClientId = clientId;
-           openModal('viewClientModal');
-       }
+        function editClient(clientId) {
+            console.log('✏️ Edit client called with ID:', clientId);
+            const client = clients.find(c => c.id === clientId);
+            console.log('📋 Found client:', client);
+            
+            if (!client) {
+                console.error('❌ Client not found:', clientId);
+                showNotification('Client not found!', 'error');
+                return;
+            }
+            
+            editingClientId = clientId;
+            console.log('📝 Set editingClientId to:', editingClientId);
+            
+            // Update modal title and button
+            document.getElementById('modalTitle').textContent = 'Edit Client';
+            document.getElementById('saveClientBtn').textContent = 'Update Client';
+            
+            // Populate form with client data - FIXED to handle undefined values
+            document.getElementById('firstName').value = client.firstName || '';
+            document.getElementById('lastName').value = client.lastName || '';
+            document.getElementById('email').value = client.email || '';
+            document.getElementById('phone').value = client.phone || '';
+            document.getElementById('address').value = client.address || '';
+            document.getElementById('initialDeposit').value = client.accountValue || 0;
+            document.getElementById('clientStatus').value = client.status || 'active';
+            document.getElementById('clientId').value = client.id;
+            
+            console.log('✅ Form populated with data');
+            console.log('Modal data check:', {
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                email: document.getElementById('email').value,
+                editingClientId: editingClientId
+            });
+            
+            openModal('clientModal');
+        }
 
-       function editClientFromView() {
-           closeModal('viewClientModal');
-           editClient(editingClientId);
-       }
+        function viewClient(clientId) {
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
+            
+            // Get client deposits
+            const clientDeposits = deposits.filter(d => d.userId === clientId);
+            
+            document.getElementById('clientDetailsBody').innerHTML = `
+                <div class="modal-form-grid">
+                    <div class="modal-form-group">
+                        <label>Full Name</label>
+                        <div style="font-weight: 500;">${client.firstName} ${client.lastName}</div>
+                    </div>
+                    <div class="modal-form-group">
+                        <label>Status</label>
+                        <span class="status ${client.status}">${client.status}</span>
+                    </div>
+                    <div class="modal-form-group">
+                        <label>Email</label>
+                        <div>${client.email}</div>
+                    </div>
+                    <div class="modal-form-group">
+                        <label>Phone</label>
+                        <div>${client.phone || 'Not provided'}</div>
+                    </div>
+                    <div class="modal-form-group full-width">
+                        <label>Address</label>
+                        <div>${client.address || 'Not provided'}</div>
+                    </div>
+                    <div class="modal-form-group">
+                        <label>Join Date</label>
+                        <div>${new Date(client.joinDate).toLocaleDateString()}</div>
+                    </div>
+                    <div class="modal-form-group">
+                        <label>Current Balance</label>
+                        <div style="font-weight: 600; color: var(--success);">${client.accountValue.toLocaleString()}</div>
+                    </div>
+                    <div class="modal-form-group">
+                        <label>Total Deposits</label>
+                        <div style="font-weight: 600; color: var(--accent);">${client.totalDeposits.toLocaleString()}</div>
+                    </div>
+                    <div class="modal-form-group full-width">
+                        <label>Recent Deposits (${clientDeposits.length})</label>
+                        <div style="margin-top: 8px;">
+                            ${clientDeposits.length > 0 ? clientDeposits.slice(0, 5).map(d => `
+                                <div style="padding: 8px; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 8px;">
+                                    <div style="display: flex; justify-content: space-between;">
+                                        <span style="font-weight: 500;">${d.reference}</span>
+                                        <span class="status ${d.status}">${d.status}</span>
+                                    </div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">
+                                        ${d.amount.toLocaleString()} • ${new Date(d.date).toLocaleDateString()}
+                                    </div>
+                                </div>
+                            `).join('') : '<div style="color: var(--text-secondary);">No deposits yet</div>'}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            editingClientId = clientId;
+            openModal('viewClientModal');
+        }
 
-       function deleteClient(clientId) {
-           const client = clients.find(c => c.id === clientId);
-           if (!client) return;
-           
-           if (confirm(`Are you sure you want to delete client ${client.firstName} ${client.lastName}? This action cannot be undone and will remove them from the database.`)) {
-               // Delete from database
-               deleteUserInDatabase(clientId)
-                   .then(() => {
-                       // Remove from local array
-                       clients = clients.filter(c => c.id !== clientId);
-                       
-                       renderClientsTable();
-                       fetchAdminStats(); // Refresh stats
-                       showNotification(`Client ${client.firstName} ${client.lastName} has been deleted from database.`, 'success');
-                   })
-                   .catch(error => {
-                       showNotification(`Failed to delete client: ${error.message}`, 'error');
-                   });
-           }
-       }
+        function editClientFromView() {
+            closeModal('viewClientModal');
+            editClient(editingClientId);
+        }
 
-       // Form submission - CREATE REAL USER IN DATABASE
-       document.getElementById('clientForm').addEventListener('submit', async function(e) {
-           e.preventDefault();
-           
-           const submitBtn = document.getElementById('saveClientBtn');
-           const originalText = submitBtn.textContent;
-           
-           try {
-               // Show loading state
-               submitBtn.disabled = true;
-               submitBtn.textContent = 'Creating...';
-               
-               const formData = new FormData(e.target);
-               const clientData = {
-                   firstName: formData.get('firstName'),
-                   lastName: formData.get('lastName'),
-                   email: formData.get('email'),
-                   phone: formData.get('phone'),
-                   address: formData.get('address'),
-                   initialDeposit: parseFloat(formData.get('initialDeposit')) || 0,
-                   status: formData.get('status') || 'active'
-               };
-               
-               if (editingClientId) {
-                   // Update existing client in database
-                   const updatedUser = await updateUserInDatabase(editingClientId, {
-                       firstName: clientData.firstName,
-                       lastName: clientData.lastName,
-                       phone: clientData.phone,
-                       address: clientData.address,
-                       accountValue: clientData.initialDeposit
-                   });
-                   
-                   // Update local clients array
-                   const clientIndex = clients.findIndex(c => c.id === editingClientId);
-                   if (clientIndex !== -1) {
-                       clients[clientIndex] = {
-                           ...clients[clientIndex],
-                           firstName: updatedUser.first_name,
-                           lastName: updatedUser.last_name,
-                           email: updatedUser.email,
-                           phone: updatedUser.phone,
-                           address: updatedUser.address,
-                           accountValue: parseFloat(updatedUser.account_value)
-                       };
-                   }
-                   
-                   showNotification('Client updated successfully in database!', 'success');
-               } else {
-                   // Create new client in database
-                   const newUser = await createUserInDatabase(clientData);
-                   
-                   const newClient = {
-                       id: newUser.id,
-                       firstName: newUser.first_name || newUser.firstName,
-                       lastName: newUser.last_name || newUser.lastName,
-                       email: newUser.email,
-                       phone: newUser.phone,
-                       address: newUser.address,
-                       status: 'active',
-                       joinDate: newUser.created_at ? newUser.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
-                       totalDeposits: 0,
-                       accountValue: parseFloat(newUser.account_value || 0),
-                       startingBalance: parseFloat(newUser.account_value || 0),
-                       lastActive: newUser.created_at ? newUser.created_at.split('T')[0] : new Date().toISOString().split('T')[0]
-                   };
-                   
-                   clients.push(newClient);
-                   
-                   showNotification('New client created successfully in database!', 'success');
-               }
-               
-               // Refresh the stats and tables
-               await fetchAdminStats();
-               
-               closeModal('clientModal');
-               renderClientsTable();
-               
-           } catch (error) {
-               console.error('Failed to save client:', error);
-               showNotification(`Failed to save client: ${error.message}`, 'error');
-           } finally {
-               // Reset button state
-               submitBtn.disabled = false;
-               submitBtn.textContent = originalText;
-           }
-       });
+        function deleteClient(clientId) {
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
+            
+            if (confirm(`Are you sure you want to delete client ${client.firstName} ${client.lastName}? This action cannot be undone and will remove them from the database.`)) {
+                // Delete from database
+                deleteUserInDatabase(clientId)
+                    .then(() => {
+                        // Remove from local array
+                        clients = clients.filter(c => c.id !== clientId);
+                        
+                        renderClientsTable();
+                        fetchAdminStats(); // Refresh stats
+                        showNotification(`Client ${client.firstName} ${client.lastName} has been deleted from database.`, 'success');
+                    })
+                    .catch(error => {
+                        showNotification(`Failed to delete client: ${error.message}`, 'error');
+                    });
+            }
+        }
 
-       // Export and reporting functions
-       function exportClients() {
-           const csvContent = "data:text/csv;charset=utf-8," 
-               + "ID,First Name,Last Name,Email,Phone,Status,Join Date,Total Deposits,Current Balance\n"
-               + clients.map(client => 
-                   `${client.id},${client.firstName},${client.lastName},${client.email},${client.phone || ''},${client.status},${client.joinDate},${client.totalDeposits},${client.accountValue}`
-               ).join("\n");
-           
-           const encodedUri = encodeURI(csvContent);
-           const link = document.createElement("a");
-           link.setAttribute("href", encodedUri);
-           link.setAttribute("download", `clients_export_${new Date().toISOString().split('T')[0]}.csv`);
-           document.body.appendChild(link);
-           link.click();
-           document.body.removeChild(link);
-           
-           showNotification('Clients exported successfully!', 'success');
-       }
+        // Form submission - CREATE REAL USER IN DATABASE
+        document.getElementById('clientForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('saveClientBtn');
+            const originalText = submitBtn.textContent;
+            
+            try {
+                // Show loading state
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Creating...';
+                
+                const formData = new FormData(e.target);
+                const clientData = {
+                    firstName: formData.get('firstName'),
+                    lastName: formData.get('lastName'),
+                    email: formData.get('email'),
+                    phone: formData.get('phone'),
+                    address: formData.get('address'),
+                    initialDeposit: parseFloat(formData.get('initialDeposit')) || 0,
+                    status: formData.get('status') || 'active'
+                };
+                
+                if (editingClientId) {
+                    // Update existing client in database
+                    const updatedUser = await updateUserInDatabase(editingClientId, {
+                        firstName: clientData.firstName,
+                        lastName: clientData.lastName,
+                        phone: clientData.phone,
+                        address: clientData.address,
+                        accountValue: clientData.initialDeposit
+                    });
+                    
+                    // Update local clients array
+                    const clientIndex = clients.findIndex(c => c.id === editingClientId);
+                    if (clientIndex !== -1) {
+                        clients[clientIndex] = {
+                            ...clients[clientIndex],
+                            firstName: updatedUser.first_name,
+                            lastName: updatedUser.last_name,
+                            email: updatedUser.email,
+                            phone: updatedUser.phone,
+                            address: updatedUser.address,
+                            accountValue: parseFloat(updatedUser.account_value)
+                        };
+                    }
+                    
+                    showNotification('Client updated successfully in database!', 'success');
+                } else {
+                    // Create new client in database
+                    const newUser = await createUserInDatabase(clientData);
+                    
+                    const newClient = {
+                        id: newUser.id,
+                        firstName: newUser.first_name || newUser.firstName,
+                        lastName: newUser.last_name || newUser.lastName,
+                        email: newUser.email,
+                        phone: newUser.phone,
+                        address: newUser.address,
+                        status: 'active',
+                        joinDate: newUser.created_at ? newUser.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+                        totalDeposits: 0,
+                        accountValue: parseFloat(newUser.account_value || 0),
+                        startingBalance: parseFloat(newUser.account_value || 0),
+                        lastActive: newUser.created_at ? newUser.created_at.split('T')[0] : new Date().toISOString().split('T')[0]
+                    };
+                    
+                    clients.push(newClient);
+                    
+                    showNotification('New client created successfully in database!', 'success');
+                }
+                
+                // Refresh the stats and tables
+                await fetchAdminStats();
+                
+                closeModal('clientModal');
+                renderClientsTable();
+                
+            } catch (error) {
+                console.error('Failed to save client:', error);
+                showNotification(`Failed to save client: ${error.message}`, 'error');
+            } finally {
+                // Reset button state
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        });
 
-       function generateReport() {
-           const reportContent = `AEQUITAS CAPITAL PARTNERS
+        // Export and reporting functions
+        function exportClients() {
+            const csvContent = "data:text/csv;charset=utf-8," 
+                + "ID,First Name,Last Name,Email,Phone,Status,Join Date,Total Deposits,Current Balance\n"
+                + clients.map(client => 
+                    `${client.id},${client.firstName},${client.lastName},${client.email},${client.phone || ''},${client.status},${client.joinDate},${client.totalDeposits},${client.accountValue}`
+                ).join("\n");
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `clients_export_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification('Clients exported successfully!', 'success');
+        }
+
+        function generateReport() {
+            const reportContent = `AEQUITAS CAPITAL PARTNERS
 ADMIN DASHBOARD REPORT
 Generated: ${new Date().toLocaleDateString()}
 
@@ -3531,6 +3782,11 @@ Total Deposits Made: ${clients.reduce((sum, c) => sum + c.totalDeposits, 0).toLo
 Pending Deposits: ${deposits.filter(d => d.status === 'pending').length}
 Approved Deposits: ${deposits.filter(d => d.status === 'approved').length}
 Completed Deposits: ${deposits.filter(d => d.status === 'completed').length}
+
+Pending Withdrawals: ${withdrawals.filter(w => w.status === 'pending').length}
+Approved Withdrawals: ${withdrawals.filter(w => w.status === 'approved').length}
+Completed Withdrawals: ${withdrawals.filter(w => w.status === 'completed').length}
+Total Withdrawal Amount: ${withdrawals.reduce((sum, w) => sum + w.amount, 0).toLocaleString()}
 
 ==========================================
 
@@ -3552,6 +3808,15 @@ ${deposits
 
 ==========================================
 
+RECENT WITHDRAWAL ACTIVITY:
+${withdrawals.length > 0 ? withdrawals
+   .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+   .slice(0, 10)
+   .map(withdrawal => `${withdrawal.reference} - ${withdrawal.client_name} - ${withdrawal.amount.toLocaleString()} - ${withdrawal.status}`)
+   .join('\n') : 'No withdrawal requests yet'}
+
+==========================================
+
 PENDING USER APPROVALS:
 ${pendingUsers.length > 0 ? pendingUsers.map(user => 
    `${user.first_name} ${user.last_name} (${user.email}) - ${getStatusLabel(user.setup_status)} - ${user.setup_progress || 0}% complete`
@@ -3561,164 +3826,163 @@ ${pendingUsers.length > 0 ? pendingUsers.map(user =>
 
 This report was generated automatically by the Aequitas Capital Partners Admin Dashboard.
 For questions, contact: admin@aequitascap.com`;
-           
-           const blob = new Blob([reportContent], { type: 'text/plain' });
-           const url = window.URL.createObjectURL(blob);
-           const a = document.createElement('a');
-           a.href = url;
-           a.download = `admin_report_${new Date().toISOString().split('T')[0]}.txt`;
-           document.body.appendChild(a);
-           a.click();
-           window.URL.revokeObjectURL(url);
-           document.body.removeChild(a);
-           
-           showNotification('Report generated successfully!', 'success');
-       }
+            
+            const blob = new Blob([reportContent], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `admin_report_${new Date().toISOString().split('T')[0]}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            showNotification('Report generated successfully!', 'success');
+        }
 
-       // Enhanced notification system
-       function showNotification(message, type = 'info') {
-           const existingNotifications = document.querySelectorAll('.notification');
-           existingNotifications.forEach(n => n.remove());
+        // Enhanced notification system
+        function showNotification(message, type = 'info') {
+            const existingNotifications = document.querySelectorAll('.notification');
+            existingNotifications.forEach(n => n.remove());
 
-           const notification = document.createElement('div');
-           notification.className = `notification notification-${type}`;
-           notification.style.cssText = `
-               position: fixed;
-               top: 20px;
-               right: 20px;
-               padding: 16px 20px;
-               border-radius: 8px;
-               color: white;
-               font-weight: 500;
-               z-index: 10001;
-               max-width: 400px;
-               word-wrap: break-word;
-               box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-               animation: slideInRight 0.3s ease-out;
-               ${type === 'success' ? 'background: linear-gradient(135deg, #10b981, #059669);' : ''}
-               ${type === 'error' ? 'background: linear-gradient(135deg, #ef4444, #dc2626);' : ''}
-               ${type === 'warning' ? 'background: linear-gradient(135deg, #f59e0b, #d97706);' : ''}
-               ${type === 'info' ? 'background: linear-gradient(135deg, #3b82f6, #2563eb);' : ''}
-           `;
-           
-           notification.innerHTML = `
-               <div style="display: flex; align-items: flex-start; gap: 8px;">
-                   <span class="icon icon-${type === 'success' ? 'check' : 'clock'}" style="margin-top: 2px;"></span>
-                   <span>${message}</span>
-               </div>
-           `;
-           
-           document.body.appendChild(notification);
-           
-           setTimeout(() => {
-               if (notification.parentNode) {
-                   notification.style.animation = 'slideOutRight 0.3s ease-in';
-                   setTimeout(() => notification.remove(), 300);
-               }
-           }, 5000);
-       }
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 16px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 500;
+                z-index: 10001;
+                max-width: 400px;
+                word-wrap: break-word;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                animation: slideInRight 0.3s ease-out;
+                ${type === 'success' ? 'background: linear-gradient(135deg, #10b981, #059669);' : ''}
+                ${type === 'error' ? 'background: linear-gradient(135deg, #ef4444, #dc2626);' : ''}
+                ${type === 'warning' ? 'background: linear-gradient(135deg, #f59e0b, #d97706);' : ''}
+                ${type === 'info' ? 'background: linear-gradient(135deg, #3b82f6, #2563eb);' : ''}
+            `;
+            
+            notification.innerHTML = `
+                <div style="display: flex; align-items: flex-start; gap: 8px;">
+                    <span class="icon icon-${type === 'success' ? 'check' : 'clock'}" style="margin-top: 2px;"></span>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.style.animation = 'slideOutRight 0.3s ease-in';
+                    setTimeout(() => notification.remove(), 300);
+                }
+            }, 5000);
+        }
 
-       // Add CSS for notification animations
-       const style = document.createElement('style');
-       style.textContent = `
-           @keyframes slideInRight {
-               from { transform: translateX(100%); opacity: 0; }
-               to { transform: translateX(0); opacity: 1; }
-           }
-           @keyframes slideOutRight {
-               from { transform: translateX(0); opacity: 1; }
-               to { transform: translateX(100%); opacity: 0; }
-           }
-       `;
-       document.head.appendChild(style);
+        // Add CSS for notification animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInRight {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOutRight {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
 
-       // Close modal when clicking outside
-       document.addEventListener('click', function(e) {
-           if (e.target.classList.contains('modal')) {
-               const modalId = e.target.id;
-               closeModal(modalId);
-           }
-       });
+        // Close modal when clicking outside
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal')) {
+                const modalId = e.target.id;
+                closeModal(modalId);
+            }
+        });
 
-       // Keyboard shortcuts
-       document.addEventListener('keydown', function(e) {
-           // ESC to close modals
-           if (e.key === 'Escape') {
-               const openModal = document.querySelector('.modal.show');
-               if (openModal) {
-                   closeModal(openModal.id);
-               }
-           }
-           
-           // Ctrl+N for new client
-           if (e.ctrlKey && e.key === 'n') {
-               e.preventDefault();
-               openAddClientModal();
-           }
-       });
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // ESC to close modals
+            if (e.key === 'Escape') {
+                const openModal = document.querySelector('.modal.show');
+                if (openModal) {
+                    closeModal(openModal.id);
+                }
+            }
+            
+            // Ctrl+N for new client
+            if (e.ctrlKey && e.key === 'n') {
+                e.preventDefault();
+                openAddClientModal();
+            }
+        });
 
-       // Initialize page
-       document.addEventListener('DOMContentLoaded', function() {
-           // Check authentication and admin privileges
-           const authToken = localStorage.getItem('aequitas_auth_token');
-           const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
-           
-           if (!authToken) {
-               showNotification('Please log in to access this page.', 'warning');
-               setTimeout(() => {
-                   window.location.href = 'login.html';
-               }, 2000);
-               return;
-           }
-           
-           if (userData.role !== 'admin') {
-               showNotification('Access denied. Admin privileges required.', 'error');
-               setTimeout(() => {
-                   window.location.href = 'dashboard.html';
-               }, 2000);
-               return;
-           }
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication and admin privileges
+            const authToken = localStorage.getItem('aequitas_auth_token');
+            const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
+            
+            if (!authToken) {
+                showNotification('Please log in to access this page.', 'warning');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
+                return;
+            }
+            
+            if (userData.role !== 'admin') {
+                showNotification('Access denied. Admin privileges required.', 'error');
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 2000);
+                return;
+            }
 
-           // Load saved theme
-           const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
-           if (savedTheme === 'dark') {
-               currentTheme = 'dark';
-               document.documentElement.setAttribute('data-theme', 'dark');
-               const themeToggle = document.querySelector('.theme-toggle .icon');
-               if (themeToggle) themeToggle.className = 'icon icon-sun';
-           }
+            // Load saved theme
+            const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
+            if (savedTheme === 'dark') {
+                currentTheme = 'dark';
+                document.documentElement.setAttribute('data-theme', 'dark');
+                const themeToggle = document.querySelector('.theme-toggle .icon');
+                if (themeToggle) themeToggle.className = 'icon icon-sun';
+            }
 
-           // Load user data and update UI
-           const firstName = userData.firstName || 'Admin';
-           const lastName = userData.lastName || 'User';
-           const email = userData.email || 'admin@aequitascap.com';
-           
-           // Update user info elements
-           const userNameEl = document.getElementById('userName');
-           const userEmailEl = document.getElementById('userEmail');
-           const topUserNameEl = document.getElementById('topUserName');
-           const userAvatarEl = document.getElementById('userAvatar');
-           
-           if (userNameEl) userNameEl.textContent = `${firstName} ${lastName}`;
-           if (userEmailEl) userEmailEl.textContent = email;
-           if (topUserNameEl) topUserNameEl.textContent = firstName;
-           if (userAvatarEl) userAvatarEl.textContent = firstName.charAt(0).toUpperCase();
+            // Load user data and update UI
+            const firstName = userData.firstName || 'Admin';
+            const lastName = userData.lastName || 'User';
+            const email = userData.email || 'admin@aequitascap.com';
+            
+            // Update user info elements
+            const userNameEl = document.getElementById('userName');
+            const userEmailEl = document.getElementById('userEmail');
+            const topUserNameEl = document.getElementById('topUserName');
+            const userAvatarEl = document.getElementById('userAvatar');
+            
+            if (userNameEl) userNameEl.textContent = `${firstName} ${lastName}`;
+            if (userEmailEl) userEmailEl.textContent = email;
+            if (topUserNameEl) topUserNameEl.textContent = firstName;
+            if (userAvatarEl) userAvatarEl.textContent = firstName.charAt(0).toUpperCase();
 
-           // Show admin section if user is admin
-           if (userData.role === 'admin') {
-               const adminSection = document.getElementById('adminSection');
-               if (adminSection) adminSection.style.display = 'block';
-           }
+            // Show admin section if user is admin
+            if (userData.role === 'admin') {
+                const adminSection = document.getElementById('adminSection');
+                if (adminSection) adminSection.style.display = 'block';
+            }
 
-           // Initialize data and render with REAL DATABASE DATA
-           initializeData().then(() => {
-               renderClientsTable();
-               console.log(`✅ Admin dashboard initialized with REAL database data - ${clients.length} clients, ${deposits.length} deposits, ${pendingUsers.length} pending users`);
-               showNotification(`Admin Dashboard loaded with ${clients.length} real clients from database!`, 'success');
-           });
-       });
+            // Initialize data and render with REAL DATABASE DATA
+            initializeData().then(() => {
+                renderClientsTable();
+                console.log(`✅ Admin dashboard initialized with REAL database data - ${clients.length} clients, ${deposits.length} deposits, ${pendingUsers.length} pending users, ${withdrawals.length} withdrawals`);
+                showNotification(`Admin Dashboard loaded with ${clients.length} real clients from database!`, 'success');
+            });
+        });
 
-   </script>
+    </script>
 </body>
 </html>
-        
