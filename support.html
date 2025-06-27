@@ -451,6 +451,35 @@
             font-weight: 500;
         }
 
+        /* Response Time Banner */
+        .response-time-banner {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(16, 185, 129, 0.02) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .response-time-icon {
+            width: 24px;
+            height: 24px;
+            color: var(--success);
+        }
+
+        .response-time-text {
+            font-size: 14px;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .response-time-highlight {
+            color: var(--success);
+            font-weight: 600;
+        }
+
         /* Form Styles */
         .form-group {
             margin-bottom: 20px;
@@ -472,6 +501,7 @@
             background: var(--bg-primary);
             color: var(--text-primary);
             font-size: 14px;
+            font-family: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
             transition: all 0.2s ease;
         }
 
@@ -484,6 +514,7 @@
         .form-textarea {
             resize: vertical;
             min-height: 120px;
+            font-family: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
         }
 
         .form-select {
@@ -494,6 +525,7 @@
             background: var(--bg-primary);
             color: var(--text-primary);
             font-size: 14px;
+            font-family: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
             cursor: pointer;
         }
 
@@ -510,6 +542,7 @@
             cursor: pointer;
             transition: all 0.2s ease;
             text-decoration: none;
+            font-family: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
         }
 
         .btn-primary {
@@ -677,12 +710,14 @@
 
         .message-content {
             font-size: 14px;
+            font-family: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
             line-height: 1.4;
             margin-bottom: 4px;
         }
 
         .message-time {
             font-size: 11px;
+            font-family: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
             opacity: 0.7;
         }
 
@@ -700,6 +735,7 @@
             background: var(--bg-primary);
             color: var(--text-primary);
             font-size: 14px;
+            font-family: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
             resize: none;
             min-height: 40px;
             max-height: 120px;
@@ -857,6 +893,15 @@
         <div class="support-content">
             <!-- Main Support Area -->
             <div class="main-support">
+                <!-- Response Time Banner -->
+                <div class="response-time-banner">
+                    <span class="icon icon-clock response-time-icon"></span>
+                    <div class="response-time-text">
+                        <span class="response-time-highlight">Guaranteed response time: Less than 24 hours</span> - 
+                        Our dedicated support team responds to all inquiries within one business day.
+                    </div>
+                </div>
+
                 <!-- New Ticket Form -->
                 <div class="card">
                     <div class="card-header">
@@ -927,7 +972,8 @@
                     <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-color);">
                         <p style="font-size: 12px; color: var(--text-secondary); text-align: center; line-height: 1.4;">
                             Available Monday - Friday<br>
-                            9:00 AM - 6:00 PM GMT
+                            9:00 AM - 6:00 PM GMT<br><br>
+                            <strong style="color: var(--success);">Response time: &lt;24 hours</strong>
                         </p>
                     </div>
                 </div>
@@ -951,7 +997,7 @@
             localStorage.setItem('aequitas_theme', currentTheme);
         }
 
-        // Navigation
+        // Navigation - FIXED HYPERLINKS
         function navigateTo(page) {
             console.log(`Navigation to: ${page}`);
             
@@ -961,8 +1007,14 @@
                 window.location.href = 'deposit.html';
             } else if (page === 'admin') {
                 window.location.href = 'admin.html';
-            } else if (page !== 'support') {
-                alert(`${page.charAt(0).toUpperCase() + page.slice(1)} page coming soon!`);
+            } else if (page === 'support') {
+                window.location.href = 'support.html';
+            } else if (page === 'statements') {
+                alert('Statements page coming soon!');
+            } else if (page === 'withdraw') {
+                alert('Withdraw page coming soon!');
+            } else if (page === 'profile') {
+                alert('Profile page coming soon!');
             }
         }
 
@@ -1430,4 +1482,5 @@
 
     </script>
 </body>
+</html>
 </html>
