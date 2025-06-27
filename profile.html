@@ -131,10 +131,6 @@
             mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'/%3E%3C/svg%3E");
         }
 
-        .icon-calendar {
-            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M3 9h18m-9-7v4m0 10v4m6-4h4M3 9h4m5-7h4m-9 18h4m0-4v4m6-7v4'/%3E%3C/svg%3E");
-        }
-
         .icon-shield {
             mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/%3E%3C/svg%3E");
         }
@@ -701,12 +697,13 @@
             gap: 8px;
         }
 
-        /* Document Grid */
+        /* Document Grid - FIXED WITH SPACING */
         .document-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 12px;
             margin-top: 16px;
+            margin-bottom: 20px; /* Added space before the date */
         }
 
         .document-item {
@@ -720,11 +717,24 @@
             text-decoration: none;
             color: var(--text-primary);
             transition: all 0.2s ease;
+            cursor: pointer;
         }
 
         .document-item:hover {
             border-color: var(--accent);
             background: rgba(59, 130, 246, 0.05);
+        }
+
+        .document-item.document-placeholder {
+            cursor: not-allowed;
+            opacity: 0.6;
+            border-color: var(--warning);
+            background: rgba(245, 158, 11, 0.05);
+        }
+
+        .document-item.document-placeholder:hover {
+            border-color: var(--warning);
+            background: rgba(245, 158, 11, 0.1);
         }
 
         .document-icon {
@@ -733,8 +743,19 @@
             color: var(--accent);
         }
 
+        .document-placeholder .document-icon {
+            color: var(--warning);
+        }
+
         .document-name {
             font-size: 12px;
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .document-status {
+            font-size: 10px;
+            color: var(--warning);
             font-weight: 500;
         }
 
@@ -776,7 +797,7 @@
             }
         }
 
-        /* Animations */
+        /* Animations and Utilities */
         @keyframes slideInRight {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
@@ -786,6 +807,20 @@
             from { transform: translateX(0); opacity: 1; }
             to { transform: translateX(100%); opacity: 0; }
         }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -793,7 +828,7 @@
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="logo-container">
-                <img src="https://i.ibb.co/8DfYwWdG/Aequitas-White-Logo.png" alt="Aequitas Capital Partners" class="logo">
+                <img src="https://i.ibb.co/8DfYwdG/Aequitas-White-Logo.png" alt="Aequitas Capital Partners" class="logo">
             </div>
             <button class="theme-toggle" onclick="toggleTheme()">
                 <span class="icon icon-moon"></span>
@@ -1231,7 +1266,7 @@
             }
         }
 
-        // Password Change
+        // FIXED Password Change
         document.getElementById('passwordChangeForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -1250,10 +1285,21 @@
                 return;
             }
             
+            // Check password complexity
+            const hasUpper = /[A-Z]/.test(newPassword);
+            const hasLower = /[a-z]/.test(newPassword);
+            const hasNumber = /\d/.test(newPassword);
+            
+            if (!hasUpper || !hasLower || !hasNumber) {
+                showNotification('Password must contain at least one uppercase letter, one lowercase letter, and one number', 'error');
+                return;
+            }
+            
             try {
                 changeBtn.disabled = true;
                 changeBtn.innerHTML = '<span class="spinner"></span>Changing...';
                 
+                // FIXED: Use the proper password change flow
                 const response = await fetch('/api/auth', {
                     method: 'POST',
                     headers: {
@@ -1267,18 +1313,33 @@
                 });
                 
                 const data = await response.json();
+                console.log('Password change response:', data);
                 
                 if (response.ok && data.success) {
-                    showNotification('Password changed successfully!', 'success');
-                    togglePasswordSection(); // Hide password section
-                    
-                    // Add to timeline
-                    addTimelineEvent({
-                        type: 'security',
-                        title: 'Password Changed',
-                        description: 'Account password has been updated for security',
-                        date: new Date().toISOString()
-                    });
+                    if (data.passwordChanged) {
+                        // Password was successfully changed
+                        showNotification('Password changed successfully!', 'success');
+                        togglePasswordSection(); // Hide password section
+                        
+                        // Update token if new one was provided
+                        if (data.token) {
+                            localStorage.setItem('aequitas_auth_token', data.token);
+                            console.log('Updated auth token after password change');
+                        }
+                        
+                        // Add to timeline
+                        addTimelineEvent({
+                            type: 'security',
+                            title: 'Password Changed',
+                            description: 'Account password has been updated for security',
+                            date: new Date().toISOString()
+                        });
+                    } else if (data.passwordChangeRequired) {
+                        // This shouldn't happen in normal flow, but handle it
+                        showNotification('Please complete password change setup', 'warning');
+                    } else {
+                        throw new Error('Password change was not completed');
+                    }
                 } else {
                     throw new Error(data.error || 'Password change failed');
                 }
@@ -1291,7 +1352,7 @@
             }
         });
 
-        // Load User Data from API
+        // FIXED - Load User Data from API
         async function loadUserData() {
             try {
                 console.log('📋 Loading user profile from API...');
@@ -1307,6 +1368,12 @@
                 if (response.ok) {
                     const data = await response.json();
                     console.log('✅ Profile data loaded:', data);
+                    
+                    // Check debug info
+                    if (data.debug) {
+                        console.log('📊 Debug info:', data.debug);
+                        console.log('📄 Documents found:', data.debug.documentsFound);
+                    }
                     
                     userData = data.user;
                     timelineData = data.timeline || [];
@@ -1336,13 +1403,30 @@
             }
         }
 
-        // Populate Form Fields
+        // FIXED - Populate Form Fields with proper date handling
         function populateFormFields() {
             document.getElementById('firstName').value = userData.firstName || userData.first_name || '';
             document.getElementById('lastName').value = userData.lastName || userData.last_name || '';
             document.getElementById('email').value = userData.email || '';
             document.getElementById('phone').value = userData.phone || '';
-            document.getElementById('dateOfBirth').value = userData.dateOfBirth || userData.date_of_birth || '';
+            
+            // FIXED: Convert ISO date to YYYY-MM-DD format for input
+            const dateOfBirth = userData.dateOfBirth || userData.date_of_birth;
+            if (dateOfBirth) {
+                try {
+                    // Convert ISO date to YYYY-MM-DD format for HTML date input
+                    const date = new Date(dateOfBirth);
+                    if (!isNaN(date.getTime())) {
+                        const year = date.getFullYear();
+                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                        const day = String(date.getDate()).padStart(2, '0');
+                        document.getElementById('dateOfBirth').value = `${year}-${month}-${day}`;
+                    }
+                } catch (dateError) {
+                    console.error('Date conversion error:', dateError);
+                }
+            }
+            
             document.getElementById('address').value = userData.address || '';
         }
 
@@ -1415,7 +1499,7 @@
             renderTimeline();
         }
 
-        // Render Timeline
+        // FIXED - Render Timeline with proper document handling
         function renderTimeline() {
             const timeline = document.getElementById('accountTimeline');
             
@@ -1446,12 +1530,18 @@
                         
                         ${item.documents ? `
                             <div class="document-grid">
-                                ${item.documents.map(doc => `
-                                    <a href="${doc.url}" class="document-item" title="Download ${doc.name}">
-                                        <span class="icon icon-download document-icon"></span>
-                                        <span class="document-name">${doc.name}</span>
-                                    </a>
-                                `).join('')}
+                                ${item.documents.map(doc => {
+                                    const isPlaceholder = doc.url === '#' || doc.url.includes('placeholder://') || !doc.url || doc.url === 'undefined';
+                                    return `
+                                        <div class="document-item ${isPlaceholder ? 'document-placeholder' : ''}" 
+                                             data-url="${doc.url}"
+                                             ${isPlaceholder ? 'title="Document not available for download"' : 'title="Click to download ' + doc.name + '"'}>
+                                            <span class="icon ${isPlaceholder ? 'icon-x' : 'icon-download'} document-icon"></span>
+                                            <span class="document-name">${doc.name}</span>
+                                            ${isPlaceholder ? '<span class="document-status">(Not available)</span>' : ''}
+                                        </div>
+                                    `;
+                                }).join('')}
                             </div>
                         ` : ''}
                         
@@ -1463,6 +1553,32 @@
                     </div>
                 </div>
             `).join('');
+
+            // Add click handlers for working document links
+            timeline.querySelectorAll('.document-item:not(.document-placeholder)').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const url = this.getAttribute('data-url');
+                    console.log('📄 Attempting to download document:', url);
+                    
+                    if (url && url !== '#' && !url.includes('placeholder://') && url !== 'undefined') {
+                        console.log('✅ Opening document URL:', url);
+                        window.open(url, '_blank');
+                    } else {
+                        console.log('❌ Invalid document URL:', url);
+                        showNotification('Document not available for download', 'warning');
+                    }
+                });
+            });
+
+            // Add click handlers for placeholder documents (to show warning)
+            timeline.querySelectorAll('.document-item.document-placeholder').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const docName = this.querySelector('.document-name').textContent;
+                    showNotification(`${docName} is not available for download`, 'warning');
+                });
+            });
         }
 
         // Add Timeline Event
@@ -1519,24 +1635,6 @@
                 }
             }, 5000);
         }
-
-        // Add CSS for spinner and animations
-        const style = document.createElement('style');
-        style.textContent = `
-            .spinner {
-                display: inline-block;
-                width: 16px;
-                height: 16px;
-                border: 2px solid rgba(255, 255, 255, 0.3);
-                border-radius: 50%;
-                border-top-color: white;
-                animation: spin 1s ease-in-out infinite;
-            }
-            @keyframes spin {
-                to { transform: rotate(360deg); }
-            }
-        `;
-        document.head.appendChild(style);
 
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
