@@ -88,7 +88,7 @@
         }
 
         .icon-moon {
-            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z'/%3E%3C/svg%3E");
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M20.354 15.354A9 9 0 718.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z'/%3E%3C/svg%3E");
         }
 
         .icon-sun {
@@ -133,6 +133,10 @@
 
         .icon-send {
             mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 19l9 2-9-18-9 18 9-2zm0 0v-8'/%3E%3C/svg%3E");
+        }
+
+        .icon-users {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m22 0v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75M13 7a4 4 0 11-8 0 4 4 0 018 0z'/%3E%3C/svg%3E");
         }
 
         /* Sidebar Styles */
@@ -850,7 +854,7 @@
                     <span class="icon icon-money"></span>
                     <span>Deposit</span>
                 </a>
-                <a href="withdraw.html" class="nav-item active">
+                <a href="withdrawal.html" class="nav-item active">
                     <span class="icon icon-bank"></span>
                     <span>Withdraw</span>
                 </a>
@@ -872,7 +876,7 @@
             <div class="nav-section" id="adminSection" style="display: none;">
                 <div class="nav-section-title">Admin</div>
                 <a href="admin.html" class="nav-item">
-                    <span class="icon icon-user"></span>
+                    <span class="icon icon-users"></span>
                     <span>Client Management</span>
                 </a>
             </div>
@@ -1071,6 +1075,42 @@
             summer: { start: { month: 6, day: 24 }, end: { month: 7, day: 7 } }, // June 24 - July 7
             winter: { start: { month: 12, day: 24 }, end: { month: 1, day: 7 } }   // Dec 24 - Jan 7
         };
+
+        // Universal Navigation System - Same as support.html
+        function initializeNavigation() {
+            // Get current page name
+            const currentPage = window.location.pathname.split('/').pop() || 'withdrawal.html';
+            
+            console.log('Current page:', currentPage);
+            
+            // Remove active class from all nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Add active class to current page
+            let currentNavItem = document.querySelector(`.nav-item[href="${currentPage}"]`);
+            
+            // Handle special cases
+            if (!currentNavItem) {
+                if (currentPage.includes('withdrawal') || currentPage === '') {
+                    currentNavItem = document.querySelector(`.nav-item[href="withdrawal.html"]`);
+                }
+            }
+            
+            if (currentNavItem) {
+                currentNavItem.classList.add('active');
+                console.log('Set active:', currentNavItem.href);
+            }
+            
+            // Handle navigation clicks - ensure all nav items use proper href navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    // Don't prevent default - let normal navigation happen
+                    console.log('Navigating to:', this.href);
+                });
+            });
+        }
 
         // Theme Toggle
         function toggleTheme() {
@@ -1575,6 +1615,9 @@
                 const themeToggle = document.querySelector('.theme-toggle .icon');
                 themeToggle.className = currentTheme === 'light' ? 'icon icon-moon' : 'icon icon-sun';
             }
+
+            // Initialize navigation
+            initializeNavigation();
 
             // Load user data and initialize page
             loadUserData().then(() => {
