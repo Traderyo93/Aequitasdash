@@ -496,11 +496,41 @@ module.exports = async function handler(req, res) {
       
       const { userId, action, reason } = req.body;
       
-      if (!userId || !['approve', 'reject'].includes(action)) {
-        return res.status(400).json({ success: false, error: 'Invalid request. userId and action (approve/reject) required.' });
+      if (!userId || !['approve', 'reject', 'reset_setup'].includes(action)) {
+        return res.status(400).json({ success: false, error: 'Invalid request. userId and action (approve/reject/reset_setup) required.' });
       }
       
       console.log(`🔄 Admin ${action}ing user:`, userId);
+      
+      if (action === 'reset_setup') {
+        // Reset user back to setup mode
+        await sql`
+          UPDATE users 
+          SET 
+            role = 'pending',
+            setup_status = 'setup_pending',
+            setup_progress = 0,
+            updated_at = NOW()
+          WHERE id = ${userId}
+        `;
+        
+        // Optionally clear existing documents to force re-upload
+        try {
+          await sql`DELETE FROM user_documents WHERE user_id = ${userId}`;
+          console.log('🗑️ Cleared existing documents for re-upload');
+        } catch (e) {
+          console.log('📄 No documents to clear or table does not exist');
+        }
+        
+        console.log('✅ User reset to setup mode:', userId);
+        
+        return res.status(200).json({
+          success: true,
+          message: 'User reset to setup mode - they can now complete setup again',
+          newStatus: 'setup_pending',
+          userId: userId
+        });
+      }
       
       const newRole = action === 'approve' ? 'client' : 'pending';
       const newStatus = action === 'approve' ? 'approved' : 'rejected';
