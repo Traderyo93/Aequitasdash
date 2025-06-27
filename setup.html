@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Geist:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
+            /* Light Theme */
             --bg-primary: #ffffff;
             --bg-secondary: #f8fafc;
             --bg-tertiary: #f1f5f9;
@@ -27,6 +28,7 @@
         }
 
         [data-theme="dark"] {
+            /* Dark Theme */
             --bg-primary: #0f172a;
             --bg-secondary: #1e293b;
             --bg-tertiary: #334155;
@@ -103,6 +105,22 @@
 
         .icon-upload {
             mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12'/%3E%3C/svg%3E");
+        }
+
+        .icon-eye {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M15 12a3 3 0 11-6 0 3 3 0 016 0z'/%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z'/%3E%3C/svg%3E");
+        }
+
+        .icon-eye-off {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24'/%3E%3Cline stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' x1='1' y1='1' x2='23' y2='23'/%3E%3C/svg%3E");
+        }
+
+        .icon-check {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 13l4 4L19 7'/%3E%3C/svg%3E");
+        }
+
+        .icon-x {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12'/%3E%3C/svg%3E");
         }
 
         /* Sidebar Styles */
@@ -333,6 +351,69 @@
             padding: 24px;
             max-width: 1000px;
             margin: 0 auto;
+        }
+
+        /* Password Change Section Styles */
+        .password-change-section {
+            background: rgba(245, 158, 11, 0.1);
+            border: 2px solid rgba(245, 158, 11, 0.3);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+
+        .password-change-title {
+            color: var(--warning);
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .password-input-wrapper {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .password-toggle:hover {
+            color: var(--accent);
+            background: var(--bg-tertiary);
+        }
+
+        .password-requirements {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        .requirement {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+        }
+
+        .requirement.valid {
+            color: var(--success);
+        }
+
+        .requirement.invalid {
+            color: var(--error);
         }
 
         /* Cards */
@@ -707,14 +788,81 @@
             <h1 class="page-title">Complete Your Account Setup</h1>
             <div class="top-user-info">
                 <span>Setup Progress:</span>
-                <span id="progressPercentage">25%</span>
+                <span id="progressPercentage">0%</span>
             </div>
         </div>
 
         <div class="setup-content">
             <!-- Progress Bar -->
             <div class="progress-bar">
-                <div class="progress-fill" id="progressFill" style="width: 25%;"></div>
+                <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+            </div>
+
+            <!-- Password Change Section (Only shown if required) -->
+            <div class="password-change-section" id="passwordChangeSection" style="display: none;">
+                <h2 class="password-change-title">
+                    <span class="icon icon-lock"></span>
+                    Password Change Required
+                </h2>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                    Your temporary password must be changed before proceeding with account setup.
+                </p>
+                
+                <form id="passwordChangeForm" style="display: grid; gap: 16px;">
+                    <div class="form-group">
+                        <label class="form-label" for="currentPassword">Current Password</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="currentPassword" class="form-input" required>
+                            <button type="button" class="password-toggle" onclick="togglePassword('currentPassword')">
+                                <span class="icon icon-eye"></span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="newPassword">New Password</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="newPassword" class="form-input" required>
+                            <button type="button" class="password-toggle" onclick="togglePassword('newPassword')">
+                                <span class="icon icon-eye"></span>
+                            </button>
+                        </div>
+                        <div class="password-requirements">
+                            <div class="requirement" id="lengthReq">
+                                <span class="icon icon-x"></span>
+                                At least 8 characters
+                            </div>
+                            <div class="requirement" id="upperReq">
+                                <span class="icon icon-x"></span>
+                                One uppercase letter
+                            </div>
+                            <div class="requirement" id="lowerReq">
+                                <span class="icon icon-x"></span>
+                                One lowercase letter
+                            </div>
+                            <div class="requirement" id="numberReq">
+                                <span class="icon icon-x"></span>
+                                One number
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="confirmPassword">Confirm New Password</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="confirmPassword" class="form-input" required>
+                            <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')">
+                                <span class="icon icon-eye"></span>
+                            </button>
+                        </div>
+                        <div id="passwordMatchMsg" style="font-size: 12px; margin-top: 4px;"></div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" id="changePasswordBtn">
+                        <span class="icon icon-lock"></span>
+                        Change Password
+                    </button>
+                </form>
             </div>
 
             <!-- Status Message -->
@@ -848,6 +996,141 @@
         let currentTheme = 'light';
         let uploadedFiles = { id: null, address: null, legal: [] };
         let personalInfo = {};
+        let passwordChangeRequired = false;
+
+        // Password requirements validation
+        function validatePassword(password) {
+            const requirements = {
+                length: password.length >= 8,
+                upper: /[A-Z]/.test(password),
+                lower: /[a-z]/.test(password),
+                number: /\d/.test(password)
+            };
+            
+            // Update requirement indicators
+            document.getElementById('lengthReq').className = requirements.length ? 'requirement valid' : 'requirement invalid';
+            document.getElementById('upperReq').className = requirements.upper ? 'requirement valid' : 'requirement invalid';
+            document.getElementById('lowerReq').className = requirements.lower ? 'requirement valid' : 'requirement invalid';
+            document.getElementById('numberReq').className = requirements.number ? 'requirement valid' : 'requirement invalid';
+            
+            // Update icons
+            document.querySelectorAll('.requirement').forEach(req => {
+                const icon = req.querySelector('.icon');
+                if (req.classList.contains('valid')) {
+                    icon.className = 'icon icon-check';
+                } else {
+                    icon.className = 'icon icon-x';
+                }
+            });
+            
+            return Object.values(requirements).every(req => req);
+        }
+
+        // Password toggle function
+        function togglePassword(fieldId) {
+            const field = document.getElementById(fieldId);
+            const button = field.nextElementSibling;
+            const icon = button.querySelector('.icon');
+            
+            if (field.type === 'password') {
+                field.type = 'text';
+                icon.className = 'icon icon-eye-off';
+            } else {
+                field.type = 'password';
+                icon.className = 'icon icon-eye';
+            }
+        }
+
+        // Password change form submission
+        document.getElementById('passwordChangeForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const changePasswordBtn = document.getElementById('changePasswordBtn');
+            
+            // Validate passwords
+            if (!validatePassword(newPassword)) {
+                alert('Please ensure your new password meets all requirements.');
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                alert('New passwords do not match.');
+                return;
+            }
+            
+            try {
+                changePasswordBtn.disabled = true;
+                changePasswordBtn.textContent = 'Changing Password...';
+                
+                const tempUser = JSON.parse(localStorage.getItem('aequitas_temp_user') || '{}');
+                
+                const response = await fetch('/api/auth', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: tempUser.email,
+                        password: currentPassword,
+                        newPassword: newPassword
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    // Password changed successfully
+                    localStorage.setItem('aequitas_auth_token', data.token);
+                    localStorage.setItem('aequitas_user_data', JSON.stringify(data.user));
+                    localStorage.removeItem('aequitas_temp_user');
+                    localStorage.removeItem('aequitas_password_change_required');
+                    
+                    // Hide password change section
+                    document.getElementById('passwordChangeSection').style.display = 'none';
+                    passwordChangeRequired = false;
+                    
+                    showNotification('Password changed successfully!', 'success');
+                    updateProgress();
+                    
+                } else {
+                    throw new Error(data.error || 'Password change failed');
+                }
+                
+            } catch (error) {
+                console.error('Password change error:', error);
+                alert(`Password change failed: ${error.message}`);
+            } finally {
+                changePasswordBtn.disabled = false;
+                changePasswordBtn.innerHTML = '<span class="icon icon-lock"></span>Change Password';
+            }
+        });
+
+        // Real-time password validation
+        document.getElementById('newPassword').addEventListener('input', function() {
+            validatePassword(this.value);
+        });
+
+        // Confirm password matching
+        document.getElementById('confirmPassword').addEventListener('input', function() {
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = this.value;
+            const msgEl = document.getElementById('passwordMatchMsg');
+            
+            if (confirmPassword.length > 0) {
+                if (newPassword === confirmPassword) {
+                    msgEl.textContent = '✓ Passwords match';
+                    msgEl.style.color = 'var(--success)';
+                } else {
+                    msgEl.textContent = '✗ Passwords do not match';
+                    msgEl.style.color = 'var(--error)';
+                }
+            } else {
+                msgEl.textContent = '';
+            }
+        });
 
         // Theme Toggle
         function toggleTheme() {
@@ -967,14 +1250,17 @@
             URL.revokeObjectURL(url);
         }
 
-        // Update progress
+        // Update progress calculation to include password change
         function updateProgress() {
             let progress = 0;
             const progressFill = document.getElementById('progressFill');
             const progressPercentage = document.getElementById('progressPercentage');
             const submitBtn = document.getElementById('submitBtn');
             
-            // Personal info (25%)
+            // Password change (20%)
+            if (!passwordChangeRequired) progress += 20;
+            
+            // Personal info (20%)
             const personalForm = document.getElementById('completeSetupForm');
             const requiredPersonalFields = personalForm.querySelectorAll('input[required], textarea[required]');
             let personalCompleted = 0;
@@ -983,26 +1269,31 @@
                 if (field.value.trim()) personalCompleted++;
             });
             
-            if (personalCompleted === requiredPersonalFields.length) progress += 25;
+            if (personalCompleted === requiredPersonalFields.length) progress += 20;
             
-            // Documents (50% - 25% each)
-            if (uploadedFiles.id) progress += 25;
-            if (uploadedFiles.address) progress += 25;
+            // Documents (40% - 20% each)
+            if (uploadedFiles.id) progress += 20;
+            if (uploadedFiles.address) progress += 20;
             
-            // Legal documents (25%)
-            if (uploadedFiles.legal.length >= 2) progress += 25;
+            // Legal documents (20%)
+            if (uploadedFiles.legal.length >= 2) progress += 20;
             
             progressFill.style.width = progress + '%';
             progressPercentage.textContent = progress + '%';
             
             // Enable submit if 100%
-            submitBtn.disabled = progress < 100;
+            if (submitBtn) {
+                submitBtn.disabled = progress < 100;
+            }
             
             // Update status message
             const statusMessage = document.getElementById('statusMessage');
-            if (progress === 100) {
+            if (passwordChangeRequired) {
+                statusMessage.className = 'status-message status-error';
+                statusMessage.innerHTML = '<span class="icon icon-lock"></span><span>Password change required before proceeding with setup.</span>';
+            } else if (progress === 100) {
                 statusMessage.className = 'status-message status-success';
-                statusMessage.innerHTML = '<span class="icon icon-upload"></span><span>All requirements completed! Ready to submit for review.</span>';
+                statusMessage.innerHTML = '<span class="icon icon-check"></span><span>All requirements completed! Ready to submit for review.</span>';
             } else {
                 statusMessage.className = 'status-message status-warning';
                 statusMessage.innerHTML = '<span class="icon icon-upload"></span><span>Please complete all sections below to proceed with account approval.</span>';
@@ -1012,7 +1303,8 @@
         // Get current user ID
         function getCurrentUserId() {
             const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
-            return userData.id || 'unknown';
+            const tempUser = JSON.parse(localStorage.getItem('aequitas_temp_user') || '{}');
+            return userData.id || tempUser.id || 'unknown';
         }
 
         // Form submission
@@ -1078,23 +1370,83 @@
             if (confirm('Are you sure you want to logout? Any unsaved progress will be lost.')) {
                 localStorage.removeItem('aequitas_auth_token');
                 localStorage.removeItem('aequitas_user_data');
+                localStorage.removeItem('aequitas_temp_user');
+                localStorage.removeItem('aequitas_password_change_required');
                 window.location.href = 'login.html';
             }
         }
 
+        // Enhanced notification system
+        function showNotification(message, type = 'info') {
+            const existingNotifications = document.querySelectorAll('.notification');
+            existingNotifications.forEach(n => n.remove());
+
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 16px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 500;
+                z-index: 10001;
+                max-width: 400px;
+                word-wrap: break-word;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                animation: slideInRight 0.3s ease-out;
+                ${type === 'success' ? 'background: linear-gradient(135deg, #10b981, #059669);' : ''}
+                ${type === 'error' ? 'background: linear-gradient(135deg, #ef4444, #dc2626);' : ''}
+                ${type === 'warning' ? 'background: linear-gradient(135deg, #f59e0b, #d97706);' : ''}
+                ${type === 'info' ? 'background: linear-gradient(135deg, #3b82f6, #2563eb);' : ''}
+            `;
+            
+            notification.innerHTML = `
+                <div style="display: flex; align-items: flex-start; gap: 8px;">
+                    <span class="icon icon-${type === 'success' ? 'check' : 'clock'}" style="margin-top: 2px;"></span>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.style.animation = 'slideOutRight 0.3s ease-in';
+                    setTimeout(() => notification.remove(), 300);
+                }
+            }, 5000);
+        }
+
+        // Add CSS for notification animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInRight {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOutRight {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            // Load saved theme
-            const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
-            if (savedTheme === 'dark') {
-                currentTheme = 'dark';
-                document.documentElement.setAttribute('data-theme', 'dark');
-                const themeToggle = document.querySelector('.theme-toggle .icon');
-                if (themeToggle) themeToggle.className = 'icon icon-sun';
+            // Check if password change is required
+            passwordChangeRequired = localStorage.getItem('aequitas_password_change_required') === 'true';
+            
+            if (passwordChangeRequired) {
+                document.getElementById('passwordChangeSection').style.display = 'block';
+                console.log('🔐 Password change required - showing change form');
             }
-
+            
             // Load user data
-            const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
+            const tempUser = JSON.parse(localStorage.getItem('aequitas_temp_user') || '{}');
+            const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || tempUser);
+            
             const firstName = userData.firstName || 'Setup';
             const lastName = userData.lastName || 'User';
             const email = userData.email || 'setup@example.com';
@@ -1107,9 +1459,19 @@
             // Pre-populate form if data exists
             if (userData.firstName) document.getElementById('firstName').value = userData.firstName;
             if (userData.lastName) document.getElementById('lastName').value = userData.lastName;
-            if (userData.email) document.getElementById('email').value = userData.email;
+            
+            // Load saved theme
+            const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
+            if (savedTheme === 'dark') {
+                currentTheme = 'dark';
+                document.documentElement.setAttribute('data-theme', 'dark');
+                const themeToggle = document.querySelector('.theme-toggle .icon');
+                if (themeToggle) themeToggle.className = 'icon icon-sun';
+            }
             
             updateProgress();
+            
+            console.log('✅ Setup page initialized', { passwordChangeRequired, userData });
         });
     </script>
 </body>
