@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1374,7 +1373,41 @@
             }
         }
 
-
+        // Submit Support Form
+        document.getElementById('supportForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const originalText = submitBtn.innerHTML;
+            
+            try {
+                // Show loading state
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="icon icon-clock"></span> Submitting...';
+                
+                // Get form values directly from elements
+                const subject = document.getElementById('subject').value.trim();
+                const priority = document.getElementById('priority').value;
+                const message = document.getElementById('message').value.trim();
+                
+                // Validate form data
+                if (!subject) {
+                    throw new Error('Subject is required');
+                }
+                if (!message) {
+                    throw new Error('Message is required');
+                }
+                
+                const ticketData = {
+                    action: 'create_ticket',
+                    subject: subject,
+                    priority: priority,
+                    message: message
+                };
+                
+                console.log('📝 Form values:', { subject, priority, message });
+                console.log('📤 Sending ticket data:', ticketData);
+                console.log('🔑 Auth token:', getAuthToken() ? 'Present' : 'Missing');
                 console.log('📝 Creating support ticket:', ticketData);
                 
                 const response = await fetch('/api/support', {
