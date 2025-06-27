@@ -1,4 +1,4 @@
-// api/upload.js - FIXED VERSION - CommonJS syntax
+// api/upload.js - FIXED VERSION - Ensures file_url is properly saved
 const { put } = require('@vercel/blob');
 const { sql } = require('@vercel/postgres');
 
@@ -96,12 +96,12 @@ module.exports = async function handler(req, res) {
     
     console.log(`✅ Blob uploaded successfully: ${blob.url}`);
     
-    // CRITICAL: Save to database
+    // CRITICAL: Save to database with REAL file_url
     let databaseSaved = false;
     let databaseError = null;
     
     try {
-      console.log(`💾 Saving to database...`);
+      console.log(`💾 Saving to database with URL: ${blob.url}`);
       
       // Ensure user_documents table exists
       await sql`
@@ -132,9 +132,10 @@ module.exports = async function handler(req, res) {
       
       if (isSetupDocument && documentType) {
         console.log(`📝 Inserting setup document: ${documentType} for user ${userId}`);
+        console.log(`📝 With file_url: ${blob.url}`);
         
-        // Insert/update document record
-        await sql`
+        // CRITICAL: Ensure file_url is properly saved
+        const insertResult = await sql`
           INSERT INTO user_documents (user_id, document_type, file_name, file_url, blob_path, file_size)
           VALUES (${userId}, ${documentType}, ${fileName}, ${blob.url}, ${blobPath}, ${buffer.length})
           ON CONFLICT (user_id, document_type) 
@@ -144,10 +145,26 @@ module.exports = async function handler(req, res) {
             blob_path = EXCLUDED.blob_path,
             file_size = EXCLUDED.file_size,
             uploaded_at = NOW()
+          RETURNING id, file_url
         `;
         
-        console.log(`✅ Document saved to user_documents table`);
-        databaseSaved = true;
+        console.log(`✅ Document saved to user_documents table:`, insertResult.rows[0]);
+        
+        // Verify the URL was saved correctly
+        const verifyResult = await sql`
+          SELECT file_url FROM user_documents 
+          WHERE user_id = ${userId} AND document_type = ${documentType}
+        `;
+        
+        console.log(`🔍 Verification - URL in DB: ${verifyResult.rows[0]?.file_url}`);
+        
+        if (verifyResult.rows[0]?.file_url === blob.url) {
+          console.log(`✅ URL verified correctly saved`);
+          databaseSaved = true;
+        } else {
+          console.error(`❌ URL mismatch! Expected: ${blob.url}, Got: ${verifyResult.rows[0]?.file_url}`);
+          databaseError = "URL verification failed";
+        }
         
       } else {
         console.log(`📝 Inserting general upload for deposit: ${depositId}`);
@@ -167,12 +184,13 @@ module.exports = async function handler(req, res) {
         `;
         
         // Insert deposit document
-        await sql`
+        const insertResult = await sql`
           INSERT INTO uploads (user_id, deposit_id, file_name, file_url, blob_path, file_size)
           VALUES (${userId}, ${depositId}, ${fileName}, ${blob.url}, ${blobPath}, ${buffer.length})
+          RETURNING id, file_url
         `;
         
-        console.log(`✅ Document saved to uploads table`);
+        console.log(`✅ Document saved to uploads table:`, insertResult.rows[0]);
         databaseSaved = true;
       }
       
@@ -204,7 +222,8 @@ module.exports = async function handler(req, res) {
       message: `File uploaded to Vercel Blob${databaseSaved ? ' and saved to database' : ''}`,
       file: fileRecord,
       blobUploaded: true,
-      databaseSaved: databaseSaved
+      databaseSaved: databaseSaved,
+      blobUrl: blob.url // Include the real URL for verification
     };
     
     if (databaseError) {
@@ -212,6 +231,7 @@ module.exports = async function handler(req, res) {
     }
     
     console.log(`🎉 Upload complete - Blob: ✅, Database: ${databaseSaved ? '✅' : '❌'}`);
+    console.log(`📄 Final URL: ${blob.url}`);
     
     return res.status(200).json(response);
     
