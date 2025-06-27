@@ -1,4 +1,4 @@
-// api/profile.js - COMPLETE PROFILE API WITH DATABASE INTEGRATION
+// api/profile.js - COMPLETE PROFILE API WITH REAL DOCUMENT URLS
 const { sql } = require('@vercel/postgres');
 const jwt = require('jsonwebtoken');
 
@@ -55,6 +55,7 @@ module.exports = async function handler(req, res) {
       }
       
       const userData = userResult.rows[0];
+      console.log('👤 User found:', userData.email);
       
       // Get user's deposits for timeline
       let deposits = [];
@@ -66,48 +67,107 @@ module.exports = async function handler(req, res) {
           ORDER BY created_at DESC
         `;
         deposits = depositsResult.rows;
+        console.log('💰 Found deposits:', deposits.length);
       } catch (depositError) {
         console.log('📊 No deposits table yet');
       }
       
-      // Get user's documents for timeline
+      // Get user's documents for timeline - FIXED TO GET REAL URLS
       let documents = [];
+      let documentDebugInfo = { attempts: [], found: 0, errors: [] };
+      
       try {
+        console.log('📄 Fetching documents for user:', user.id);
+        
         const documentsResult = await sql`
-          SELECT document_type, file_name, uploaded_at
+          SELECT document_type, file_name, file_url, blob_path, uploaded_at, file_size
           FROM user_documents 
           WHERE user_id = ${user.id}
           ORDER BY uploaded_at DESC
         `;
-        documents = documentsResult.rows;
+        
+        console.log('📄 Raw documents from DB:', documentsResult.rows);
+        
+        documents = documentsResult.rows.map(doc => {
+          // Map document types to display names
+          const displayName = doc.document_type === 'id' ? 'Identity Document' : 
+                            doc.document_type === 'address' ? 'Proof of Address' :
+                            doc.document_type === 'memorandum' ? 'Signed Memorandum' : 
+                            doc.document_type;
+          
+          // CRITICAL: Use the real file_url from database
+          let downloadUrl = doc.file_url;
+          
+          // If file_url is missing but we have blob_path, construct it
+          if (!downloadUrl && doc.blob_path) {
+            // This shouldn't happen, but fallback
+            downloadUrl = `https://blob.vercel-storage.com/${doc.blob_path}`;
+            console.warn('⚠️ Constructed URL from blob_path for:', doc.file_name);
+          }
+          
+          // If still no URL, use placeholder
+          if (!downloadUrl) {
+            downloadUrl = '#';
+            console.error('❌ No URL found for document:', doc.file_name);
+          }
+          
+          console.log('📄 Document processed:', {
+            name: displayName,
+            file: doc.file_name,
+            url: downloadUrl,
+            original_url: doc.file_url,
+            blob_path: doc.blob_path
+          });
+          
+          return {
+            name: displayName,
+            file_name: doc.file_name,
+            url: downloadUrl,
+            uploaded_at: doc.uploaded_at,
+            file_size: doc.file_size,
+            document_type: doc.document_type
+          };
+        });
+        
+        documentDebugInfo.attempts.push({
+          method: 'user_documents_table',
+          found: documents.length,
+          success: true
+        });
+        
+        console.log(`📄 Processed ${documents.length} documents for timeline`);
+        
       } catch (docError) {
-        console.log('📄 No documents table yet');
+        console.error('📄 Document query error:', docError);
+        documentDebugInfo.errors.push(docError.message);
+        documentDebugInfo.attempts.push({
+          method: 'user_documents_table',
+          found: 0,
+          success: false,
+          error: docError.message
+        });
       }
       
       // Build timeline data
       const timeline = [];
       
-      // Account opening
-      timeline.push({
-        type: 'account_opened',
-        title: 'Account Opened',
-        description: 'Welcome to Aequitas Capital Partners! Your account has been successfully created and approved.',
-        date: userData.created_at,
-        documents: documents.map(doc => ({
-          name: doc.document_type === 'id' ? 'Identity Document' : 
-                doc.document_type === 'address' ? 'Proof of Address' :
-                doc.document_type === 'memorandum' ? 'Signed Memorandum' : 
-                doc.document_type,
-          url: '#'
-        }))
-      });
+      // Account opening with REAL documents
+      if (documents.length > 0 || userData.created_at) {
+        timeline.push({
+          type: 'account_opened',
+          title: 'Account Opened',
+          description: 'Welcome to Aequitas Capital Partners! Your account has been successfully created and approved.',
+          date: userData.created_at,
+          documents: documents.length > 0 ? documents : undefined
+        });
+      }
       
       // Add deposits to timeline
       deposits.forEach(deposit => {
         timeline.push({
           type: 'deposit',
           title: `Deposit - ${deposit.reference}`,
-          description: `Deposit of ${deposit.amount.toLocaleString()} for ${deposit.purpose} - Status: ${deposit.status}`,
+          description: `Deposit of ${parseFloat(deposit.amount).toLocaleString()} for ${deposit.purpose} - Status: ${deposit.status}`,
           date: deposit.created_at,
           amount: parseFloat(deposit.amount)
         });
@@ -115,6 +175,20 @@ module.exports = async function handler(req, res) {
       
       // Sort timeline by date (newest first)
       timeline.sort((a, b) => new Date(b.date) - new Date(a.date));
+      
+      // Calculate stats
+      const stats = {
+        totalDeposits: deposits.reduce((sum, d) => sum + parseFloat(d.amount || 0), 0),
+        totalWithdrawals: 0, // Placeholder for withdrawals
+        memberSince: new Date(userData.created_at).getFullYear()
+      };
+      
+      console.log('✅ Profile response ready:', {
+        userEmail: userData.email,
+        documentsFound: documents.length,
+        timelineItems: timeline.length,
+        depositsTotal: stats.totalDeposits
+      });
       
       return res.status(200).json({
         success: true,
@@ -132,10 +206,11 @@ module.exports = async function handler(req, res) {
           role: userData.role
         },
         timeline: timeline,
-        stats: {
-          totalDeposits: deposits.reduce((sum, d) => sum + parseFloat(d.amount || 0), 0),
-          totalWithdrawals: 0, // Placeholder for withdrawals
-          memberSince: new Date(userData.created_at).getFullYear()
+        stats: stats,
+        debug: {
+          documentsFound: documents.length,
+          documentDebug: documentDebugInfo,
+          timelineItems: timeline.length
         }
       });
     }
@@ -207,7 +282,8 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({
       success: false,
       error: 'Internal server error',
-      details: error.message
+      details: error.message,
+      debug: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 };
