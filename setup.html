@@ -1431,14 +1431,21 @@
                 });
                 
                 if (response.ok) {
+                    // Mark setup as submitted
+                    localStorage.setItem('setup_submitted', 'true');
+                    
+                    // Update user data to reflect submission
+                    const currentUserData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
+                    currentUserData.setupStatus = 'review_pending';
+                    localStorage.setItem('aequitas_user_data', JSON.stringify(currentUserData));
+                    
                     showNotification('Setup submitted successfully! You will receive an email notification once approved.', 'success');
                     
-                    // Show success state
+                    // Show success state briefly, then redirect to status page
                     submitBtn.innerHTML = '<span class="icon icon-check"></span>Submitted Successfully!';
                     
                     setTimeout(() => {
-                        // Could redirect to a waiting page
-                        showNotification('Please wait for admin approval. You will receive an email when ready.', 'info');
+                        showStatusPage();
                     }, 2000);
                 } else {
                     throw new Error('Submission failed');
@@ -1549,16 +1556,22 @@
             // Check if password change is required
             passwordChangeRequired = localStorage.getItem('aequitas_password_change_required') === 'true';
             
-            if (passwordChangeRequired) {
-                document.getElementById('passwordChangeSection').style.display = 'block';
-                showNotification('Password change required before continuing setup.', 'warning');
-            }
-
             // Load user data and update UI
             const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
             const tempUserData = JSON.parse(localStorage.getItem('aequitas_temp_user') || '{}');
             const user = userData.id ? userData : tempUserData;
             
+            // CHECK SETUP STATUS - If already submitted, show status page
+            if (user.setupStatus === 'review_pending' || localStorage.getItem('setup_submitted') === 'true') {
+                showStatusPage();
+                return;
+            }
+            
+            if (passwordChangeRequired) {
+                document.getElementById('passwordChangeSection').style.display = 'block';
+                showNotification('Password change required before continuing setup.', 'warning');
+            }
+
             const firstName = user.firstName || user.first_name || 'User';
             const lastName = user.lastName || user.last_name || '';
             const email = user.email || '';
@@ -1589,6 +1602,89 @@
                 showNotification('Welcome! Please complete your account setup to access all features.', 'info');
             }
         });
+
+        // Show status page for submitted users
+        function showStatusPage() {
+            const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
+            const tempUserData = JSON.parse(localStorage.getItem('aequitas_temp_user') || '{}');
+            const user = userData.id ? userData : tempUserData;
+            
+            const firstName = user.firstName || user.first_name || 'User';
+            
+            // Update title
+            document.querySelector('.page-title').textContent = 'Account Status';
+            document.querySelector('.setup-badge').innerHTML = '<span class="icon icon-clock"></span>Under Review';
+            document.querySelector('.progress-text').textContent = '100%';
+            document.getElementById('progressCircle').style.background = 'conic-gradient(var(--warning) 360deg, var(--border-color) 360deg)';
+            
+            // Replace content with status page
+            document.querySelector('.setup-content').innerHTML = `
+                <div class="card" style="text-align: center; padding: 48px 32px;">
+                    <div style="width: 80px; height: 80px; margin: 0 auto 24px; background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05)); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <span class="icon icon-clock" style="width: 40px; height: 40px; color: var(--warning);"></span>
+                    </div>
+                    
+                    <h2 style="font-size: 24px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">
+                        Setup Complete - Under Review
+                    </h2>
+                    
+                    <p style="font-size: 16px; color: var(--text-secondary); margin-bottom: 32px; line-height: 1.5;">
+                        Thank you ${firstName}! Your account setup has been submitted successfully and is currently under review by our team.
+                    </p>
+                    
+                    <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; margin-bottom: 32px; text-align: left;">
+                        <h3 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                            <span class="icon icon-check" style="color: var(--success);"></span>
+                            What We've Received:
+                        </h3>
+                        <ul style="list-style: none; padding: 0; margin: 0;">
+                            <li style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 14px; color: var(--text-secondary);">
+                                <span class="icon icon-check" style="width: 16px; height: 16px; color: var(--success);"></span>
+                                Personal information and contact details
+                            </li>
+                            <li style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 14px; color: var(--text-secondary);">
+                                <span class="icon icon-check" style="width: 16px; height: 16px; color: var(--success);"></span>
+                                Identity verification documents
+                            </li>
+                            <li style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 14px; color: var(--text-secondary);">
+                                <span class="icon icon-check" style="width: 16px; height: 16px; color: var(--success);"></span>
+                                Proof of address documentation
+                            </li>
+                            <li style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-secondary);">
+                                <span class="icon icon-check" style="width: 16px; height: 16px; color: var(--success);"></span>
+                                Signed fund memorandum
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(59, 130, 246, 0.02)); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                        <h4 style="font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 8px;">What Happens Next?</h4>
+                        <p style="font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.4;">
+                            Our compliance team will review your application within <strong>2-3 business days</strong>. 
+                            You'll receive an email notification once your account is approved and ready to use.
+                        </p>
+                    </div>
+                    
+                    <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                        <button class="btn btn-secondary" onclick="contactSupport()">
+                            <span class="icon icon-chat"></span>
+                            Contact Support
+                        </button>
+                        <button class="btn btn-primary" onclick="logout()">
+                            <span class="icon icon-logout"></span>
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            showNotification('Your setup is under review. You will be notified by email once approved.', 'info');
+        }
+
+        // Contact support function
+        function contactSupport() {
+            window.open('mailto:support@aequitascap.com?subject=Account Setup Support&body=Hello, I need assistance with my account setup review.', '_blank');
+        }
     </script>
 </body>
 </html>
