@@ -828,7 +828,7 @@
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="logo-container">
-                <img src="https://i.ibb.co/8DfYwdG/Aequitas-White-Logo.png" alt="Aequitas Capital Partners" class="logo">
+                <img src="https://i.ibb.co/8DfYwWdG/Aequitas-White-Logo.png" alt="Aequitas Capital Partners" class="logo">
             </div>
             <button class="theme-toggle" onclick="toggleTheme()">
                 <span class="icon icon-moon"></span>
@@ -1453,15 +1453,6 @@
         function loadAccountStats(apiStats = null) {
             if (apiStats) {
                 // Use real stats from API
-                document.getElementById('accountBalance').textContent = formatCurrency(userData.accountValue || 0);
-                document.getElementById('memberSince').textContent = apiStats.memberSince;
-                document.getElementById('totalDeposits').textContent = formatCurrency(apiStats.totalDeposits);
-                document.getElementById('totalWithdrawals').textContent = formatCurrency(apiStats.totalWithdrawals);
-            } else {
-                // Fallback to basic data
-                const accountValue = userData.accountValue || 2850000;
-                const joinDate = userData.created_at || userData.joinDate || '2024-01-01';
-                
                 document.getElementById('accountBalance').textContent = formatCurrency(accountValue);
                 document.getElementById('memberSince').textContent = new Date(joinDate).getFullYear();
                 document.getElementById('totalDeposits').textContent = formatCurrency(1000000); // Placeholder
@@ -1674,4 +1665,13 @@
 
     </script>
 </body>
-</html>
+</html>(userData.accountValue || 0);
+                document.getElementById('memberSince').textContent = apiStats.memberSince;
+                document.getElementById('totalDeposits').textContent = formatCurrency(apiStats.totalDeposits);
+                document.getElementById('totalWithdrawals').textContent = formatCurrency(apiStats.totalWithdrawals);
+            } else {
+                // Fallback to basic data
+                const accountValue = userData.accountValue || 2850000;
+                const joinDate = userData.created_at || userData.joinDate || '2024-01-01';
+                
+                document.getElementById('accountBalance').textContent = formatCurrency
