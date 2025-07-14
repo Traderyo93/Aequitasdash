@@ -8,7 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            /* Light Theme */
+            /* Light Theme Variables */
             --bg-primary: #ffffff;
             --bg-secondary: #f8fafc;
             --bg-tertiary: #f1f5f9;
@@ -29,7 +29,7 @@
         }
 
         [data-theme="dark"] {
-            /* Dark Theme */
+            /* Dark Theme Variables */
             --bg-primary: #0f172a;
             --bg-secondary: #1e293b;
             --bg-tertiary: #334155;
@@ -40,6 +40,7 @@
             --sidebar-bg: #0f172a;
         }
 
+        /* Global Reset and Base Styles */
         * {
             margin: 0;
             padding: 0;
@@ -53,7 +54,7 @@
             transition: all 0.3s ease;
         }
 
-        /* Solid Color Icons */
+        /* Solid Color Icon System - All SVG icons as CSS masks */
         .icon {
             width: 20px;
             height: 20px;
@@ -127,8 +128,7 @@
         .icon-users {
             mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m22 0v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75M13 7a4 4 0 11-8 0 4 4 0 018 0z'/%3E%3C/svg%3E");
         }
-
-        /* Sidebar */
+        /* Sidebar Layout and Styling */
         .sidebar {
             position: fixed;
             left: 0;
@@ -177,6 +177,7 @@
             color: var(--sidebar-text-active);
         }
 
+        /* Sidebar Navigation */
         .sidebar-nav {
             flex: 1;
             padding: 20px 0;
@@ -226,6 +227,7 @@
             border-right: 3px solid var(--accent);
         }
 
+        /* Sidebar Footer with User Info */
         .sidebar-footer {
             padding: 20px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -286,7 +288,7 @@
             color: #fca5a5;
         }
 
-        /* Main Content */
+        /* Main Content Area */
         .main-content {
             margin-left: 280px;
             min-height: 100vh;
@@ -323,7 +325,7 @@
             padding: 24px;
         }
 
-        /* Account Stats */
+        /* Account Statistics Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -395,8 +397,7 @@
         .stat-neutral {
             color: var(--text-tertiary);
         }
-
-        /* Chart Section */
+        /* Chart Section Styling */
         .chart-section {
             background: var(--bg-primary);
             border: 1px solid var(--border-color);
@@ -489,7 +490,7 @@
             max-height: 400px;
         }
 
-        /* Widgets Grid */
+        /* TradingView Widgets Grid */
         .widgets-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -518,7 +519,7 @@
             overflow: hidden;
         }
 
-        /* Responsive */
+        /* Responsive Design Media Queries */
         @media (max-width: 1024px) {
             .sidebar {
                 transform: translateX(-100%);
@@ -555,10 +556,21 @@
                 flex-wrap: wrap;
             }
         }
+
+        /* Notification Animation Keyframes */
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
+    <!-- Sidebar Navigation -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="logo-container">
@@ -606,7 +618,7 @@
                 </a>
             </div>
 
-            <!-- Admin Section -->
+            <!-- Admin Section - Hidden by default, shown for admin users -->
             <div class="nav-section" id="adminSection" style="display: none;">
                 <div class="nav-section-title">Admin</div>
                 <a href="admin.html" class="nav-item">
@@ -630,8 +642,7 @@
             </button>
         </div>
     </div>
-
-    <!-- Main Content -->
+        <!-- Main Content Area -->
     <div class="main-content">
         <div class="top-bar">
             <h1 class="page-title">Account Overview</h1>
@@ -642,7 +653,7 @@
         </div>
 
         <div class="dashboard-content">
-            <!-- Account Stats -->
+            <!-- Account Statistics Cards -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-header">
@@ -687,30 +698,30 @@
                 </div>
             </div>
 
-           <!-- Equity Curve Chart -->
-<div class="chart-section" id="chartSection">
-    <div class="chart-header">
-        <div class="chart-header-left" onclick="toggleChart()">
-            <button class="chart-collapse-btn" id="chartCollapseBtn">
-                <span class="icon icon-chevron-up"></span>
-            </button>
-            <h2 class="chart-title">Account Equity Curve</h2>
-        </div>
-        <div class="chart-filters">
-            <button class="filter-btn active" onclick="updateChartPeriod('1M', this)">1M</button>
-            <button class="filter-btn" onclick="updateChartPeriod('3M', this)">3M</button>
-            <button class="filter-btn" onclick="updateChartPeriod('12M', this)">12M</button>
-            <button class="filter-btn" onclick="updateChartPeriod('ALL', this)">ALL</button>
-        </div>
-    </div>
-    <div class="chart-content" id="chartContent">
-        <div class="chart-container">
-            <canvas id="equityChart"></canvas>
-        </div>
-    </div>
-</div>
+            <!-- Equity Curve Chart Section -->
+            <div class="chart-section" id="chartSection">
+                <div class="chart-header">
+                    <div class="chart-header-left" onclick="toggleChart()">
+                        <button class="chart-collapse-btn" id="chartCollapseBtn">
+                            <span class="icon icon-chevron-up"></span>
+                        </button>
+                        <h2 class="chart-title">Account Equity Curve</h2>
+                    </div>
+                    <div class="chart-filters">
+                        <button class="filter-btn active" onclick="updateChartPeriod('1M', this)">1M</button>
+                        <button class="filter-btn" onclick="updateChartPeriod('3M', this)">3M</button>
+                        <button class="filter-btn" onclick="updateChartPeriod('12M', this)">12M</button>
+                        <button class="filter-btn" onclick="updateChartPeriod('ALL', this)">ALL</button>
+                    </div>
+                </div>
+                <div class="chart-content" id="chartContent">
+                    <div class="chart-container">
+                        <canvas id="equityChart"></canvas>
+                    </div>
+                </div>
+            </div>
 
-            <!-- TradingView Widgets -->
+            <!-- TradingView Widgets Grid -->
             <div class="widgets-grid">
                 <div class="widget-card">
                     <h3 class="widget-title">Market News</h3>
@@ -737,29 +748,29 @@
         </div>
     </div>
 
-    <!-- Scripts -->
+    <!-- JavaScript Section Begins -->
     <script>
-        // Global variables
+        // Global State Variables
         let currentTheme = 'light';
         let currentPeriod = '1M';
         let chartCollapsed = false;
         
         // Universal Navigation System
         function initializeNavigation() {
-            // Get current page name
+            // Get current page name from URL
             const currentPage = window.location.pathname.split('/').pop() || 'dashboard.html';
             
             console.log('Current page:', currentPage);
             
-            // Remove active class from all nav items
+            // Remove active class from all navigation items
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
             });
             
-            // Add active class to current page
+            // Add active class to current page navigation item
             let currentNavItem = document.querySelector(`.nav-item[href="${currentPage}"]`);
             
-            // Handle special cases
+            // Handle special cases for dashboard routing
             if (!currentNavItem) {
                 if (currentPage.includes('dashboard') || currentPage === '' || currentPage === 'index.html') {
                     currentNavItem = document.querySelector(`.nav-item[href="dashboard.html"]`);
@@ -768,10 +779,10 @@
             
             if (currentNavItem) {
                 currentNavItem.classList.add('active');
-                console.log('Set active:', currentNavItem.href);
+                console.log('Set active navigation item:', currentNavItem.href);
             }
             
-            // Handle navigation clicks - ensure authentication
+            // Handle navigation clicks with authentication check
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.addEventListener('click', function(e) {
                     const token = localStorage.getItem('aequitas_auth_token');
@@ -787,15 +798,16 @@
             });
         }
         
-        // Theme Toggle
+        // Theme Toggle Functionality
         function toggleTheme() {
             currentTheme = currentTheme === 'light' ? 'dark' : 'light';
             document.documentElement.setAttribute('data-theme', currentTheme);
             
+            // Update theme toggle icon
             const themeToggle = document.querySelector('.theme-toggle .icon');
             themeToggle.className = currentTheme === 'light' ? 'icon icon-moon' : 'icon icon-sun';
             
-            // Update chart theme
+            // Update chart theme if it exists
             if (window.equityChart) {
                 createEquityChart();
             }
@@ -803,10 +815,11 @@
             // Update TradingView widgets theme
             updateTradingViewTheme();
             
+            // Save theme preference to localStorage
             localStorage.setItem('aequitas_theme', currentTheme);
         }
 
-        // Chart Toggle
+        // Chart Collapse/Expand Toggle
         function toggleChart() {
             const chartSection = document.getElementById('chartSection');
             const chartContent = document.getElementById('chartContent');
@@ -821,7 +834,7 @@
                 chartSection.classList.remove('collapsed');
                 collapseBtn.innerHTML = '<span class="icon icon-chevron-up"></span>';
                 
-                // Recreate chart when expanding
+                // Recreate chart when expanding with delay for animation
                 setTimeout(() => {
                     if (window.equityChart) {
                         createEquityChart();
@@ -830,89 +843,18 @@
             }
         }
 
-        // Logout
+        // User Logout Functionality
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
                 localStorage.removeItem('aequitas_auth_token');
                 localStorage.removeItem('aequitas_user_data');
-                console.log('Logged out, redirecting to login');
+                console.log('User logged out, redirecting to login page');
                 window.location.href = 'login.html';
             }
         }
-
         // ===== REAL CSV DATA FUNCTIONS =====
         
-        // Load real CSV data and user deposits to generate equity curve
-        async function generateEquityData(period) {
-            try {
-                console.log('📊 Loading REAL equity data from CSV + user deposits for period:', period);
-                
-                // Get user's auth token
-                const authToken = localStorage.getItem('aequitas_auth_token');
-                if (!authToken) {
-                    console.log('⚠️ No auth token, using demo data');
-                    return generateDemoData(period);
-                }
-                
-                // Load CSV data
-                const csvData = await loadCSVData();
-                
-                // Get user deposits
-                const depositsResponse = await fetch('/api/deposits', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (!depositsResponse.ok) {
-                    console.log('⚠️ Failed to load deposits, using demo data');
-                    return generateDemoData(period);
-                }
-                
-                const depositsData = await depositsResponse.json();
-                const userDeposits = depositsData.deposits || [];
-                
-                console.log(`📊 Found ${userDeposits.length} user deposits`);
-                console.log(`📊 Loaded ${Object.keys(csvData).length} trading days from CSV`);
-                
-                // Calculate date range based on period
-                const now = new Date();
-                let startDate = new Date();
-                
-                switch(period) {
-                    case '1M':
-                        startDate.setMonth(startDate.getMonth() - 1);
-                        break;
-                    case '3M':
-                        startDate.setMonth(startDate.getMonth() - 3);
-                        break;
-                    case '12M':
-                        startDate.setFullYear(startDate.getFullYear() - 1);
-                        break;
-                    case 'ALL':
-                        // Start from earliest deposit or 3 years ago, whichever is later
-                        if (userDeposits.length > 0) {
-                            const earliestDeposit = new Date(Math.min(...userDeposits.map(d => new Date(d.deposit_date))));
-                            startDate = earliestDeposit;
-                        } else {
-                            startDate.setFullYear(startDate.getFullYear() - 3);
-                        }
-                        break;
-                }
-                
-                // Generate equity curve
-                return generateUserEquityCurve(userDeposits, csvData, startDate, now);
-                
-            } catch (error) {
-                console.error('💥 Failed to load real equity data:', error);
-                console.log('⚠️ Falling back to demo data');
-                return generateDemoData(period);
-            }
-        }
-        
-        // Load CSV data from server
+        // Load CSV trading data from server
         async function loadCSVData() {
             try {
                 const response = await fetch('/data/daily_returns_simple.csv');
@@ -925,7 +867,7 @@
                 const lines = csvContent.split('\n');
                 const csvData = {};
                 
-                // Skip header row, parse date and daily return
+                // Skip header row, parse date and daily return columns
                 for (let i = 1; i < lines.length; i++) {
                     const line = lines[i].trim();
                     if (!line) continue;
@@ -949,55 +891,285 @@
                 return {};
             }
         }
+
+        // Calculate real dashboard performance using deposits and CSV returns
+        function calculateDashboardPerformance(deposits, csvData) {
+            console.log('🧮 Calculating dashboard performance from deposits + CSV data');
+            
+            let totalBalance = 0;
+            let totalDeposits = 0;
+            
+            // Sort deposits by date chronologically
+            const sortedDeposits = deposits.sort((a, b) => {
+                const dateA = new Date(a.deposit_date || a.date);
+                const dateB = new Date(b.deposit_date || b.date);
+                return dateA - dateB;
+            });
+            
+            // Process each deposit and apply performance from deposit date to today
+            for (const deposit of sortedDeposits) {
+                const depositAmount = parseFloat(deposit.amount);
+                const depositDate = new Date(deposit.deposit_date || deposit.date);
+                const today = new Date();
+                
+                totalDeposits += depositAmount;
+                let currentDepositValue = depositAmount;
+                
+                // Apply daily returns from deposit date to today
+                for (let date = new Date(depositDate); date <= today; date.setDate(date.getDate() + 1)) {
+                    const dateStr = date.toISOString().split('T')[0];
+                    
+                    // Skip weekends (no trading)
+                    if (date.getDay() === 0 || date.getDay() === 6) continue;
+                    
+                    const dailyReturn = csvData[dateStr] || 0;
+                    
+                    if (dailyReturn !== 0) {
+                        currentDepositValue *= (1 + dailyReturn);
+                    }
+                }
+                
+                totalBalance += currentDepositValue;
+            }
+            
+            return {
+                totalDeposits,
+                currentBalance: totalBalance
+            };
+        }
+
+        // Load real dashboard data with CSV integration
+        async function loadDashboard() {
+            console.log('📊 Loading dashboard with REAL data...');
+            
+            try {
+                const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
+                
+                // Update user info in sidebar and top bar
+                const firstName = userData.firstName || 'User';
+                const lastName = userData.lastName || '';
+                const email = userData.email || 'user@example.com';
+                
+                // Update UI elements safely with null checks
+                const elements = {
+                    userName: document.getElementById('userName'),
+                    userEmail: document.getElementById('userEmail'),
+                    topUserName: document.getElementById('topUserName'),
+                    userAvatar: document.getElementById('userAvatar')
+                };
+                
+                if (elements.userName) elements.userName.textContent = firstName + ' ' + lastName;
+                if (elements.userEmail) elements.userEmail.textContent = email;
+                if (elements.topUserName) elements.topUserName.textContent = firstName;
+                if (elements.userAvatar) elements.userAvatar.textContent = firstName.charAt(0).toUpperCase();
+                
+                // Get REAL account data using existing deposits API
+                const authToken = localStorage.getItem('aequitas_auth_token');
+                if (authToken) {
+                    try {
+                        // Fetch user deposits to calculate real account values
+                        const depositsResponse = await fetch('/api/deposits', {
+                            headers: { 'Authorization': `Bearer ${authToken}` }
+                        });
+                        
+                        if (depositsResponse.ok) {
+                            const depositsData = await depositsResponse.json();
+                            const userDeposits = depositsData.deposits || [];
+                            
+                            if (userDeposits.length > 0) {
+                                console.log('✅ Found real deposits:', userDeposits);
+                                
+                                // Load CSV trading data and calculate performance
+                                const csvData = await loadCSVData();
+                                const performanceResult = calculateDashboardPerformance(userDeposits, csvData);
+                                
+                                const accountValue = performanceResult.currentBalance;
+                                const totalDeposits = performanceResult.totalDeposits;
+                                const profit = accountValue - totalDeposits;
+                                const profitPercent = totalDeposits > 0 ? ((profit / totalDeposits) * 100) : 0;
+                                
+                                // Update dashboard with REAL calculated values
+                                const accountBalanceEl = document.getElementById('accountBalance');
+                                const accountProfitEl = document.getElementById('accountProfit');
+                                const startingBalanceEl = document.getElementById('startingBalance');
+                                
+                                if (accountBalanceEl) accountBalanceEl.textContent = formatCurrency(accountValue);
+                                if (accountProfitEl) accountProfitEl.textContent = formatCurrency(profit);
+                                if (startingBalanceEl) startingBalanceEl.textContent = formatCurrency(totalDeposits);
+                                
+                                // Update profit percentage display with proper styling
+                                const profitChange = document.getElementById('profitChange');
+                                if (profitChange) {
+                                    if (profitPercent >= 0) {
+                                        profitChange.innerHTML = `<span class="icon icon-trending-up"></span><span>+${profitPercent.toFixed(1)}%</span>`;
+                                        profitChange.className = 'stat-change stat-positive';
+                                    } else {
+                                        profitChange.innerHTML = `<span class="icon icon-trending-up" style="transform: rotate(180deg);"></span><span>${profitPercent.toFixed(1)}%</span>`;
+                                        profitChange.className = 'stat-change stat-negative';
+                                    }
+                                }
+                                
+                                console.log('✅ Dashboard updated with REAL data:', {
+                                    balance: accountValue.toLocaleString(),
+                                    deposits: totalDeposits.toLocaleString(),
+                                    profit: profit.toLocaleString(),
+                                    profitPercent: profitPercent.toFixed(1) + '%'
+                                });
+                                
+                                return; // Exit early with real data loaded successfully
+                            }
+                        }
+                    } catch (apiError) {
+                        console.log('⚠️ API error, using fallback data:', apiError.message);
+                    }
+                }
+                
+                // Fallback to demo data if real data unavailable
+                console.log('📊 Using demo data as fallback');
+                
+            } catch (error) {
+                console.error('💥 Dashboard load error:', error);
+                // Use demo data on any error
+            }
+        }
         
+        // Generate equity data with smart date ranges for all timeframes
+        async function generateEquityData(period) {
+            try {
+                console.log('📊 Loading REAL equity data from CSV + user deposits for period:', period);
+                
+                // Get user's authentication token
+                const authToken = localStorage.getItem('aequitas_auth_token');
+                if (!authToken) {
+                    console.log('⚠️ No auth token found, using demo data');
+                    return generateDemoData(period);
+                }
+                
+                // Load CSV trading data
+                const csvData = await loadCSVData();
+                
+                // Get user deposits from API
+                const depositsResponse = await fetch('/api/deposits', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!depositsResponse.ok) {
+                    console.log('⚠️ Failed to load deposits, using demo data');
+                    return generateDemoData(period);
+                }
+                
+                const depositsData = await depositsResponse.json();
+                const userDeposits = depositsData.deposits || [];
+                
+                console.log(`📊 Found ${userDeposits.length} user deposits`);
+                console.log(`📊 Loaded ${Object.keys(csvData).length} trading days from CSV`);
+                
+                if (userDeposits.length === 0) {
+                    console.log('⚠️ No deposits found, using demo data');
+                    return generateDemoData(period);
+                }
+                
+                // Calculate smart date range based on deposits and requested period
+                const today = new Date();
+                let startDate;
+                
+                // Find earliest deposit date for reference
+                const earliestDeposit = userDeposits.reduce((earliest, deposit) => {
+                    const depositDate = new Date(deposit.deposit_date || deposit.date);
+                    return depositDate < earliest ? depositDate : earliest;
+                }, new Date());
+                
+                // Calculate start date based on period, but never before first deposit
+                switch(period) {
+                    case '1M':
+                        startDate = new Date();
+                        startDate.setMonth(startDate.getMonth() - 1);
+                        startDate = startDate > earliestDeposit ? startDate : earliestDeposit;
+                        break;
+                    case '3M':
+                        startDate = new Date();
+                        startDate.setMonth(startDate.getMonth() - 3);
+                        startDate = startDate > earliestDeposit ? startDate : earliestDeposit;
+                        break;
+                    case '12M':
+                        startDate = new Date();
+                        startDate.setFullYear(startDate.getFullYear() - 1);
+                        startDate = startDate > earliestDeposit ? startDate : earliestDeposit;
+                        break;
+                    case 'ALL':
+                        startDate = earliestDeposit;
+                        break;
+                }
+                
+                console.log(`📅 Chart range: ${startDate.toISOString().split('T')[0]} to ${today.toISOString().split('T')[0]}`);
+                
+                // Generate user's equity curve from real data
+                return generateUserEquityCurve(userDeposits, csvData, startDate, today);
+                
+            } catch (error) {
+                console.error('💥 Failed to load real equity data:', error);
+                console.log('⚠️ Falling back to demo data');
+                return generateDemoData(period);
+            }
+        }
         // Generate user's equity curve from deposits + CSV returns
         function generateUserEquityCurve(deposits, csvData, startDate, endDate) {
             console.log('📈 Generating user equity curve from real data');
             
             const equityData = [];
-            const sortedDeposits = deposits.sort((a, b) => new Date(a.deposit_date) - new Date(b.deposit_date));
+            const sortedDeposits = deposits.sort((a, b) => {
+                const dateA = new Date(a.deposit_date || a.date);
+                const dateB = new Date(b.deposit_date || b.date);
+                return dateA - dateB;
+            });
             
-            // Track running balance
+            // Track running balance and deposit processing
             let runningBalance = 0;
             let depositIndex = 0;
             
-            // Process each day
+            // Process each day from start to end date
             for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
                 const dateStr = date.toISOString().split('T')[0];
                 
-                // Add any deposits for this date
+                // Add any deposits that occur on this date
                 while (depositIndex < sortedDeposits.length) {
-                    const depositDate = new Date(sortedDeposits[depositIndex].deposit_date);
+                    const deposit = sortedDeposits[depositIndex];
+                    const depositDate = new Date(deposit.deposit_date || deposit.date);
                     const depositDateStr = depositDate.toISOString().split('T')[0];
                     
                     if (depositDateStr === dateStr) {
-                        const depositAmount = parseFloat(sortedDeposits[depositIndex].amount);
+                        const depositAmount = parseFloat(deposit.amount);
                         runningBalance += depositAmount;
                         console.log(`💵 ${dateStr}: Added deposit $${depositAmount.toLocaleString()}, balance: $${runningBalance.toLocaleString()}`);
                         depositIndex++;
                     } else if (depositDateStr > dateStr) {
-                        break; // Future deposits
+                        break; // Future deposits, stop processing
                     } else {
                         depositIndex++; // Skip past deposits (shouldn't happen with sorted array)
                     }
                 }
                 
-                // Skip if no balance yet
+                // Skip days with no balance yet
                 if (runningBalance === 0) continue;
                 
-                // Apply daily return from CSV
+                // Apply daily return from CSV trading data
                 const dailyReturn = csvData[dateStr] || 0;
                 
                 if (dailyReturn !== 0) {
                     const dailyPnL = runningBalance * dailyReturn;
                     runningBalance += dailyPnL;
                     
-                    if (Math.abs(dailyReturn) > 0.001) { // Only log significant moves
+                    // Log significant moves for debugging
+                    if (Math.abs(dailyReturn) > 0.001) {
                         console.log(`📈 ${dateStr}: ${(dailyReturn * 100).toFixed(3)}% → $${runningBalance.toLocaleString()}`);
                     }
                 }
                 
-                // Add data point (include weekends for smooth chart)
+                // Add data point for chart (include all days for smooth visualization)
                 equityData.push({
                     date: dateStr,
                     value: Math.round(runningBalance)
@@ -1010,7 +1182,7 @@
             return equityData;
         }
         
-        // Fallback demo data (same as before)
+        // Fallback demo data generator for when real data is unavailable
         function generateDemoData(period) {
             console.log('📊 Using demo data for period:', period);
             
@@ -1018,6 +1190,7 @@
             let dataPoints;
             let startDate = new Date();
             
+            // Set data points and start date based on period
             switch(period) {
                 case '1M':
                     dataPoints = 30;
@@ -1032,13 +1205,13 @@
                     startDate.setFullYear(startDate.getFullYear() - 1);
                     break;
                 case 'ALL':
-                    dataPoints = 1095; // 3 years
+                    dataPoints = 1095; // 3 years of data
                     startDate.setFullYear(startDate.getFullYear() - 3);
                     break;
             }
             
             const data = [];
-            const startValue = 1000000; // $1M starting capital
+            const startValue = 1000000; // $1M starting capital for demo
             let currentValue = startValue;
             
             // Create realistic hedge fund performance pattern
@@ -1061,12 +1234,12 @@
                 const randomComponent = (Math.random() - 0.5) * 2 * dailyVol;
                 const trendComponent = dailyReturn * (1 + marketCycle);
                 
-                // Add some drawdown periods (realistic hedge fund performance)
+                // Add some drawdown periods for realistic hedge fund performance
                 let drawdownFactor = 1;
                 if (i > dataPoints * 0.3 && i < dataPoints * 0.45) {
                     drawdownFactor = 0.85; // 15% drawdown period
                 } else if (i > dataPoints * 0.7 && i < dataPoints * 0.75) {
-                    drawdownFactor = 0.95; // Smaller correction
+                    drawdownFactor = 0.95; // Smaller correction period
                 }
                 
                 const dailyChange = (trendComponent + randomComponent) * drawdownFactor;
@@ -1085,12 +1258,12 @@
             return data;
         }
 
-       // Update Chart Period
+        // Update Chart Period with proper event handling
         function updateChartPeriod(period, element) {
             console.log(`Updating chart to period: ${period}`);
             
             // Prevent the event from bubbling up to the chart header click
-            event.stopPropagation();
+            if (event) event.stopPropagation();
             
             // Always ensure chart is expanded when using filters
             const chartSection = document.getElementById('chartSection');
@@ -1102,7 +1275,7 @@
                 collapseBtn.innerHTML = '<span class="icon icon-chevron-up"></span>';
             }
             
-            // Update active filter button
+            // Update active filter button styling
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
             element.classList.add('active');
             
@@ -1114,35 +1287,37 @@
             }, 100);
         }
 
-        // Create Equity Chart
+        // Create Equity Chart with Chart.js
         async function createEquityChart() {
             console.log('createEquityChart function called for period:', currentPeriod);
             
             const ctx = document.getElementById('equityChart');
             if (!ctx) {
-                console.error('Chart canvas not found');
+                console.error('Chart canvas element not found');
                 return;
             }
             
             console.log('Chart canvas found, creating chart...');
             
-            // Properly check if chart exists before destroying
+            // Properly destroy existing chart before creating new one
             if (window.equityChart && typeof window.equityChart.destroy === 'function') {
-                console.log('Destroying existing chart');
+                console.log('Destroying existing chart instance');
                 window.equityChart.destroy();
                 window.equityChart = null;
             }
             
-            // Force canvas sizing
+            // Force canvas sizing for proper chart display
             const container = ctx.parentElement;
             container.style.height = '400px';
             container.style.width = '100%';
             ctx.style.width = '100%';
             ctx.style.height = '400px';
             
+            // Get chart data and theme settings
             const data = await generateEquityData(currentPeriod);
             const isDark = currentTheme === 'dark';
             
+            // Create new Chart.js instance
             window.equityChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -1214,12 +1389,11 @@
             
             console.log('Chart created successfully');
         }
-
-        // Update TradingView widgets theme
+        // Update TradingView widgets theme when theme changes
         function updateTradingViewTheme() {
             const colorTheme = currentTheme === 'dark' ? 'dark' : 'light';
             
-            // Update Market News Widget
+            // Update Market News Widget with new theme
             const marketNewsContainer = document.getElementById('marketNewsWidget');
             marketNewsContainer.innerHTML = '<div class="tradingview-widget-container__widget"></div>';
             
@@ -1239,7 +1413,7 @@
             });
             marketNewsContainer.appendChild(marketNewsScript);
             
-            // Update Economic Calendar Widget
+            // Update Economic Calendar Widget with new theme
             const economicCalendarContainer = document.getElementById('economicCalendarWidget');
             economicCalendarContainer.innerHTML = '<div class="tradingview-widget-container__widget"></div>';
             
@@ -1259,125 +1433,7 @@
             economicCalendarContainer.appendChild(economicCalendarScript);
         }
 
-        // Format currency
-        function formatCurrency(amount, short = false) {
-            if (short && amount >= 1000000) {
-                return '$' + (amount / 1000000).toFixed(1) + 'M';
-            } else if (short && amount >= 1000) {
-                return '$' + (amount / 1000).toFixed(0) + 'K';
-            }
-            
-            return new Intl.NumberFormat('en-US', {
-                style: 'currency',
-                currency: 'USD',
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0
-            }).format(amount);
-        }
-        
-        // Load dashboard data
-        async function loadDashboard() {
-            console.log('📊 Loading dashboard with REAL data...');
-            
-            try {
-                const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
-                
-                // Update user info
-                const firstName = userData.firstName || 'User';
-                const lastName = userData.lastName || '';
-                const email = userData.email || 'user@example.com';
-                
-                // Update UI elements safely
-                const elements = {
-                    userName: document.getElementById('userName'),
-                    userEmail: document.getElementById('userEmail'),
-                    topUserName: document.getElementById('topUserName'),
-                    userAvatar: document.getElementById('userAvatar')
-                };
-                
-                if (elements.userName) elements.userName.textContent = firstName + ' ' + lastName;
-                if (elements.userEmail) elements.userEmail.textContent = email;
-                if (elements.topUserName) elements.topUserName.textContent = firstName;
-                if (elements.userAvatar) elements.userAvatar.textContent = firstName.charAt(0).toUpperCase();
-                
-                // Get REAL account data from database
-                const authToken = localStorage.getItem('aequitas_auth_token');
-                if (authToken) {
-                    try {
-                        // Try to get user's real data from admin-stats API
-                        const response = await fetch('/api/admin-stats', {
-                            headers: { 'Authorization': `Bearer ${authToken}` }
-                        });
-                        
-                        if (response.ok) {
-                            const data = await response.json();
-                            
-                            if (data.success && data.clients) {
-                                // Find current user in the clients data
-                                const currentUser = data.clients.find(c => c.email === email);
-                                
-                                if (currentUser) {
-                                    console.log('✅ Real user data found:', currentUser);
-                                    
-                                    const accountValue = parseFloat(currentUser.accountValue || 0);
-                                    const totalDeposits = parseFloat(currentUser.totalDeposits || 0);
-                                    const profit = accountValue - totalDeposits;
-                                    const profitPercent = totalDeposits > 0 ? ((profit / totalDeposits) * 100) : 0;
-                                    
-                                    // Update dashboard with REAL data
-                                    const accountBalanceEl = document.getElementById('accountBalance');
-                                    const accountProfitEl = document.getElementById('accountProfit');
-                                    const startingBalanceEl = document.getElementById('startingBalance');
-                                    
-                                    if (accountBalanceEl) accountBalanceEl.textContent = formatCurrency(accountValue);
-                                    if (accountProfitEl) accountProfitEl.textContent = formatCurrency(profit);
-                                    if (startingBalanceEl) startingBalanceEl.textContent = formatCurrency(totalDeposits);
-                                    
-                                    // Update profit percentage
-                                    const profitChange = document.getElementById('profitChange');
-                                    if (profitChange) {
-                                        if (profitPercent >= 0) {
-                                            profitChange.innerHTML = `<span class="icon icon-trending-up"></span><span>+${profitPercent.toFixed(1)}%</span>`;
-                                            profitChange.className = 'stat-change stat-positive';
-                                        } else {
-                                            profitChange.innerHTML = `<span class="icon icon-trending-up" style="transform: rotate(180deg);"></span><span>${profitPercent.toFixed(1)}%</span>`;
-                                            profitChange.className = 'stat-change stat-negative';
-                                        }
-                                    }
-                                    
-                                    console.log('✅ Dashboard updated with REAL data:', {
-                                        balance: accountValue.toLocaleString(),
-                                        deposits: totalDeposits.toLocaleString(),
-                                        profit: profit.toLocaleString(),
-                                        profitPercent: profitPercent.toFixed(1) + '%'
-                                    });
-                                    
-                                    return; // Exit early with real data
-                                }
-                            }
-                        }
-                    } catch (apiError) {
-                        console.log('⚠️ API error, using fallback data:', apiError.message);
-                    }
-                }
-                
-                // Fallback to demo data
-                console.log('📊 Using demo data as fallback');
-                const accountBalanceEl = document.getElementById('accountBalance');
-                const accountProfitEl = document.getElementById('accountProfit');
-                const startingBalanceEl = document.getElementById('startingBalance');
-                
-                if (accountBalanceEl) accountBalanceEl.textContent = '$2,850,000';
-                if (accountProfitEl) accountProfitEl.textContent = '$1,850,000';
-                if (startingBalanceEl) startingBalanceEl.textContent = '$1,000,000';
-                
-            } catch (error) {
-                console.error('💥 Dashboard load error:', error);
-                // Use demo data on any error
-            }
-        }
-
-        // Initialize TradingView Widgets
+        // Initialize TradingView Widgets on page load
         function initializeTradingViewWidgets() {
             const colorTheme = currentTheme === 'dark' ? 'dark' : 'light';
             
@@ -1417,7 +1473,25 @@
             economicCalendarContainer.appendChild(economicCalendarScript);
         }
 
-        // Notification system
+        // Format currency values with optional short format
+        function formatCurrency(amount, short = false) {
+            // Handle short format for chart axes
+            if (short && amount >= 1000000) {
+                return '$' + (amount / 1000000).toFixed(1) + 'M';
+            } else if (short && amount >= 1000) {
+                return '$' + (amount / 1000).toFixed(0) + 'K';
+            }
+            
+            // Full currency formatting for dashboard values
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(amount);
+        }
+
+        // Notification system for user feedback
         function showNotification(message, type = 'info') {
             const notification = document.createElement('div');
             notification.style.cssText = `
@@ -1446,6 +1520,7 @@
             
             document.body.appendChild(notification);
             
+            // Auto-remove notification after 5 seconds
             setTimeout(() => {
                 if (notification.parentNode) {
                     notification.style.animation = 'slideOutRight 0.3s ease-in';
@@ -1454,25 +1529,11 @@
             }, 5000);
         }
 
-        // Add CSS for notification animations
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideInRight {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
-            }
-            @keyframes slideOutRight {
-                from { transform: translateX(0); opacity: 1; }
-                to { transform: translateX(100%); opacity: 0; }
-            }
-        `;
-        document.head.appendChild(style);
-
-        // Initialize dashboard
+        // Main dashboard initialization function
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM loaded, initializing dashboard...');
             
-            // CHECK: Redirect pending users to setup
+            // CHECK: Redirect pending users to setup page
             const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
             if (userData.role === 'pending' && userData.setupStatus !== 'approved') {
                 console.log('🔄 Pending user detected, redirecting to setup...');
@@ -1480,33 +1541,33 @@
                 return;
             }
             
-            // Load saved theme
+            // Load saved theme preference
             const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
-            console.log('Saved theme:', savedTheme);
+            console.log('Saved theme preference:', savedTheme);
             
             if (savedTheme === 'dark') {
                 currentTheme = 'dark';
                 document.documentElement.setAttribute('data-theme', 'dark');
                 const themeToggle = document.querySelector('.theme-toggle .icon');
-                themeToggle.className = 'icon icon-sun';
+                if (themeToggle) themeToggle.className = 'icon icon-sun';
             }
             
-            // Initialize navigation
+            // Initialize navigation system
             initializeNavigation();
             
-            // Load dashboard data first
+            // Load dashboard data with real API integration
             loadDashboard();
 
             // Initialize TradingView widgets
             initializeTradingViewWidgets();
 
-            // Create chart after everything is loaded
+            // Create equity chart after everything else is loaded
             setTimeout(() => {
-                console.log('Creating equity chart...');
+                console.log('Creating initial equity chart...');
                 createEquityChart();
             }, 200);
             
-            // Show admin section if user is admin
+            // Show admin section if user has admin privileges
             if (userData.role === 'admin') {
                 const adminSection = document.getElementById('adminSection');
                 if (adminSection) adminSection.style.display = 'block';
@@ -1515,7 +1576,7 @@
             console.log('Dashboard initialization complete');
         });
 
-        // Handle window resize - re-render chart
+        // Handle window resize events - re-render chart for proper sizing
         window.addEventListener('resize', function() {
             if (window.equityChart) {
                 setTimeout(() => {
@@ -1524,14 +1585,14 @@
             }
         });
 
-        // Close sidebar when clicking outside on mobile
+        // Close sidebar when clicking outside on mobile devices
         document.addEventListener('click', function(event) {
             if (window.innerWidth <= 1024) {
                 const sidebar = document.getElementById('sidebar');
-                const isClickInsideSidebar = sidebar.contains(event.target);
+                const isClickInsideSidebar = sidebar && sidebar.contains(event.target);
                 const isClickOnToggle = event.target.closest('.mobile-menu-btn') || event.target.closest('.sidebar-toggle');
                 
-                if (!isClickInsideSidebar && !isClickOnToggle && !sidebar.classList.contains('collapsed')) {
+                if (!isClickInsideSidebar && !isClickOnToggle && sidebar && !sidebar.classList.contains('collapsed')) {
                     sidebar.classList.add('collapsed');
                 }
             }
