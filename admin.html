@@ -1865,11 +1865,33 @@
             try {
                 console.log('🎯 Creating new client with simulation:', clientData);
                 
-                // First, create the user in the database
-                const newUser = await createUserInDatabase(clientData);
+                // First, create the user in the database with CORRECT status
+                const userResponse = await fetch('/api/users', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        firstName: clientData.firstName,
+                        lastName: clientData.lastName,
+                        email: clientData.email,
+                        phone: clientData.phone,
+                        address: clientData.address,
+                        role: 'pending',              // FIXED: Was 'client'
+                        status: 'setup_pending',      // FIXED: Was 'active'
+                        setupStatus: 'incomplete'     // FIXED: Was missing
+                    })
+                });
                 
+                const userData = await userResponse.json();
+                
+                if (!userData.success) {
+                    throw new Error(userData.error || 'Failed to create user');
+                }
+                
+                const newUser = userData.user;
                 const userId = newUser.id;
-                
                 // Then set up live trading simulation
                 const simulationResponse = await fetch('/api/live-trading-simulation', {
                     method: 'POST',
@@ -1905,7 +1927,7 @@
                     email: clientData.email,
                     phone: clientData.phone,
                     address: clientData.address,
-                    status: clientData.status,
+                    status: 'setup_pending',
                     joinDate: new Date().toISOString().split('T')[0],
                     totalDeposits: clientData.startingBalance,
                     accountValue: clientData.startingBalance,
