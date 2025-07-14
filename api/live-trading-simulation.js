@@ -32,16 +32,12 @@ module.exports = async function handler(req, res) {
         const userId = decoded.id;
 
         if (req.method === 'POST') {
-            const { action, userId: targetUserId, startingBalance, inceptionDate, liveTrading, depositAmount, depositDate } = req.body;
+            const { action, userId: targetUserId, depositAmount, depositDate } = req.body;
             
-            if (action === 'create_simulation_account' && isAdmin) {
-                return await createSimulationAccount(targetUserId, startingBalance, inceptionDate, liveTrading);
-            } else if (action === 'add_deposit' && isAdmin) {
+            if (action === 'add_deposit' && isAdmin) {
                 return await addUserDeposit(targetUserId, depositAmount, depositDate);
             } else if (action === 'run_daily_update' && isAdmin) {
                 return await runDailyUpdateForAllUsers();
-            } else if (action === 'update_client_profile' && isAdmin) {
-                return await updateClientProfile(req.body);
             }
         }
         
@@ -52,8 +48,6 @@ module.exports = async function handler(req, res) {
                 return await getUserPerformance(targetUserId || userId);
             } else if (action === 'get_user_deposits') {
                 return await getUserDeposits(targetUserId || userId);
-            } else if (action === 'get_simulation_status' && isAdmin) {
-                return await getSimulationStatus();
             }
         }
         
@@ -65,67 +59,13 @@ module.exports = async function handler(req, res) {
     }
     
     // ===================================================================
-    // CREATE SIMULATION ACCOUNT
-    // ===================================================================
-    async function createSimulationAccount(userId, startingBalance, inceptionDate, liveTrading) {
-        try {
-            console.log('🎯 Creating simulation account:', { userId, startingBalance, inceptionDate, liveTrading });
-            
-            // Update user with simulation settings
-            await sql`
-                UPDATE users 
-                SET 
-                    starting_balance = ${startingBalance},
-                    inception_date = ${inceptionDate},
-                    live_trading_enabled = ${liveTrading},
-                    current_balance = ${startingBalance},
-                    total_deposits = ${startingBalance},
-                    account_value = ${startingBalance},
-                    total_return_percent = 0,
-                    last_backtest_update = ${inceptionDate},
-                    updated_at = NOW()
-                WHERE id = ${userId}
-            `;
-            
-            // Record initial deposit
-            await sql`
-                INSERT INTO user_deposits (
-                    user_id, deposit_amount, deposit_date, 
-                    balance_before_deposit, balance_after_deposit, status
-                ) VALUES (
-                    ${userId}, ${startingBalance}, ${inceptionDate}, 
-                    0, ${startingBalance}, 'completed'
-                )
-            `;
-            
-            // If live trading enabled, backfill performance from inception to today
-            if (liveTrading) {
-                await backfillUserPerformance(userId, inceptionDate);
-            }
-            
-            return res.status(200).json({
-                success: true,
-                message: 'Simulation account created successfully',
-                userId: userId,
-                startingBalance: startingBalance,
-                inceptionDate: inceptionDate,
-                liveTrading: liveTrading
-            });
-            
-        } catch (error) {
-            console.error('💥 Failed to create simulation account:', error);
-            throw error;
-        }
-    }
-    
-    // ===================================================================
-    // ADD USER DEPOSIT
+    // ADD USER DEPOSIT (First deposit enables live trading)
     // ===================================================================
     async function addUserDeposit(userId, depositAmount, depositDate) {
         try {
             console.log('💰 Adding user deposit:', { userId, depositAmount, depositDate });
             
-            // Get current user balance
+            // Get current user info
             const userResult = await sql`
                 SELECT current_balance, total_deposits, live_trading_enabled, inception_date
                 FROM users 
@@ -137,8 +77,9 @@ module.exports = async function handler(req, res) {
             }
             
             const user = userResult.rows[0];
-            const currentBalance = parseFloat(user.current_balance);
-            const newTotalDeposits = parseFloat(user.total_deposits) + parseFloat(depositAmount);
+            const currentBalance = parseFloat(user.current_balance || 0);
+            const currentTotalDeposits = parseFloat(user.total_deposits || 0);
+            const isFirstDeposit = currentTotalDeposits === 0;
             
             // Record the deposit
             await sql`
@@ -151,28 +92,64 @@ module.exports = async function handler(req, res) {
                 )
             `;
             
-            // Update user's total deposits
-            await sql`
-                UPDATE users 
-                SET 
-                    total_deposits = ${newTotalDeposits},
-                    updated_at = NOW()
-                WHERE id = ${userId}
-            `;
+            const newTotalDeposits = currentTotalDeposits + parseFloat(depositAmount);
             
-            // If live trading enabled, recalculate performance from inception
-            if (user.live_trading_enabled) {
+            if (isFirstDeposit) {
+                // First deposit - enable live trading and set inception date
+                await sql`
+                    UPDATE users 
+                    SET 
+                        live_trading_enabled = true,
+                        inception_date = ${depositDate},
+                        starting_balance = ${depositAmount},
+                        current_balance = ${depositAmount},
+                        total_deposits = ${newTotalDeposits},
+                        account_value = ${depositAmount},
+                        total_return_percent = 0,
+                        last_backtest_update = ${depositDate},
+                        updated_at = NOW()
+                    WHERE id = ${userId}
+                `;
+                
+                console.log('🎯 First deposit - enabling live trading and backfilling from inception');
+                
+                // Backfill performance from inception date to today
+                await backfillUserPerformance(userId, depositDate);
+                
+                return res.status(200).json({
+                    success: true,
+                    message: 'First deposit added - live trading enabled and historical performance calculated',
+                    userId: userId,
+                    depositAmount: depositAmount,
+                    depositDate: depositDate,
+                    inceptionDate: depositDate,
+                    liveTrading: true
+                });
+                
+            } else {
+                // Additional deposit - update totals and recalculate performance
+                await sql`
+                    UPDATE users 
+                    SET 
+                        total_deposits = ${newTotalDeposits},
+                        updated_at = NOW()
+                    WHERE id = ${userId}
+                `;
+                
+                console.log('💰 Additional deposit - recalculating performance from inception');
+                
+                // Recalculate performance from original inception date
                 await backfillUserPerformance(userId, user.inception_date);
+                
+                return res.status(200).json({
+                    success: true,
+                    message: 'Additional deposit added and performance recalculated',
+                    userId: userId,
+                    depositAmount: depositAmount,
+                    depositDate: depositDate,
+                    newTotalDeposits: newTotalDeposits
+                });
             }
-            
-            return res.status(200).json({
-                success: true,
-                message: 'Deposit added successfully',
-                userId: userId,
-                depositAmount: depositAmount,
-                depositDate: depositDate,
-                newTotalDeposits: newTotalDeposits
-            });
             
         } catch (error) {
             console.error('💥 Failed to add user deposit:', error);
@@ -181,13 +158,16 @@ module.exports = async function handler(req, res) {
     }
     
     // ===================================================================
-    // BACKFILL USER PERFORMANCE
+    // BACKFILL USER PERFORMANCE (Using Historical CSV + Live Python)
     // ===================================================================
     async function backfillUserPerformance(userId, inceptionDate) {
         try {
-            console.log('📊 BACKFILLING performance for user:', userId, 'from:', inceptionDate);
+            console.log(`📊 BACKFILLING user ${userId} from inception: ${inceptionDate}`);
             
-            // Get all user's deposits chronologically
+            // Load historical returns from CSV (INSTANT!)
+            const historicalReturns = await loadHistoricalReturnsCSV();
+            
+            // Get user deposits chronologically
             const depositsResult = await sql`
                 SELECT deposit_amount, deposit_date
                 FROM user_deposits
@@ -196,30 +176,27 @@ module.exports = async function handler(req, res) {
             `;
             
             const deposits = depositsResult.rows;
-            console.log('💰 Found deposits:', deposits.map(d => `$${d.deposit_amount} on ${d.deposit_date}`));
+            console.log(`💰 Found deposits:`, deposits.map(d => `$${d.deposit_amount} on ${d.deposit_date}`));
             
             // Clear existing performance data
-            await sql`
-                DELETE FROM daily_performance WHERE user_id = ${userId}
-            `;
+            await sql`DELETE FROM daily_performance WHERE user_id = ${userId}`;
             
-            // Get date range from inception to today
+            // Process each day from inception to today
             const startDate = new Date(inceptionDate);
-            const endDate = new Date();
+            const today = new Date();
             
             let currentBalance = 0;
             let depositIndex = 0;
             
-            // Process each day from inception to today
-            for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
+            for (let date = new Date(startDate); date <= today; date.setDate(date.getDate() + 1)) {
                 const dateStr = date.toISOString().split('T')[0];
                 
-                // Check if there's a deposit on this date
+                // Apply any deposits for this date
                 while (depositIndex < deposits.length && 
                        new Date(deposits[depositIndex].deposit_date).toISOString().split('T')[0] === dateStr) {
                     
                     const depositAmount = parseFloat(deposits[depositIndex].deposit_amount);
-                    console.log(`💵 Processing deposit: $${depositAmount} on ${dateStr}`);
+                    console.log(`💵 Adding deposit: $${depositAmount} on ${dateStr}`);
                     currentBalance += depositAmount;
                     depositIndex++;
                 }
@@ -227,15 +204,25 @@ module.exports = async function handler(req, res) {
                 // Skip if no balance yet
                 if (currentBalance === 0) continue;
                 
-                // Get daily return for this date
-                const dailyReturn = await calculateDailyReturnFromPython(dateStr);
+                // Get daily return (from CSV for historical, Python for today)
+                let dailyReturn;
+                if (dateStr === today.toISOString().split('T')[0]) {
+                    // Today - run Python script
+                    dailyReturn = await calculateDailyReturnFromPython(dateStr);
+                    
+                    // Append today's return to CSV for future use
+                    await appendTodaysReturnToCSV(dateStr, dailyReturn);
+                } else {
+                    // Historical - use CSV data (INSTANT!)
+                    dailyReturn = historicalReturns[dateStr] || 0;
+                }
                 
-                // Apply daily return
+                // Apply return to current balance
                 const openingBalance = currentBalance;
                 const dailyPnL = openingBalance * (dailyReturn / 100);
                 currentBalance = openingBalance + dailyPnL;
                 
-                // Store daily performance record
+                // Store daily performance
                 await sql`
                     INSERT INTO daily_performance (
                         user_id, trade_date, daily_return_percent,
@@ -246,13 +233,12 @@ module.exports = async function handler(req, res) {
                     )
                 `;
                 
-                // Log progress for significant changes
-                if (dailyReturn !== 0 && openingBalance > 0) {
-                    console.log(`📈 ${dateStr}: ${dailyReturn.toFixed(4)}% return, $${openingBalance.toFixed(2)} → $${currentBalance.toFixed(2)}`);
+                if (dailyReturn !== 0) {
+                    console.log(`📈 ${dateStr}: ${dailyReturn.toFixed(4)}% → $${currentBalance.toLocaleString()}`);
                 }
             }
             
-            // Update user's current balance and total return
+            // Update user's final balance and total return
             const totalDeposits = deposits.reduce((sum, dep) => sum + parseFloat(dep.deposit_amount), 0);
             const totalReturn = totalDeposits > 0 ? ((currentBalance - totalDeposits) / totalDeposits) * 100 : 0;
             
@@ -267,17 +253,80 @@ module.exports = async function handler(req, res) {
                 WHERE id = ${userId}
             `;
             
-            console.log('✅ BACKFILL COMPLETED for user:', userId);
-            console.log(`📊 Final Results: $${totalDeposits.toLocaleString()} deposits → $${currentBalance.toLocaleString()} balance (${totalReturn.toFixed(2)}% return)`);
+            console.log(`✅ BACKFILL COMPLETE: $${totalDeposits.toLocaleString()} deposits → $${currentBalance.toLocaleString()} (${totalReturn.toFixed(2)}% return)`);
             
         } catch (error) {
-            console.error('💥 Failed to backfill user performance:', error);
+            console.error('💥 Backfill failed:', error);
             throw error;
         }
     }
     
     // ===================================================================
-    // CALCULATE DAILY RETURN FROM PYTHON
+    // LOAD HISTORICAL RETURNS FROM CSV
+    // ===================================================================
+    async function loadHistoricalReturnsCSV() {
+        const fs = require('fs');
+        const path = require('path');
+        
+        try {
+            const csvPath = path.join(process.cwd(), 'data', 'daily_returns_simple.csv');
+            const csvContent = fs.readFileSync(csvPath, 'utf8');
+            
+            // Parse CSV manually (simple parsing)
+            const lines = csvContent.split('\n');
+            
+            const returns = {};
+            
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                
+                const values = line.split(',');
+                if (values.length >= 2) {
+                    const date = values[0].trim();
+                    const dailyReturn = parseFloat(values[1].trim());
+                    
+                    if (!isNaN(dailyReturn)) {
+                        returns[date] = dailyReturn;
+                    }
+                }
+            }
+            
+            console.log(`📊 Loaded ${Object.keys(returns).length} historical daily returns from CSV`);
+            return returns;
+            
+        } catch (error) {
+            console.error('💥 Failed to load historical returns CSV:', error);
+            return {}; // Return empty object if CSV fails to load
+        }
+    }
+    
+    // ===================================================================
+    // APPEND TODAY'S RETURN TO CSV
+    // ===================================================================
+    async function appendTodaysReturnToCSV(date, dailyReturn) {
+        const fs = require('fs');
+        const path = require('path');
+        
+        try {
+            const csvPath = path.join(process.cwd(), 'data', 'daily_returns_simple.csv');
+            
+            // Calculate cumulative return (simplified for now)
+            const cumulativeReturn = 0; // You can enhance this later
+            
+            const newRow = `\n${date},${dailyReturn.toFixed(6)},${cumulativeReturn.toFixed(6)}`;
+            
+            fs.appendFileSync(csvPath, newRow);
+            console.log(`📊 Appended today's return to CSV: ${date} = ${dailyReturn.toFixed(4)}%`);
+            
+        } catch (error) {
+            console.error('💥 Failed to append to CSV:', error);
+            // Don't throw - this is not critical
+        }
+    }
+    
+    // ===================================================================
+    // CALCULATE DAILY RETURN FROM PYTHON SCRIPT
     // ===================================================================
     async function calculateDailyReturnFromPython(date) {
         return new Promise((resolve, reject) => {
@@ -348,11 +397,24 @@ module.exports = async function handler(req, res) {
             console.log('🔄 Running daily update for all live trading users...');
             
             const today = new Date().toISOString().split('T')[0];
+            const dayOfWeek = new Date().getDay();
             
-            // Get today's algorithm return
+            // Skip weekends
+            if (dayOfWeek === 0 || dayOfWeek === 6) {
+                return res.status(200).json({
+                    success: true,
+                    message: 'Weekend - no update needed',
+                    skipped: true
+                });
+            }
+            
+            // Get today's algorithm return from Python script
             const todayReturn = await calculateDailyReturnFromPython(today);
             
-            // Store algorithm return for today
+            // Append to historical CSV for future use
+            await appendTodaysReturnToCSV(today, todayReturn);
+            
+            // Store algorithm return in database
             await sql`
                 INSERT INTO algorithm_daily_returns (
                     trade_date, daily_return_percent
@@ -376,7 +438,7 @@ module.exports = async function handler(req, res) {
             `;
             
             const users = usersResult.rows;
-            console.log(`📊 Found ${users.length} users with live trading enabled`);
+            console.log(`👥 Found ${users.length} users with live trading enabled`);
             
             const results = [];
             
@@ -549,75 +611,6 @@ module.exports = async function handler(req, res) {
             
         } catch (error) {
             console.error('💥 Failed to get user deposits:', error);
-            throw error;
-        }
-    }
-    
-    // ===================================================================
-    // UPDATE CLIENT PROFILE
-    // ===================================================================
-    async function updateClientProfile(data) {
-        try {
-            const { userId, firstName, lastName, email, phone, address, status } = data;
-            
-            await sql`
-                UPDATE users 
-                SET 
-                    first_name = ${firstName},
-                    last_name = ${lastName},
-                    email = ${email},
-                    phone = ${phone},
-                    address = ${address},
-                    status = ${status},
-                    updated_at = NOW()
-                WHERE id = ${userId}
-            `;
-            
-            return res.status(200).json({
-                success: true,
-                message: 'Client profile updated successfully',
-                userId: userId
-            });
-            
-        } catch (error) {
-            console.error('💥 Failed to update client profile:', error);
-            throw error;
-        }
-    }
-    
-    // ===================================================================
-    // GET SIMULATION STATUS
-    // ===================================================================
-    async function getSimulationStatus() {
-        try {
-            const statsResult = await sql`
-                SELECT 
-                    COUNT(*) as total_users,
-                    COUNT(CASE WHEN live_trading_enabled = true THEN 1 END) as live_trading_users,
-                    SUM(CASE WHEN live_trading_enabled = true THEN current_balance ELSE 0 END) as total_aum,
-                    SUM(CASE WHEN live_trading_enabled = true THEN total_deposits ELSE 0 END) as total_deposits
-                FROM users
-            `;
-            
-            const recentPerformanceResult = await sql`
-                SELECT 
-                    trade_date, 
-                    AVG(daily_return_percent) as avg_return,
-                    COUNT(*) as users_count
-                FROM daily_performance
-                WHERE trade_date >= CURRENT_DATE - INTERVAL '7 days'
-                GROUP BY trade_date
-                ORDER BY trade_date DESC
-            `;
-            
-            return res.status(200).json({
-                success: true,
-                stats: statsResult.rows[0],
-                recentPerformance: recentPerformanceResult.rows
-            });
-            
-        } catch (error) {
-            console.error('💥 Failed to get simulation status:', error);
             throw error;
         }
     }
