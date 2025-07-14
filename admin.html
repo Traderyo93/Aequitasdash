@@ -1855,129 +1855,55 @@
 
         // ===== ENHANCED ADD CLIENT DEPOSIT MODAL (WITH TRADING ALGORITHM) =====
 
-        // Add Client Deposit Modal (ENHANCED VERSION WITH TRADING INTEGRATION)
         window.addClientDeposit = function(clientId) {
-            console.log('💰 Opening deposit modal for client:', clientId);
+            console.log('💰 Opening SIMPLE deposit modal for client:', clientId);
             
-            // Remove any existing deposit modal
+            // Remove existing modal
             const existingModal = document.getElementById('addDepositModal');
-            if (existingModal) {
-                existingModal.remove();
-            }
+            if (existingModal) existingModal.remove();
             
-            // Create deposit modal HTML
+            // Create SIMPLE modal
             const modal = document.createElement('div');
             modal.className = 'modal show';
             modal.id = 'addDepositModal';
             modal.innerHTML = `
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h3 class="modal-title">💰 Add Client Deposit with Trading Algorithm</h3>
+                        <h3 class="modal-title">💰 Add Client Deposit</h3>
                         <button class="modal-close" onclick="closeAddDepositModal()">&times;</button>
                     </div>
                     <div class="modal-body">
-                        <div style="background: rgba(59, 130, 246, 0.1); padding: 16px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--accent);">
-                            <div style="font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 8px;">
-                                🎯 Trading Algorithm Integration
-                            </div>
-                            <div style="font-size: 13px; color: var(--text-secondary);">
-                                This deposit will be processed with your trading algorithm. Historical returns will be applied from the deposit date to today, showing what the deposit would be worth based on your CSV data.
-                            </div>
-                        </div>
-                        
                         <form id="depositForm">
                             <div class="form-field">
                                 <label for="depositAmount">Deposit Amount ($)</label>
-                                <input type="number" id="depositAmount" step="0.01" min="1" required placeholder="e.g., 10000">
+                                <input type="number" id="depositAmount" step="0.01" min="1" required placeholder="e.g., 50000">
                             </div>
                             <div class="form-field">
                                 <label for="depositDate">Deposit Date</label>
-                                <input type="date" id="depositDate" max="${new Date().toISOString().split('T')[0]}" value="${new Date().toISOString().split('T')[0]}" required>
-                                <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
-                                    💡 Past dates will trigger historical performance calculation
-                                </div>
-                            </div>
-                            <div class="form-field">
-                                <label for="depositPurpose">Purpose</label>
-                                <select id="depositPurpose" required>
-                                    <option value="">Select purpose...</option>
-                                    <option value="initial_investment">Initial Investment</option>
-                                    <option value="additional_investment">Additional Investment</option>
-                                    <option value="profit_reinvestment">Profit Reinvestment</option>
-                                    <option value="other">Other</option>
-                                </select>
+                                <input type="date" id="depositDate" max="2025-01-14" value="2025-01-14" required>
                             </div>
                         </form>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" onclick="closeAddDepositModal()">Cancel</button>
-                        <button type="button" class="btn btn-primary" onclick="submitClientDeposit('${clientId}')">
-                            🚀 Process with Trading Algorithm
-                        </button>
+                        <button type="button" class="btn btn-primary" onclick="submitSimpleDeposit('${clientId}')">Add Deposit</button>
                     </div>
                 </div>
             `;
-            
-            // Add modal to body
             document.body.appendChild(modal);
-            
-            console.log('✅ Deposit modal created and shown');
         };
-
-        // Close Deposit Modal
+        
         window.closeAddDepositModal = function() {
-            console.log('🚪 Closing deposit modal...');
             const modal = document.getElementById('addDepositModal');
-            if (modal) {
-                modal.remove();
-                console.log('✅ Deposit modal closed and removed');
-            }
+            if (modal) modal.remove();
         };
-
-        // Alternative name for compatibility
-        window.closeDepositModal = function() {
-            closeAddDepositModal();
-        };
-
-        // ===== ENHANCED DEPOSIT SUBMISSION (WITH TRADING INTEGRATION) =====
-
-        window.submitClientDeposit = async function(clientId) {
-            console.log('🚀 DEPOSIT SUBMISSION STARTED - TRADING INTEGRATION VERSION');
-            console.log('📋 Client ID:', clientId);
+        
+        window.submitSimpleDeposit = async function(clientId) {
+            const amount = document.getElementById('depositAmount').value;
+            const date = document.getElementById('depositDate').value;
             
-            // Get form values
-            const depositAmount = document.getElementById('depositAmount').value;
-            const depositDate = document.getElementById('depositDate').value;
-            const depositPurpose = document.getElementById('depositPurpose').value;
-            
-            console.log('📊 Form Values:', {
-                depositAmount,
-                depositDate,
-                depositPurpose,
-                clientId
-            });
-            
-            // Validation
-            if (!depositAmount || !depositDate || !depositPurpose) {
-                console.error('❌ Validation failed - missing fields');
-                showNotification('Please fill in all fields', 'warning');
-                return;
-            }
-            
-            if (parseFloat(depositAmount) <= 0) {
-                console.error('❌ Validation failed - invalid amount');
-                showNotification('Please enter a valid amount greater than 0', 'warning');
-                return;
-            }
-            
-            // Check if date is in the future
-            const selectedDate = new Date(depositDate);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            
-            if (selectedDate > today) {
-                console.error('❌ Validation failed - future date');
-                showNotification('Deposit date cannot be in the future', 'warning');
+            if (!amount || !date || parseFloat(amount) <= 0) {
+                alert('Please enter a valid amount and date');
                 return;
             }
             
@@ -1985,125 +1911,41 @@
             const originalText = submitBtn.textContent;
             
             try {
-                // Show enhanced loading state
                 submitBtn.disabled = true;
-                submitBtn.textContent = 'Processing with Trading Algorithm...';
+                submitBtn.textContent = 'Processing...';
                 
-                // Show progress notification
-                showNotification('Initializing deposit with trading algorithm...', 'info');
-                
-                console.log('📡 Making API request to /api/deposits (with trading integration)...');
-                
-                const requestBody = {
-                    userId: clientId,
-                    amount: parseFloat(depositAmount),
-                    depositDate: depositDate,
-                    purpose: depositPurpose
-                };
-                
-                console.log('📤 Request body:', requestBody);
-                
-                const authToken = getAuthToken();
-                if (!authToken) {
-                    throw new Error('Authentication token not found. Please login again.');
-                }
-                
-                // Make API request to the enhanced deposits endpoint
                 const response = await fetch('/api/deposits', {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${authToken}`,
+                        'Authorization': `Bearer ${getAuthToken()}`,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(requestBody)
+                    body: JSON.stringify({
+                        userId: clientId,
+                        amount: parseFloat(amount),
+                        depositDate: date,
+                        purpose: 'admin_deposit'
+                    })
                 });
                 
-                console.log('📊 Response status:', response.status);
-                console.log('📊 Response ok:', response.ok);
-                
-                let data;
-                try {
-                    data = await response.json();
-                    console.log('📋 Response data:', data);
-                } catch (parseError) {
-                    console.error('❌ JSON parse error:', parseError);
-                    const responseText = await response.text();
-                    console.error('📄 Raw response:', responseText);
-                    throw new Error('Invalid JSON response from server');
-                }
+                const data = await response.json();
                 
                 if (data.success) {
-                    console.log('✅ Deposit processed with trading simulation!');
-                    
-                    // Build success message based on trading result
-                    let message = `Deposit of ${parseFloat(depositAmount).toLocaleString()} processed successfully!`;
-                    
-                    if (data.tradingResult) {
-                        if (data.tradingResult.inceptionDate) {
-                            message += ` Live trading enabled from ${data.tradingResult.inceptionDate}.`;
-                        }
-                        if (data.tradingResult.newTotalDeposits) {
-                            message += ` Total deposits: ${data.tradingResult.newTotalDeposits.toLocaleString()}.`;
-                        }
-                        if (data.tradingResult.message) {
-                            message += ` ${data.tradingResult.message}`;
-                        }
-                    }
-                    
-                    // Show detailed success notification
-                    showNotification(message, 'success');
-                    
+                    showNotification(`✅ Deposit of $${parseFloat(amount).toLocaleString()} added successfully!`, 'success');
                     closeAddDepositModal();
                     
-                    // Enhanced data refresh
-                    console.log('🔄 Refreshing admin data after trading integration...');
-                    
-                    // Show refresh notification
-                    showNotification('Refreshing dashboard with updated trading data...', 'info');
-                    
-                    // Refresh all data
-                    if (typeof fetchAdminStats === 'function') {
-                        await fetchAdminStats();
-                    }
-                    if (typeof renderClientsTable === 'function') {
-                        renderClientsTable();
-                    }
-                    if (typeof renderDepositsTable === 'function') {
-                        renderDepositsTable();
-                    }
-                    
-                    // Final success notification
-                    setTimeout(() => {
-                        showNotification('Dashboard updated with live trading data!', 'success');
-                    }, 1000);
-                    
+                    // Refresh admin data
+                    if (typeof fetchAdminStats === 'function') await fetchAdminStats();
+                    if (typeof renderClientsTable === 'function') renderClientsTable();
                 } else {
-                    console.error('❌ API returned error:', data.error);
-                    
-                    // Show specific error message
-                    let errorMessage = data.error || 'Failed to add deposit';
-                    if (data.note) {
-                        errorMessage += ` (${data.note})`;
-                    }
-                    
-                    throw new Error(errorMessage);
+                    throw new Error(data.error || 'Failed to add deposit');
                 }
-                
             } catch (error) {
-                console.error('💥 DEPOSIT SUBMISSION FAILED:', error);
-                console.error('💥 Error details:', {
-                    message: error.message,
-                    stack: error.stack,
-                    name: error.name
-                });
-                
-                showNotification(`Failed to process deposit: ${error.message}`, 'error');
-                
+                console.error('💥 Deposit error:', error);
+                showNotification(`❌ Error: ${error.message}`, 'error');
             } finally {
-                // Reset button
                 submitBtn.disabled = false;
                 submitBtn.textContent = originalText;
-                console.log('🏁 Deposit submission process finished');
             }
         };
 
