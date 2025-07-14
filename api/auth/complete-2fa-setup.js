@@ -1,55 +1,44 @@
 const { sql } = require('@vercel/postgres');
 const jwt = require('jsonwebtoken');
 
-module.exports = async function handler(req, res) {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.setHeader('Content-Type', 'application/json');
-    
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
-    }
-    
+export default async function handler(req, res) {
     if (req.method !== 'POST') {
-        return res.status(405).json({ success: false, error: 'Method not allowed' });
+        return res.status(405).json({ error: 'Method not allowed' });
     }
-    
+
     try {
-        // Verify authentication
+        // Verify JWT token
         const authHeader = req.headers.authorization;
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return res.status(401).json({ success: false, error: 'Authentication required' });
+            return res.status(401).json({ error: 'No token provided' });
         }
-        
-        const token = authHeader.replace('Bearer ', '');
-        let decoded;
-        try {
-            decoded = jwt.verify(token, process.env.JWT_SECRET || 'aequitas-secret-key-2025');
-        } catch (jwtError) {
-            return res.status(401).json({ success: false, error: 'Invalid token' });
-        }
-        
-        const userId = decoded.id;
-        
-        // Mark setup as completed
+
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        // Mark 2FA setup as completed
         await sql`
             UPDATE users 
             SET 
-                two_factor_setup_completed = TRUE,
-                updated_at = NOW()
-            WHERE id = ${userId}
+                two_factor_setup_required = false,
+                two_factor_setup_completed = true
+            WHERE id = ${decoded.userId}
         `;
-        
-        console.log(`✅ 2FA setup completed for user ${userId}`);
-        
-        return res.status(200).json({
+
+        console.log(`🎉 2FA setup completed for user ${decoded.userId}`);
+
+        res.status(200).json({
             success: true,
             message: '2FA setup completed successfully'
         });
-        
+
     } catch (error) {
-        console.error('💥 Complete 2FA setup error:', error);
-        return res.status(500).json({ success: false, error: 'Internal server error' });
+        console.error('💥 2FA completion error:', error);
+        
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ error: 'Invalid token' });
+        }
+        
+        res.status(500).json({ error: 'Failed to complete 2FA setup' });
     }
-};
+}
