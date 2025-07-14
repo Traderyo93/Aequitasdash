@@ -184,18 +184,18 @@ async function addDepositWithPerformance(targetUserId, amount, depositDate, purp
     // Insert deposit record
     const depositResult = await sql`
       INSERT INTO deposits (
-        id, user_id, reference, amount, currency, purpose,
+        id, user_id, reference, amount, purpose,
         status, deposit_date, created_at, client_name, 
         client_email, added_by
       ) VALUES (
-        gen_random_uuid(), ${targetUserId}, ${reference}, ${parseFloat(amount)}, 'USD', ${purpose},
+        gen_random_uuid(), ${targetUserId}, ${reference}, ${parseFloat(amount)}, ${purpose},
         'completed', ${depositDate}::date, NOW(), 
         ${targetUser.first_name + ' ' + targetUser.last_name},
         ${targetUser.email}, ${addedBy}
       )
       RETURNING *
     `;
-    
+        
     // Get all user's deposits to calculate total performance
     const allDepositsResult = await sql`
       SELECT deposit_date, amount FROM deposits 
