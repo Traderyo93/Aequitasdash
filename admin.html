@@ -1854,6 +1854,7 @@
         }
 
         // Create basic client (no live trading setup)
+        // Replace the createBasicClient function with this enhanced version
         async function createBasicClient(clientData) {
             try {
                 console.log('👤 Creating basic client:', clientData);
@@ -1881,33 +1882,108 @@
                     throw new Error(userData.error || 'Failed to create user');
                 }
                 
-                showNotification('Client created successfully!', 'success');
+                // DISPLAY THE TEMP PASSWORD TO ADMIN
+                const tempPassword = userData.tempPassword;
+                const userEmail = userData.user.email;
                 
-                // Add to local clients array
-                const newClient = {
-                    id: userData.user.id,
-                    firstName: clientData.firstName,
-                    lastName: clientData.lastName,
-                    email: clientData.email,
-                    phone: clientData.phone,
-                    address: clientData.address,
-                    status: 'active',
-                    joinDate: new Date().toISOString().split('T')[0],
-                    totalDeposits: 0,
-                    accountValue: 0,
-                    lastActive: new Date().toISOString().split('T')[0]
-                };
-                
-                clients.push(newClient);
+                // Show detailed success message with temp password
+                showTempPasswordModal(userEmail, tempPassword, userData.setupInstructions);
                 
                 console.log('✅ Basic client created:', userData.user);
+                console.log('🔑 Temp password:', tempPassword);
                 
             } catch (error) {
                 console.error('💥 Failed to create client:', error);
                 throw error;
             }
         }
-
+        
+        // Add this new function to display temp password modal
+        function showTempPasswordModal(email, tempPassword, instructions) {
+            // Create modal to display temp password
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.id = 'tempPasswordModal';
+            modal.style.display = 'block';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 600px;">
+                    <div class="modal-header">
+                        <h3 class="modal-title">✅ User Created Successfully</h3>
+                        <button class="modal-close" onclick="closeTempPasswordModal()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div style="background: var(--bg-tertiary); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                            <h4 style="color: var(--success); margin-bottom: 12px;">📧 User Account Details</h4>
+                            <div style="margin-bottom: 12px;">
+                                <strong>Email:</strong> ${email}
+                            </div>
+                            <div style="margin-bottom: 12px;">
+                                <strong>Temporary Password:</strong> 
+                                <code style="background: var(--bg-primary); padding: 4px 8px; border-radius: 4px; font-weight: bold; color: var(--accent);">${tempPassword}</code>
+                                <button onclick="copyToClipboard('${tempPassword}')" style="margin-left: 8px; padding: 4px 8px; background: var(--accent); color: white; border: none; border-radius: 4px; cursor: pointer;">Copy</button>
+                            </div>
+                        </div>
+                        
+                        <div style="background: var(--bg-secondary); padding: 16px; border-radius: 8px; border-left: 4px solid var(--info);">
+                            <h4 style="color: var(--info); margin-bottom: 12px;">📋 Next Steps for User</h4>
+                            <ol style="margin: 0; padding-left: 20px;">
+                                <li>User logs in with temporary password</li>
+                                <li>Forced to change password on first login</li>
+                                <li>Complete document upload (ID, address proof, memorandum)</li>
+                                <li>Submit for admin review</li>
+                                <li>Admin approves → User gets dashboard access</li>
+                            </ol>
+                        </div>
+                        
+                        <div style="background: var(--bg-secondary); padding: 16px; border-radius: 8px; border-left: 4px solid var(--warning); margin-top: 16px;">
+                            <h4 style="color: var(--warning); margin-bottom: 8px;">⚠️ Important</h4>
+                            <p style="margin: 0; font-size: 14px;">Share this temporary password securely with the user. They will be required to change it on first login.</p>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" onclick="closeTempPasswordModal()">Got It</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Auto-select password for easy copying
+            setTimeout(() => {
+                const codeElement = modal.querySelector('code');
+                if (codeElement) {
+                    const range = document.createRange();
+                    range.selectNodeContents(codeElement);
+                    const selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+            }, 100);
+        }
+        
+        // Add helper functions
+        function closeTempPasswordModal() {
+            const modal = document.getElementById('tempPasswordModal');
+            if (modal) {
+                modal.style.display = 'none';
+                document.body.removeChild(modal);
+            }
+        }
+        
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showNotification('Password copied to clipboard!', 'success');
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showNotification('Password copied to clipboard!', 'success');
+            });
+        }
         // Update existing client
         async function updateExistingClient(clientId, clientData) {
             try {
