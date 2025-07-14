@@ -2,90 +2,93 @@ const { sql } = require('@vercel/postgres');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
-// Simple TOTP implementation without external libraries
-function generateSecret() {
-    return crypto.randomBytes(32).toString('base32');
+// Pure Node.js TOTP implementation (no speakeasy needed)
+function generateTOTPSecret() {
+    return crypto.randomBytes(20).toString('base32');
 }
 
-function generateTOTPURL(secret, label, issuer) {
-    const params = new URLSearchParams({
-        secret: secret,
-        issuer: issuer,
-        algorithm: 'SHA1',
-        digits: '6',
-        period: '30'
-    });
+function base32Decode(encoded) {
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    let bits = '';
     
-    return `otpauth://totp/${encodeURIComponent(label)}?${params.toString()}`;
-}
-
-module.exports = async function handler(req, res) {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.setHeader('Content-Type', 'application/json');
-    
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
+    for (let i = 0; i < encoded.length; i++) {
+        const val = alphabet.indexOf(encoded.charAt(i).toUpperCase());
+        if (val === -1) continue;
+        bits += val.toString(2).padStart(5, '0');
     }
     
+    const bytes = [];
+    for (let i = 0; i + 8 <= bits.length; i += 8) {
+        bytes.push(parseInt(bits.substr(i, 8), 2));
+    }
+    
+    return Buffer.from(bytes);
+}
+
+function generateTOTP(secret, window = 0) {
+    const epoch = Math.round(new Date().getTime() / 1000.0);
+    const time = Math.floor(epoch / 30) + window;
+    
+    const timeBytes = Buffer.allocUnsafe(8);
+    timeBytes.fill(0);
+    timeBytes.writeUInt32BE(time, 4);
+    
+    const secretBytes = base32Decode(secret);
+    const hmac = crypto.createHmac('sha1', secretBytes);
+    hmac.update(timeBytes);
+    const hash = hmac.digest();
+    
+    const offset = hash[hash.length - 1] & 0xf;
+    const code = (hash.readUInt32BE(offset) & 0x7fffffff) % 1000000;
+    
+    return code.toString().padStart(6, '0');
+}
+
+export default async function handler(req, res) {
     if (req.method !== 'POST') {
-        return res.status(405).json({ success: false, error: 'Method not allowed' });
+        return res.status(405).json({ error: 'Method not allowed' });
     }
-    
+
     try {
-        // Verify authentication
+        // Verify JWT token
         const authHeader = req.headers.authorization;
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return res.status(401).json({ success: false, error: 'Authentication required' });
+            return res.status(401).json({ error: 'No token provided' });
         }
+
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        // Generate new TOTP secret
+        const secret = generateTOTPSecret();
         
-        const token = authHeader.replace('Bearer ', '');
-        let decoded;
-        try {
-            decoded = jwt.verify(token, process.env.JWT_SECRET || 'aequitas-secret-key-2025');
-        } catch (jwtError) {
-            return res.status(401).json({ success: false, error: 'Invalid token' });
-        }
-        
-        const userId = decoded.id;
-        
-        // Get user info
-        const userResult = await sql`
-            SELECT email, first_name, last_name, two_factor_enabled
-            FROM users 
-            WHERE id = ${userId}
-        `;
-        
-        if (userResult.rows.length === 0) {
-            return res.status(404).json({ success: false, error: 'User not found' });
-        }
-        
-        const user = userResult.rows[0];
-        
-        // Generate secret
-        const secret = generateSecret();
-        const label = `${user.first_name} ${user.last_name} (${user.email})`;
-        const qrCodeUrl = generateTOTPURL(secret, label, 'Aequitas Capital Partners');
-        
-        // Store temporary secret (not yet activated)
+        // Create otpauth URL for QR code
+        const issuer = 'Aequitas Capital Partners';
+        const accountName = decoded.email;
+        const otpauth_url = `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(accountName)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}`;
+
+        // Store temporary secret in database
         await sql`
             UPDATE users 
-            SET 
-                two_factor_temp_secret = ${secret},
-                updated_at = NOW()
-            WHERE id = ${userId}
+            SET two_factor_temp_secret = ${secret}
+            WHERE id = ${decoded.userId}
         `;
-        
-        return res.status(200).json({
+
+        console.log(`🔐 Generated 2FA secret for user ${decoded.userId}`);
+
+        res.status(200).json({
             success: true,
             secret: secret,
-            qrCodeUrl: qrCodeUrl,
-            accountName: label
+            otpauth_url: otpauth_url
         });
-        
+
     } catch (error) {
-        console.error('💥 Generate 2FA secret error:', error);
-        return res.status(500).json({ success: false, error: 'Internal server error' });
+        console.error('💥 2FA secret generation error:', error);
+        
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ error: 'Invalid token' });
+        }
+        
+        res.status(500).json({ error: 'Failed to generate 2FA secret' });
     }
-};
+}
