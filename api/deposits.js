@@ -492,69 +492,62 @@ export default async function handler(req, res) {
     }
   }
   
-  // ===== FALLBACK FUNCTION - DIRECT DEPOSIT WITHOUT TRADING =====
-  async function addDepositDirectly(targetUserId, amount, depositDate, purpose, addedBy, targetUser) {
+// FIND this function in api/deposits.js and REPLACE it:
+async function addDepositDirectly(targetUserId, amount, depositDate, purpose, addedBy, targetUser) {
     try {
-      console.log('💰 Adding deposit directly to database (no trading simulation)');
-      
-      const reference = 'DEP' + Date.now().toString().slice(-8);
-      
-      // Insert deposit record
-      const depositResult = await sql`
-        INSERT INTO deposits (
-          id,
-          user_id,
-          reference,
-          amount,
-          currency,
-          purpose,
-          status,
-          deposit_date,
-          created_at,
-          client_name,
-          client_email,
-          added_by
-        ) VALUES (
-          gen_random_uuid(),
-          ${targetUserId},
-          ${reference},
-          ${parseFloat(amount)},
-          'USD',
-          ${purpose},
-          'completed',
-          ${depositDate}::date,
-          NOW(),
-          ${targetUser.first_name + ' ' + targetUser.last_name},
-          ${targetUser.email},
-          ${addedBy}
-        )
-        RETURNING *
-      `;
-      
-      // Update user's account balance (simple addition without trading simulation)
-      const newAccountValue = (parseFloat(targetUser.account_value) || 0) + parseFloat(amount);
-      const newStartingBalance = (parseFloat(targetUser.starting_balance) || 0) + parseFloat(amount);
-      
-      await sql`
-        UPDATE users 
-        SET 
-          account_value = ${newAccountValue},
-          starting_balance = ${newStartingBalance},
-          updated_at = NOW()
-        WHERE id = ${targetUserId}
-      `;
-      
-      return res.status(200).json({
-        success: true,
-        message: 'Deposit added directly (trading simulation unavailable)',
-        deposit: depositResult.rows[0],
-        newAccountValue: newAccountValue,
-        note: 'Trading simulation was not applied - manual backfill may be required'
-      });
-      
+        console.log('💰 Adding deposit directly (SIMPLE VERSION)');
+        
+        const reference = 'DEP' + Date.now().toString().slice(-8);
+        
+        // Insert deposit record
+        const depositResult = await sql`
+            INSERT INTO deposits (
+                id, user_id, reference, amount, currency, purpose,
+                status, deposit_date, created_at, client_name, 
+                client_email, added_by
+            ) VALUES (
+                gen_random_uuid(), ${targetUserId}, ${reference}, ${parseFloat(amount)}, 'USD', ${purpose},
+                'completed', ${depositDate}::date, NOW(), 
+                ${targetUser.first_name + ' ' + targetUser.last_name},
+                ${targetUser.email}, ${addedBy}
+            )
+            RETURNING *
+        `;
+        
+        // Get user's current account values
+        const userResult = await sql`
+            SELECT account_value, total_deposits FROM users WHERE id = ${targetUserId}
+        `;
+        
+        const currentUser = userResult.rows[0] || {};
+        const currentAccountValue = parseFloat(currentUser.account_value || 0);
+        const currentTotalDeposits = parseFloat(currentUser.total_deposits || 0);
+        
+        // Update user's account (simple addition)
+        const newAccountValue = currentAccountValue + parseFloat(amount);
+        const newTotalDeposits = currentTotalDeposits + parseFloat(amount);
+        
+        await sql`
+            UPDATE users 
+            SET 
+                account_value = ${newAccountValue},
+                total_deposits = ${newTotalDeposits},
+                updated_at = NOW()
+            WHERE id = ${targetUserId}
+        `;
+        
+        console.log(`✅ Simple deposit complete: $${amount} added, new balance: $${newAccountValue.toLocaleString()}`);
+        
+        return res.status(200).json({
+            success: true,
+            message: 'Deposit added successfully',
+            deposit: depositResult.rows[0],
+            newAccountValue: newAccountValue,
+            newTotalDeposits: newTotalDeposits
+        });
+        
     } catch (error) {
-      console.error('💥 Direct deposit failed:', error);
-      throw error;
+        console.error('💥 Direct deposit failed:', error);
+        throw error;
     }
-  }
 }
