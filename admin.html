@@ -1831,7 +1831,7 @@
             </div>
         </div>
     </div>
-        <!-- Complete Working JavaScript with REAL DATABASE INTEGRATION AND SUPPORT SYSTEM -->
+        <!-- Complete Working JavaScript with TRADING INTEGRATION -->
     <script>
         // === ADMIN SUPPORT SYSTEM VARIABLES ===
         let currentTheme = 'light';
@@ -1853,160 +1853,678 @@
             return localStorage.getItem('aequitas_auth_token');
         }
 
-        // Create basic client (no live trading setup)
-      // Replace the createBasicClient function in admin.html with this fixed version:
+        // ===== ENHANCED ADD CLIENT DEPOSIT MODAL (WITH TRADING ALGORITHM) =====
 
-async function createBasicClient(clientData) {
-    try {
-        console.log('👤 Creating basic client:', clientData);
-        
-        // FIXED: Properly handle pending vs active user creation
-        const requestData = {
-            firstName: clientData.firstName,
-            lastName: clientData.lastName,
-            email: clientData.email,
-            phone: clientData.phone,
-            address: clientData.address
-        };
-        
-        // Set role and status based on what admin selected
-        if (clientData.status === 'pending') {
-            // Create pending user who needs to complete setup
-            requestData.role = 'pending';
-            requestData.status = 'setup_pending';
-            console.log('📋 Creating PENDING user who needs setup completion');
-        } else {
-            // Create active client (already verified)
-            requestData.role = 'client';
-            requestData.status = 'active';
-            console.log('✅ Creating ACTIVE client (pre-verified)');
-        }
-        
-        const userResponse = await fetch('/api/users', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${getAuthToken()}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(requestData)
-        });
-        
-        const userData = await userResponse.json();
-        
-        if (!userData.success) {
-            throw new Error(userData.error || 'Failed to create user');
-        }
-        
-        console.log('✅ Basic client created:', userData.user);
-        
-        // Display temp password if this is a pending user
-        if (clientData.status === 'pending' && userData.tempPassword) {
-            showTempPasswordModal(
-                clientData.firstName, 
-                clientData.lastName, 
-                clientData.email, 
-                userData.tempPassword
-            );
-        } else if (userData.tempPassword) {
-            // Even active users get temp passwords
-            showTempPasswordModal(
-                clientData.firstName, 
-                clientData.lastName, 
-                clientData.email, 
-                userData.tempPassword
-            );
-        }
-        
-        // Add to local clients array with correct status
-        const newClient = {
-            id: userData.user.id,
-            firstName: clientData.firstName,
-            lastName: clientData.lastName,
-            email: clientData.email,
-            phone: clientData.phone,
-            address: clientData.address,
-            status: clientData.status, // Use what admin selected
-            joinDate: new Date().toISOString().split('T')[0],
-            totalDeposits: 0,
-            accountValue: 0,
-            lastActive: new Date().toISOString().split('T')[0]
-        };
-        
-        clients.push(newClient);
-        
-    } catch (error) {
-        console.error('💥 Failed to create client:', error);
-        throw error;
-    }
-}
-
-// Also update the temp password modal message for pending users:
-function showTempPasswordModal(firstName, lastName, email, tempPassword) {
-    const modal = document.createElement('div');
-    modal.className = 'modal show';
-    modal.id = 'tempPasswordModal';
-    modal.innerHTML = `
-        <div class="modal-content" style="max-width: 500px;">
-            <div class="modal-header">
-                <h3 class="modal-title">✅ User Created Successfully</h3>
-                <button class="modal-close" onclick="closeTempPasswordModal()">
-                    <span class="icon icon-x"></span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div style="text-align: center; padding: 20px;">
-                    <div style="font-size: 18px; font-weight: 600; color: var(--success); margin-bottom: 20px;">
-                        ${firstName} ${lastName} has been created!
+        // Add Client Deposit Modal (ENHANCED VERSION WITH TRADING INTEGRATION)
+        window.addClientDeposit = function(clientId) {
+            console.log('💰 Opening deposit modal for client:', clientId);
+            
+            // Remove any existing deposit modal
+            const existingModal = document.getElementById('addDepositModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            // Create deposit modal HTML
+            const modal = document.createElement('div');
+            modal.className = 'modal show';
+            modal.id = 'addDepositModal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="modal-title">💰 Add Client Deposit with Trading Algorithm</h3>
+                        <button class="modal-close" onclick="closeAddDepositModal()">&times;</button>
                     </div>
-                    
-                    <div style="background: var(--bg-secondary); border-radius: 12px; padding: 20px; margin: 20px 0;">
-                        <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">
-                            Email Address:
-                        </div>
-                        <div style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">
-                            ${email}
-                        </div>
-                        
-                        <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">
-                            Temporary Password:
-                        </div>
-                        <div style="font-size: 20px; font-weight: 700; color: var(--accent); background: var(--bg-primary); padding: 12px; border-radius: 8px; border: 2px solid var(--accent); font-family: monospace;">
-                            ${tempPassword}
+                    <div class="modal-body">
+                        <div style="background: rgba(59, 130, 246, 0.1); padding: 16px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--accent);">
+                            <div style="font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 8px;">
+                                🎯 Trading Algorithm Integration
+                            </div>
+                            <div style="font-size: 13px; color: var(--text-secondary);">
+                                This deposit will be processed with your trading algorithm. Historical returns will be applied from the deposit date to today, showing what the deposit would be worth based on your CSV data.
+                            </div>
                         </div>
                         
-                        <button class="btn btn-sm btn-outline" onclick="copyTempPassword('${tempPassword}')" style="margin-top: 12px;">
-                            <span class="icon icon-copy"></span>
-                            Copy Password
+                        <form id="depositForm">
+                            <div class="form-field">
+                                <label for="depositAmount">Deposit Amount ($)</label>
+                                <input type="number" id="depositAmount" step="0.01" min="1" required placeholder="e.g., 10000">
+                            </div>
+                            <div class="form-field">
+                                <label for="depositDate">Deposit Date</label>
+                                <input type="date" id="depositDate" max="${new Date().toISOString().split('T')[0]}" value="${new Date().toISOString().split('T')[0]}" required>
+                                <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+                                    💡 Past dates will trigger historical performance calculation
+                                </div>
+                            </div>
+                            <div class="form-field">
+                                <label for="depositPurpose">Purpose</label>
+                                <select id="depositPurpose" required>
+                                    <option value="">Select purpose...</option>
+                                    <option value="initial_investment">Initial Investment</option>
+                                    <option value="additional_investment">Additional Investment</option>
+                                    <option value="profit_reinvestment">Profit Reinvestment</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeAddDepositModal()">Cancel</button>
+                        <button type="button" class="btn btn-primary" onclick="submitClientDeposit('${clientId}')">
+                            🚀 Process with Trading Algorithm
                         </button>
                     </div>
+                </div>
+            `;
+            
+            // Add modal to body
+            document.body.appendChild(modal);
+            
+            console.log('✅ Deposit modal created and shown');
+        };
+
+        // Close Deposit Modal
+        window.closeAddDepositModal = function() {
+            console.log('🚪 Closing deposit modal...');
+            const modal = document.getElementById('addDepositModal');
+            if (modal) {
+                modal.remove();
+                console.log('✅ Deposit modal closed and removed');
+            }
+        };
+
+        // Alternative name for compatibility
+        window.closeDepositModal = function() {
+            closeAddDepositModal();
+        };
+
+        // ===== ENHANCED DEPOSIT SUBMISSION (WITH TRADING INTEGRATION) =====
+
+        window.submitClientDeposit = async function(clientId) {
+            console.log('🚀 DEPOSIT SUBMISSION STARTED - TRADING INTEGRATION VERSION');
+            console.log('📋 Client ID:', clientId);
+            
+            // Get form values
+            const depositAmount = document.getElementById('depositAmount').value;
+            const depositDate = document.getElementById('depositDate').value;
+            const depositPurpose = document.getElementById('depositPurpose').value;
+            
+            console.log('📊 Form Values:', {
+                depositAmount,
+                depositDate,
+                depositPurpose,
+                clientId
+            });
+            
+            // Validation
+            if (!depositAmount || !depositDate || !depositPurpose) {
+                console.error('❌ Validation failed - missing fields');
+                showNotification('Please fill in all fields', 'warning');
+                return;
+            }
+            
+            if (parseFloat(depositAmount) <= 0) {
+                console.error('❌ Validation failed - invalid amount');
+                showNotification('Please enter a valid amount greater than 0', 'warning');
+                return;
+            }
+            
+            // Check if date is in the future
+            const selectedDate = new Date(depositDate);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            if (selectedDate > today) {
+                console.error('❌ Validation failed - future date');
+                showNotification('Deposit date cannot be in the future', 'warning');
+                return;
+            }
+            
+            const submitBtn = document.querySelector('#addDepositModal .btn-primary');
+            const originalText = submitBtn.textContent;
+            
+            try {
+                // Show enhanced loading state
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Processing with Trading Algorithm...';
+                
+                // Show progress notification
+                showNotification('Initializing deposit with trading algorithm...', 'info');
+                
+                console.log('📡 Making API request to /api/deposits (with trading integration)...');
+                
+                const requestBody = {
+                    userId: clientId,
+                    amount: parseFloat(depositAmount),
+                    depositDate: depositDate,
+                    purpose: depositPurpose
+                };
+                
+                console.log('📤 Request body:', requestBody);
+                
+                const authToken = getAuthToken();
+                if (!authToken) {
+                    throw new Error('Authentication token not found. Please login again.');
+                }
+                
+                // Make API request to the enhanced deposits endpoint
+                const response = await fetch('/api/deposits', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                console.log('📊 Response status:', response.status);
+                console.log('📊 Response ok:', response.ok);
+                
+                let data;
+                try {
+                    data = await response.json();
+                    console.log('📋 Response data:', data);
+                } catch (parseError) {
+                    console.error('❌ JSON parse error:', parseError);
+                    const responseText = await response.text();
+                    console.error('📄 Raw response:', responseText);
+                    throw new Error('Invalid JSON response from server');
+                }
+                
+                if (data.success) {
+                    console.log('✅ Deposit processed with trading simulation!');
                     
-                    <div style="font-size: 13px; color: var(--text-secondary); text-align: left; background: rgba(245, 158, 11, 0.1); padding: 16px; border-radius: 8px; border-left: 4px solid var(--warning);">
-                        <strong>📋 Next Steps:</strong><br>
-                        1. Share login credentials with user securely<br>
-                        2. User logs in with email: <code>${email}</code><br>
-                        3. User enters temp password: <code>${tempPassword}</code><br>
-                        4. User will be prompted to change password<br>
-                        5. User completes document upload and verification<br>
-                        6. You approve them in "Pending Users" tab
+                    // Build success message based on trading result
+                    let message = `Deposit of ${parseFloat(depositAmount).toLocaleString()} processed successfully!`;
+                    
+                    if (data.tradingResult) {
+                        if (data.tradingResult.inceptionDate) {
+                            message += ` Live trading enabled from ${data.tradingResult.inceptionDate}.`;
+                        }
+                        if (data.tradingResult.newTotalDeposits) {
+                            message += ` Total deposits: ${data.tradingResult.newTotalDeposits.toLocaleString()}.`;
+                        }
+                        if (data.tradingResult.message) {
+                            message += ` ${data.tradingResult.message}`;
+                        }
+                    }
+                    
+                    // Show detailed success notification
+                    showNotification(message, 'success');
+                    
+                    closeAddDepositModal();
+                    
+                    // Enhanced data refresh
+                    console.log('🔄 Refreshing admin data after trading integration...');
+                    
+                    // Show refresh notification
+                    showNotification('Refreshing dashboard with updated trading data...', 'info');
+                    
+                    // Refresh all data
+                    if (typeof fetchAdminStats === 'function') {
+                        await fetchAdminStats();
+                    }
+                    if (typeof renderClientsTable === 'function') {
+                        renderClientsTable();
+                    }
+                    if (typeof renderDepositsTable === 'function') {
+                        renderDepositsTable();
+                    }
+                    
+                    // Final success notification
+                    setTimeout(() => {
+                        showNotification('Dashboard updated with live trading data!', 'success');
+                    }, 1000);
+                    
+                } else {
+                    console.error('❌ API returned error:', data.error);
+                    
+                    // Show specific error message
+                    let errorMessage = data.error || 'Failed to add deposit';
+                    if (data.note) {
+                        errorMessage += ` (${data.note})`;
+                    }
+                    
+                    throw new Error(errorMessage);
+                }
+                
+            } catch (error) {
+                console.error('💥 DEPOSIT SUBMISSION FAILED:', error);
+                console.error('💥 Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    name: error.name
+                });
+                
+                showNotification(`Failed to process deposit: ${error.message}`, 'error');
+                
+            } finally {
+                // Reset button
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+                console.log('🏁 Deposit submission process finished');
+            }
+        };
+
+        // ===== ENHANCED DAILY UPDATE FUNCTION =====
+
+        // Update the existing triggerDailyUpdate function
+        async function triggerDailyUpdate() {
+            if (!confirm('Run daily update for all live trading users? This will execute the trading algorithm for today.')) {
+                return;
+            }
+            
+            try {
+                showNotification('Starting daily update with trading algorithm...', 'info');
+                
+                console.log('🔄 Triggering daily update via live-trading-simulation...');
+                
+                const response = await fetch('/api/live-trading-simulation', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'run_daily_update'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    let message = `Daily update completed! `;
+                    if (data.algorithmReturn !== undefined) {
+                        message += `Algorithm return: ${data.algorithmReturn.toFixed(4)}%, `;
+                    }
+                    message += `${data.successCount || 0} users updated.`;
+                    
+                    showNotification(message, 'success');
+                    
+                    console.log('✅ Daily update completed:', data);
+                    
+                    // Refresh dashboard
+                    await fetchAdminStats();
+                    renderClientsTable();
+                } else {
+                    throw new Error(data.error || 'Daily update failed');
+                }
+                
+            } catch (error) {
+                console.error('💥 Failed to trigger daily update:', error);
+                showNotification(`Daily update failed: ${error.message}`, 'error');
+            }
+        }
+
+        // ===== CLIENT PERFORMANCE VIEWER =====
+
+        // Enhanced view client function with performance data
+        async function viewClientPerformance(clientId) {
+            try {
+                console.log('📈 Loading client performance data for:', clientId);
+                
+                showNotification('Loading client performance data...', 'info');
+                
+                // Get performance data from live-trading-simulation API
+                const response = await fetch(`/api/live-trading-simulation?action=get_user_performance&userId=${clientId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    console.log('📈 Performance data loaded:', data);
+                    
+                    // Show performance modal
+                    showClientPerformanceModal(clientId, data.user, data.performance, data.deposits);
+                    
+                } else {
+                    throw new Error(data.error || 'Failed to load performance data');
+                }
+                
+            } catch (error) {
+                console.error('💥 Failed to load client performance:', error);
+                showNotification(`Failed to load performance data: ${error.message}`, 'error');
+            }
+        }
+
+        // Show client performance modal
+        function showClientPerformanceModal(clientId, user, performance, deposits) {
+            // Remove existing modal
+            const existingModal = document.getElementById('performanceModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            // Calculate summary stats
+            const totalDeposits = parseFloat(user.total_deposits || 0);
+            const currentBalance = parseFloat(user.current_balance || 0);
+            const totalReturn = parseFloat(user.total_return_percent || 0);
+            const absoluteReturn = currentBalance - totalDeposits;
+            
+            // Create performance modal
+            const modal = document.createElement('div');
+            modal.className = 'modal show';
+            modal.id = 'performanceModal';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 800px;">
+                    <div class="modal-header">
+                        <h3 class="modal-title">📈 Client Trading Performance</h3>
+                        <button class="modal-close" onclick="closePerformanceModal()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="summary-grid">
+                            <div class="summary-item">
+                                <h4>Total Deposits</h4>
+                                <div class="value">${totalDeposits.toLocaleString()}</div>
+                            </div>
+                            <div class="summary-item">
+                                <h4>Current Balance</h4>
+                                <div class="value positive">${currentBalance.toLocaleString()}</div>
+                            </div>
+                            <div class="summary-item">
+                                <h4>Total Return</h4>
+                                <div class="value ${totalReturn >= 0 ? 'positive' : 'negative'}">
+                                    ${totalReturn.toFixed(2)}%
+                                </div>
+                            </div>
+                            <div class="summary-item">
+                                <h4>Absolute P&L</h4>
+                                <div class="value ${absoluteReturn >= 0 ? 'positive' : 'negative'}">
+                                    ${absoluteReturn.toLocaleString()}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="performance-details">
+                            <h4>Recent Performance (Last 10 Days)</h4>
+                            <div style="max-height: 300px; overflow-y: auto;">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Daily Return</th>
+                                            <th>Opening Balance</th>
+                                            <th>Closing Balance</th>
+                                            <th>Daily P&L</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${performance.slice(-10).reverse().map(day => `
+                                            <tr>
+                                                <td>${new Date(day.trade_date).toLocaleDateString()}</td>
+                                                <td style="color: ${day.daily_return_percent >= 0 ? 'var(--success)' : 'var(--error)'}">
+                                                    ${day.daily_return_percent.toFixed(4)}%
+                                                </td>
+                                                <td>${parseFloat(day.opening_balance).toLocaleString()}</td>
+                                                <td>${parseFloat(day.closing_balance).toLocaleString()}</td>
+                                                <td style="color: ${day.daily_pnl >= 0 ? 'var(--success)' : 'var(--error)'}">
+                                                    ${parseFloat(day.daily_pnl).toLocaleString()}
+                                                </td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="deposits-details">
+                            <h4>Deposit History</h4>
+                            <div style="max-height: 200px; overflow-y: auto;">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Amount</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${deposits.map(deposit => `
+                                            <tr>
+                                                <td>${new Date(deposit.deposit_date).toLocaleDateString()}</td>
+                                                <td>${parseFloat(deposit.deposit_amount).toLocaleString()}</td>
+                                                <td><span class="status ${deposit.status}">${deposit.status}</span></td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closePerformanceModal()">Close</button>
+                        <button type="button" class="btn btn-primary" onclick="addClientDeposit('${clientId}')">Add Another Deposit</button>
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" onclick="closeTempPasswordModal()">
-                    Got it!
-                </button>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    setTimeout(() => {
-        if (document.getElementById('tempPasswordModal')) {
-            closeTempPasswordModal();
+            `;
+            
+            document.body.appendChild(modal);
         }
-    }, 45000); // 45 seconds
-}
+
+        // Close performance modal
+        window.closePerformanceModal = function() {
+            const modal = document.getElementById('performanceModal');
+            if (modal) {
+                modal.remove();
+            }
+        };
+
+        // ===== DEBUGGING FUNCTIONS =====
+
+        // Test the integration
+        window.testTradingIntegration = async function() {
+            console.log('🧪 Testing trading integration...');
+            
+            try {
+                // Test CSV data access
+                showNotification('Testing CSV data access...', 'info');
+                
+                const csvResponse = await fetch('/data/daily_returns_simple.csv');
+                if (csvResponse.ok) {
+                    const csvData = await csvResponse.text();
+                    const lines = csvData.split('\n');
+                    console.log('✅ CSV accessible:', lines.length, 'lines');
+                    showNotification(`✅ CSV file accessible with ${lines.length} lines`, 'success');
+                } else {
+                    throw new Error('CSV file not accessible');
+                }
+                
+                // Test live trading simulation API
+                showNotification('Testing trading simulation API...', 'info');
+                
+                const apiResponse = await fetch('/api/live-trading-simulation', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('✅ Trading API accessible:', apiResponse.status);
+                showNotification(`✅ Trading API accessible (${apiResponse.status})`, 'success');
+                
+            } catch (error) {
+                console.error('❌ Integration test failed:', error);
+                showNotification(`❌ Integration test failed: ${error.message}`, 'error');
+            }
+        };
+
+        // Create basic client (no live trading setup)
+        async function createBasicClient(clientData) {
+            try {
+                console.log('👤 Creating basic client:', clientData);
+                
+                // FIXED: Properly handle pending vs active user creation
+                const requestData = {
+                    firstName: clientData.firstName,
+                    lastName: clientData.lastName,
+                    email: clientData.email,
+                    phone: clientData.phone,
+                    address: clientData.address
+                };
+                
+                // Set role and status based on what admin selected
+                if (clientData.status === 'pending') {
+                    // Create pending user who needs to complete setup
+                    requestData.role = 'pending';
+                    requestData.status = 'setup_pending';
+                    console.log('📋 Creating PENDING user who needs setup completion');
+                } else {
+                    // Create active client (already verified)
+                    requestData.role = 'client';
+                    requestData.status = 'active';
+                    console.log('✅ Creating ACTIVE client (pre-verified)');
+                }
+                
+                const userResponse = await fetch('/api/users', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                const userData = await userResponse.json();
+                
+                if (!userData.success) {
+                    throw new Error(userData.error || 'Failed to create user');
+                }
+                
+                console.log('✅ Basic client created:', userData.user);
+                
+                // Display temp password if this is a pending user
+                if (clientData.status === 'pending' && userData.tempPassword) {
+                    showTempPasswordModal(
+                        clientData.firstName, 
+                        clientData.lastName, 
+                        clientData.email, 
+                        userData.tempPassword
+                    );
+                } else if (userData.tempPassword) {
+                    // Even active users get temp passwords
+                    showTempPasswordModal(
+                        clientData.firstName, 
+                        clientData.lastName, 
+                        clientData.email, 
+                        userData.tempPassword
+                    );
+                }
+                
+                // Add to local clients array with correct status
+                const newClient = {
+                    id: userData.user.id,
+                    firstName: clientData.firstName,
+                    lastName: clientData.lastName,
+                    email: clientData.email,
+                    phone: clientData.phone,
+                    address: clientData.address,
+                    status: clientData.status, // Use what admin selected
+                    joinDate: new Date().toISOString().split('T')[0],
+                    totalDeposits: 0,
+                    accountValue: 0,
+                    lastActive: new Date().toISOString().split('T')[0]
+                };
+                
+                clients.push(newClient);
+                
+            } catch (error) {
+                console.error('💥 Failed to create client:', error);
+                throw error;
+            }
+        }
+
+        // Show temp password modal for new users
+        function showTempPasswordModal(firstName, lastName, email, tempPassword) {
+            const modal = document.createElement('div');
+            modal.className = 'modal show';
+            modal.id = 'tempPasswordModal';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 500px;">
+                    <div class="modal-header">
+                        <h3 class="modal-title">✅ User Created Successfully</h3>
+                        <button class="modal-close" onclick="closeTempPasswordModal()">
+                            <span class="icon icon-x"></span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div style="text-align: center; padding: 20px;">
+                            <div style="font-size: 18px; font-weight: 600; color: var(--success); margin-bottom: 20px;">
+                                ${firstName} ${lastName} has been created!
+                            </div>
+                            
+                            <div style="background: var(--bg-secondary); border-radius: 12px; padding: 20px; margin: 20px 0;">
+                                <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">
+                                    Email Address:
+                                </div>
+                                <div style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">
+                                    ${email}
+                                </div>
+                                
+                                <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">
+                                    Temporary Password:
+                                </div>
+                                <div style="font-size: 20px; font-weight: 700; color: var(--accent); background: var(--bg-primary); padding: 12px; border-radius: 8px; border: 2px solid var(--accent); font-family: monospace;">
+                                    ${tempPassword}
+                                </div>
+                                
+                                <button class="btn btn-sm btn-outline" onclick="copyTempPassword('${tempPassword}')" style="margin-top: 12px;">
+                                    <span class="icon icon-copy"></span>
+                                    Copy Password
+                                </button>
+                            </div>
+                            
+                            <div style="font-size: 13px; color: var(--text-secondary); text-align: left; background: rgba(245, 158, 11, 0.1); padding: 16px; border-radius: 8px; border-left: 4px solid var(--warning);">
+                                <strong>📋 Next Steps:</strong><br>
+                                1. Share login credentials with user securely<br>
+                                2. User logs in with email: <code>${email}</code><br>
+                                3. User enters temp password: <code>${tempPassword}</code><br>
+                                4. User will be prompted to change password<br>
+                                5. User completes document upload and verification<br>
+                                6. You approve them in "Pending Users" tab
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" onclick="closeTempPasswordModal()">
+                            Got it!
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            setTimeout(() => {
+                if (document.getElementById('tempPasswordModal')) {
+                    closeTempPasswordModal();
+                }
+            }, 45000); // 45 seconds
+        }
+
+        // Close temp password modal
+        window.closeTempPasswordModal = function() {
+            const modal = document.getElementById('tempPasswordModal');
+            if (modal) {
+                modal.remove();
+            }
+        };
+
+        // Copy temp password to clipboard
+        window.copyTempPassword = function(password) {
+            navigator.clipboard.writeText(password).then(() => {
+                showNotification('Password copied to clipboard!', 'success');
+            }).catch(() => {
+                showNotification('Failed to copy password', 'error');
+            });
+        };
+        
         // Update existing client
         async function updateExistingClient(clientId, clientData) {
             try {
@@ -2057,181 +2575,6 @@ function showTempPasswordModal(firstName, lastName, email, tempPassword) {
             }
         }
 
-        // Add deposit to existing client
-        async function addClientDeposit(clientId) {
-            const modal = document.createElement('div');
-            modal.className = 'modal';
-            modal.id = 'depositModal';
-            modal.innerHTML = `
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h2>Add Client Deposit</h2>
-                        <button class="close" onclick="closeDepositModal()">&times;</button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="form-row">
-                            <div class="form-field">
-                                <label for="depositAmount">Deposit Amount</label>
-                                <input type="number" id="depositAmount" step="0.01" min="0" required>
-                            </div>
-                            <div class="form-field">
-                                <label for="depositDate">Deposit Date</label>
-                                <input type="date" id="depositDate" max="${new Date().toISOString().split('T')[0]}" value="${new Date().toISOString().split('T')[0]}" required>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" onclick="closeDepositModal()">Cancel</button>
-                        <button type="button" class="btn btn-primary" onclick="submitDeposit(${clientId})">Add Deposit</button>
-                    </div>
-                </div>
-            `;
-            
-            document.body.appendChild(modal);
-            modal.style.display = 'block';
-        }
-
-        async function submitClientDeposit(clientId) {
-            console.log('🚀 DEPOSIT SUBMISSION STARTED');
-            console.log('📋 Client ID:', clientId);
-            
-            const depositAmount = document.getElementById('depositAmount').value;
-            const depositDate = document.getElementById('depositDate').value;
-            const depositPurpose = document.getElementById('depositPurpose').value;
-            
-            console.log('📊 Form Values:', {
-                depositAmount,
-                depositDate,
-                depositPurpose,
-                clientId
-            });
-            
-            if (!depositAmount || !depositDate || !depositPurpose) {
-                console.error('❌ Validation failed - missing fields');
-                showNotification('Please fill in all fields', 'warning');
-                return;
-            }
-            
-            if (parseFloat(depositAmount) <= 0) {
-                console.error('❌ Validation failed - invalid amount');
-                showNotification('Please enter a valid amount greater than 0', 'warning');
-                return;
-            }
-            
-            const submitBtn = document.querySelector('#addDepositModal .btn-primary');
-            const originalText = submitBtn.textContent;
-            
-            try {
-                // Show loading state
-                submitBtn.disabled = true;
-                submitBtn.textContent = 'Adding Deposit...';
-                
-                console.log('📡 Making API request to /api/deposits...');
-                
-                const requestBody = {
-                    userId: clientId,
-                    amount: parseFloat(depositAmount),
-                    depositDate: depositDate,
-                    purpose: depositPurpose
-                };
-                
-                console.log('📤 Request body:', requestBody);
-                console.log('🔑 Auth token exists:', !!getAuthToken());
-                
-                const response = await fetch('/api/deposits', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${getAuthToken()}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(requestBody)
-                });
-                
-                console.log('📊 Response status:', response.status);
-                console.log('📊 Response ok:', response.ok);
-                
-                let data;
-                try {
-                    data = await response.json();
-                    console.log('📋 Response data:', data);
-                } catch (parseError) {
-                    console.error('❌ JSON parse error:', parseError);
-                    const responseText = await response.text();
-                    console.error('📄 Raw response:', responseText);
-                    throw new Error('Invalid JSON response from server');
-                }
-                
-                if (data.success) {
-                    console.log('✅ Deposit added successfully!');
-                    showNotification(`Deposit of $${parseFloat(depositAmount).toLocaleString()} added successfully!`, 'success');
-                    closeAddDepositModal();
-                    
-                    // Refresh data
-                    console.log('🔄 Refreshing admin stats...');
-                    await fetchAdminStats();
-                    renderClientsTable();
-                    
-                } else {
-                    console.error('❌ API returned error:', data.error);
-                    throw new Error(data.error || 'Failed to add deposit');
-                }
-                
-            } catch (error) {
-                console.error('💥 DEPOSIT SUBMISSION FAILED:', error);
-                console.error('💥 Error details:', {
-                    message: error.message,
-                    stack: error.stack,
-                    name: error.name
-                });
-                
-                showNotification(`Failed to add deposit: ${error.message}`, 'error');
-                
-            } finally {
-                // Reset button
-                submitBtn.disabled = false;
-                submitBtn.textContent = originalText;
-                console.log('🏁 Deposit submission process finished');
-            }
-        }
-        async function triggerDailyUpdate() {
-            if (!confirm('Run daily update for all live trading users? This will execute the Python script.')) {
-                return;
-            }
-            
-            try {
-                showNotification('Daily update started... Running Python script for all users.', 'info');
-                
-                const response = await fetch('/api/live-trading-simulation', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${getAuthToken()}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        action: 'run_daily_update'
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    showNotification(
-                        `Daily update completed! Algorithm return: ${data.algorithmReturn?.toFixed(4)}%, ${data.successCount} users updated.`,
-                        'success'
-                    );
-                    
-                    await fetchAdminStats();
-                    renderClientsTable();
-                } else {
-                    throw new Error(data.error || 'Daily update failed');
-                }
-                
-            } catch (error) {
-                console.error('💥 Failed to trigger daily update:', error);
-                showNotification(`Daily update failed: ${error.message}`, 'error');
-            }
-        }
-
         // === WITHDRAWAL MANAGEMENT FUNCTIONS ===
 
         // Load withdrawals from API
@@ -2263,7 +2606,7 @@ function showTempPasswordModal(firstName, lastName, email, tempPassword) {
             }
         }
 
-        // Render clients table
+        // Render clients table - ENHANCED WITH PERFORMANCE BUTTON
         function renderClientsTable() {
             const tbody = document.getElementById('clientsTableBody');
             const searchTerm = document.getElementById('clientSearch').value.toLowerCase();
@@ -2314,6 +2657,9 @@ function showTempPasswordModal(firstName, lastName, email, tempPassword) {
                                 <div class="action-buttons">
                                     <button class="action-btn view" onclick="viewClient('${client.id}')" title="View Details">
                                         <span class="icon icon-eye"></span>
+                                    </button>
+                                    <button class="action-btn edit" onclick="viewClientPerformance('${client.id}')" title="Trading Performance">
+                                        📈
                                     </button>
                                     <button class="action-btn edit" onclick="editClient('${client.id}')" title="Edit">
                                         <span class="icon icon-edit"></span>
@@ -2698,6 +3044,7 @@ function showTempPasswordModal(firstName, lastName, email, tempPassword) {
             
             showNotification('Withdrawals exported successfully!', 'success');
         }
+        
         // === SUPPORT SYSTEM INTEGRATION ===
 
         // Load Support Tickets (ADMIN VIEW - ALL TICKETS FROM ALL USERS)
@@ -3049,6 +3396,7 @@ function showTempPasswordModal(firstName, lastName, email, tempPassword) {
         }
 
         // === END SUPPORT SYSTEM INTEGRATION ===
+        
         // === DATABASE INTEGRATION FUNCTIONS ===
 
         // Fetch real admin statistics from database
@@ -3317,6 +3665,7 @@ function showTempPasswordModal(firstName, lastName, email, tempPassword) {
                 console.log('⚠️ Failed to load real data, using empty state');
             }
         }
+        
         // === CORE FUNCTIONS ===
 
         // Theme Toggle
@@ -3696,6 +4045,7 @@ function showTempPasswordModal(firstName, lastName, email, tempPassword) {
             
             showNotification('Pending users exported successfully!', 'success');
         }
+
         // === CLIENT MANAGEMENT FUNCTIONS ===
 
         // Render deposits table 
@@ -4120,6 +4470,7 @@ function showTempPasswordModal(firstName, lastName, email, tempPassword) {
                 submitBtn.textContent = originalText;
             }
         });
+        
         // === EXPORT AND REPORTING FUNCTIONS ===
 
         // Export and reporting functions
@@ -4299,6 +4650,7 @@ For questions, contact: admin@aequitascap.com`;
                 openAddClientModal();
             }
         });
+        
         // === INITIALIZATION ===
 
         // Initialize page
@@ -4362,9 +4714,14 @@ For questions, contact: admin@aequitascap.com`;
             });
         });
 
+        console.log('✅ Admin.html trading integration updates loaded!');
+        console.log('🧪 Available functions:');
+        console.log('  - addClientDeposit(clientId) - Enhanced with trading');
+        console.log('  - viewClientPerformance(clientId) - View trading performance');
+        console.log('  - testTradingIntegration() - Test the integration');
+
     </script>
 </body>
 </html>
-        
     
         
