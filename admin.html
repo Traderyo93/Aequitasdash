@@ -1854,136 +1854,159 @@
         }
 
         // Create basic client (no live trading setup)
-        // Replace the createBasicClient function with this enhanced version
-        async function createBasicClient(clientData) {
-            try {
-                console.log('👤 Creating basic client:', clientData);
-                
-                const userResponse = await fetch('/api/users', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${getAuthToken()}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        firstName: clientData.firstName,
-                        lastName: clientData.lastName,
-                        email: clientData.email,
-                        phone: clientData.phone,
-                        address: clientData.address,
-                        role: 'client',
-                        status: 'active'
-                    })
-                });
-                
-                const userData = await userResponse.json();
-                
-                if (!userData.success) {
-                    throw new Error(userData.error || 'Failed to create user');
-                }
-                
-                // DISPLAY THE TEMP PASSWORD TO ADMIN
-                const tempPassword = userData.tempPassword;
-                const userEmail = userData.user.email;
-                
-                // Show detailed success message with temp password
-                showTempPasswordModal(userEmail, tempPassword, userData.setupInstructions);
-                
-                console.log('✅ Basic client created:', userData.user);
-                console.log('🔑 Temp password:', tempPassword);
-                
-            } catch (error) {
-                console.error('💥 Failed to create client:', error);
-                throw error;
-            }
+      // Replace the createBasicClient function in admin.html with this fixed version:
+
+async function createBasicClient(clientData) {
+    try {
+        console.log('👤 Creating basic client:', clientData);
+        
+        // FIXED: Properly handle pending vs active user creation
+        const requestData = {
+            firstName: clientData.firstName,
+            lastName: clientData.lastName,
+            email: clientData.email,
+            phone: clientData.phone,
+            address: clientData.address
+        };
+        
+        // Set role and status based on what admin selected
+        if (clientData.status === 'pending') {
+            // Create pending user who needs to complete setup
+            requestData.role = 'pending';
+            requestData.status = 'setup_pending';
+            console.log('📋 Creating PENDING user who needs setup completion');
+        } else {
+            // Create active client (already verified)
+            requestData.role = 'client';
+            requestData.status = 'active';
+            console.log('✅ Creating ACTIVE client (pre-verified)');
         }
         
-        // Add this new function to display temp password modal
-        function showTempPasswordModal(email, tempPassword, instructions) {
-            // Create modal to display temp password
-            const modal = document.createElement('div');
-            modal.className = 'modal';
-            modal.id = 'tempPasswordModal';
-            modal.style.display = 'block';
-            modal.innerHTML = `
-                <div class="modal-content" style="max-width: 600px;">
-                    <div class="modal-header">
-                        <h3 class="modal-title">✅ User Created Successfully</h3>
-                        <button class="modal-close" onclick="closeTempPasswordModal()">&times;</button>
+        const userResponse = await fetch('/api/users', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${getAuthToken()}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestData)
+        });
+        
+        const userData = await userResponse.json();
+        
+        if (!userData.success) {
+            throw new Error(userData.error || 'Failed to create user');
+        }
+        
+        console.log('✅ Basic client created:', userData.user);
+        
+        // Display temp password if this is a pending user
+        if (clientData.status === 'pending' && userData.tempPassword) {
+            showTempPasswordModal(
+                clientData.firstName, 
+                clientData.lastName, 
+                clientData.email, 
+                userData.tempPassword
+            );
+        } else if (userData.tempPassword) {
+            // Even active users get temp passwords
+            showTempPasswordModal(
+                clientData.firstName, 
+                clientData.lastName, 
+                clientData.email, 
+                userData.tempPassword
+            );
+        }
+        
+        // Add to local clients array with correct status
+        const newClient = {
+            id: userData.user.id,
+            firstName: clientData.firstName,
+            lastName: clientData.lastName,
+            email: clientData.email,
+            phone: clientData.phone,
+            address: clientData.address,
+            status: clientData.status, // Use what admin selected
+            joinDate: new Date().toISOString().split('T')[0],
+            totalDeposits: 0,
+            accountValue: 0,
+            lastActive: new Date().toISOString().split('T')[0]
+        };
+        
+        clients.push(newClient);
+        
+    } catch (error) {
+        console.error('💥 Failed to create client:', error);
+        throw error;
+    }
+}
+
+// Also update the temp password modal message for pending users:
+function showTempPasswordModal(firstName, lastName, email, tempPassword) {
+    const modal = document.createElement('div');
+    modal.className = 'modal show';
+    modal.id = 'tempPasswordModal';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3 class="modal-title">✅ User Created Successfully</h3>
+                <button class="modal-close" onclick="closeTempPasswordModal()">
+                    <span class="icon icon-x"></span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; padding: 20px;">
+                    <div style="font-size: 18px; font-weight: 600; color: var(--success); margin-bottom: 20px;">
+                        ${firstName} ${lastName} has been created!
                     </div>
-                    <div class="modal-body">
-                        <div style="background: var(--bg-tertiary); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                            <h4 style="color: var(--success); margin-bottom: 12px;">📧 User Account Details</h4>
-                            <div style="margin-bottom: 12px;">
-                                <strong>Email:</strong> ${email}
-                            </div>
-                            <div style="margin-bottom: 12px;">
-                                <strong>Temporary Password:</strong> 
-                                <code style="background: var(--bg-primary); padding: 4px 8px; border-radius: 4px; font-weight: bold; color: var(--accent);">${tempPassword}</code>
-                                <button onclick="copyToClipboard('${tempPassword}')" style="margin-left: 8px; padding: 4px 8px; background: var(--accent); color: white; border: none; border-radius: 4px; cursor: pointer;">Copy</button>
-                            </div>
+                    
+                    <div style="background: var(--bg-secondary); border-radius: 12px; padding: 20px; margin: 20px 0;">
+                        <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">
+                            Email Address:
+                        </div>
+                        <div style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">
+                            ${email}
                         </div>
                         
-                        <div style="background: var(--bg-secondary); padding: 16px; border-radius: 8px; border-left: 4px solid var(--info);">
-                            <h4 style="color: var(--info); margin-bottom: 12px;">📋 Next Steps for User</h4>
-                            <ol style="margin: 0; padding-left: 20px;">
-                                <li>User logs in with temporary password</li>
-                                <li>Forced to change password on first login</li>
-                                <li>Complete document upload (ID, address proof, memorandum)</li>
-                                <li>Submit for admin review</li>
-                                <li>Admin approves → User gets dashboard access</li>
-                            </ol>
+                        <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">
+                            Temporary Password:
+                        </div>
+                        <div style="font-size: 20px; font-weight: 700; color: var(--accent); background: var(--bg-primary); padding: 12px; border-radius: 8px; border: 2px solid var(--accent); font-family: monospace;">
+                            ${tempPassword}
                         </div>
                         
-                        <div style="background: var(--bg-secondary); padding: 16px; border-radius: 8px; border-left: 4px solid var(--warning); margin-top: 16px;">
-                            <h4 style="color: var(--warning); margin-bottom: 8px;">⚠️ Important</h4>
-                            <p style="margin: 0; font-size: 14px;">Share this temporary password securely with the user. They will be required to change it on first login.</p>
-                        </div>
+                        <button class="btn btn-sm btn-outline" onclick="copyTempPassword('${tempPassword}')" style="margin-top: 12px;">
+                            <span class="icon icon-copy"></span>
+                            Copy Password
+                        </button>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" onclick="closeTempPasswordModal()">Got It</button>
+                    
+                    <div style="font-size: 13px; color: var(--text-secondary); text-align: left; background: rgba(245, 158, 11, 0.1); padding: 16px; border-radius: 8px; border-left: 4px solid var(--warning);">
+                        <strong>📋 Next Steps:</strong><br>
+                        1. Share login credentials with user securely<br>
+                        2. User logs in with email: <code>${email}</code><br>
+                        3. User enters temp password: <code>${tempPassword}</code><br>
+                        4. User will be prompted to change password<br>
+                        5. User completes document upload and verification<br>
+                        6. You approve them in "Pending Users" tab
                     </div>
                 </div>
-            `;
-            
-            document.body.appendChild(modal);
-            
-            // Auto-select password for easy copying
-            setTimeout(() => {
-                const codeElement = modal.querySelector('code');
-                if (codeElement) {
-                    const range = document.createRange();
-                    range.selectNodeContents(codeElement);
-                    const selection = window.getSelection();
-                    selection.removeAllRanges();
-                    selection.addRange(range);
-                }
-            }, 100);
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="closeTempPasswordModal()">
+                    Got it!
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    setTimeout(() => {
+        if (document.getElementById('tempPasswordModal')) {
+            closeTempPasswordModal();
         }
-        
-        // Add helper functions
-        function closeTempPasswordModal() {
-            const modal = document.getElementById('tempPasswordModal');
-            if (modal) {
-                modal.style.display = 'none';
-                document.body.removeChild(modal);
-            }
-        }
-        
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                showNotification('Password copied to clipboard!', 'success');
-            }).catch(() => {
-                // Fallback for older browsers
-                const textArea = document.createElement('textarea');
-                textArea.value = text;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                showNotification('Password copied to clipboard!', 'success');
-            });
-        }
+    }, 45000); // 45 seconds
+}
         // Update existing client
         async function updateExistingClient(clientId, clientData) {
             try {
