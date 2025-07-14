@@ -159,6 +159,13 @@
             letter-spacing: -0.005em;
         }
 
+        .form-input.code-input {
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-size: 1.25rem;
+            letter-spacing: 0.25em;
+        }
+
         .form-input:focus {
             outline: none;
             border-color: #3b82f6;
@@ -293,6 +300,62 @@
             display: inline-block;
         }
 
+        .step-1, .step-2 {
+            display: none;
+        }
+
+        .step-1.active, .step-2.active {
+            display: block;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .back-btn {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 0.75rem;
+            color: #60a5fa;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 1rem;
+        }
+
+        .back-btn:hover {
+            background: rgba(59, 130, 246, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .backup-code-link {
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .backup-code-link a {
+            color: #94a3b8;
+            font-size: 0.875rem;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .backup-code-link a:hover {
+            color: #60a5fa;
+            text-decoration: underline;
+        }
+
         .error-message {
             background: rgba(239, 68, 68, 0.15);
             border: 1px solid rgba(239, 68, 68, 0.4);
@@ -410,49 +473,78 @@
             <p class="login-subtitle">Access your <strong>Aequitas Capital</strong> Account</p>
         </div>
         
-        <form id="loginForm">
-            <div class="form-group">
-                <label for="email" class="form-label">Email Address</label>
-                <input type="email" id="email" name="email" class="form-input" placeholder="Enter your email address" required autocomplete="email">
-            </div>
-            
-            <div class="form-group">
-                <label for="password" class="form-label">Password</label>
-                <div class="password-input-wrapper">
-                    <input type="password" id="password" name="password" class="form-input" placeholder="Enter your password" required autocomplete="current-password">
-                    <button type="button" class="password-toggle" onclick="togglePasswordVisibility()">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                            <circle cx="12" cy="12" r="3"></circle>
-                        </svg>
-                    </button>
+        <!-- Step 1: Email/Password -->
+        <div class="step-1 active" id="step1">
+            <form id="credentialsForm">
+                <div class="form-group">
+                    <label for="email" class="form-label">Email Address</label>
+                    <input type="email" id="email" name="email" class="form-input" placeholder="Enter your email address" required autocomplete="email">
                 </div>
-            </div>
+                
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="password" name="password" class="form-input" placeholder="Enter your password" required autocomplete="current-password">
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
 
-            <div class="forgot-password">
-                <a href="#" onclick="showForgotPassword()">Forgot your password?</a>
-            </div>
-            
-            <button type="submit" class="login-btn" id="loginBtn">
-                <span class="spinner"></span>
-                <span class="btn-text">Sign In Securely</span>
-            </button>
+                <div class="forgot-password">
+                    <a href="#" onclick="showForgotPassword()">Forgot your password?</a>
+                </div>
+                
+                <button type="submit" class="login-btn" id="credentialsBtn">
+                    <span class="spinner"></span>
+                    <span class="btn-text">Sign In Securely</span>
+                </button>
+            </form>
+        </div>
 
-            <div class="security-badge">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 1l3 2.5c0 7-3 13-9 16-6-3-9-9-9-16L12 1z"/>
-                </svg>
-                <span>256-bit SSL encryption</span>
-            </div>
-            
-            <div class="error-message" id="errorMessage">
-                Invalid email or password. Please try again.
-            </div>
-            
-            <div class="success-message" id="successMessage">
-                Login successful! Redirecting to your dashboard...
-            </div>
-        </form>
+        <!-- Step 2: 2FA Code -->
+        <div class="step-2" id="step2">
+            <form id="twoFactorForm">
+                <div class="form-group">
+                    <label for="twoFactorCode" class="form-label">Two-Factor Authentication</label>
+                    <input type="text" id="twoFactorCode" name="twoFactorCode" class="form-input code-input" placeholder="000000" maxlength="6" pattern="[0-9]{6}" required autocomplete="off">
+                    <p style="color: #94a3b8; font-size: 0.875rem; margin-top: 0.5rem; text-align: center;">
+                        Enter the 6-digit code from your authenticator app
+                    </p>
+                </div>
+                
+                <button type="submit" class="login-btn" id="twoFactorBtn">
+                    <span class="spinner"></span>
+                    <span class="btn-text">Verify & Sign In</span>
+                </button>
+                
+                <button type="button" class="back-btn" onclick="backToCredentials()">
+                    ← Back to Email/Password
+                </button>
+
+                <div class="backup-code-link">
+                    <a href="#" onclick="useBackupCode()">Lost your phone? Use a backup code</a>
+                </div>
+            </form>
+        </div>
+
+        <div class="security-badge">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 1l3 2.5c0 7-3 13-9 16-6-3-9-9-9-16L12 1z"/>
+            </svg>
+            <span>256-bit SSL encryption + 2FA</span>
+        </div>
+        
+        <div class="error-message" id="errorMessage">
+            Invalid email or password. Please try again.
+        </div>
+        
+        <div class="success-message" id="successMessage">
+            Login successful! Redirecting to your dashboard...
+        </div>
 
         <div class="login-footer">
             <p>Need assistance accessing your account?</p>
@@ -461,7 +553,10 @@
     </div>
 
     <script>
-        // Create floating particles - natural flow
+        let tempAuthData = null;
+        let usingBackupCode = false;
+
+        // Create floating particles
         function createParticles() {
             const particlesContainer = document.getElementById('particles');
             const particleCount = 20;
@@ -470,28 +565,18 @@
                 const particle = document.createElement('div');
                 particle.className = 'particle';
                 
-                // Random size between 8px and 18px
                 const size = Math.random() * 10 + 8;
                 particle.style.width = size + 'px';
                 particle.style.height = size + 'px';
-                
-                // Random horizontal position
                 particle.style.left = Math.random() * 100 + '%';
-                
-                // Random animation delay 
                 particle.style.animationDelay = Math.random() * 25 + 's';
-                
-                // Random animation duration
                 particle.style.animationDuration = (Math.random() * 15 + 20) + 's';
                 
                 particlesContainer.appendChild(particle);
             }
         }
 
-        // Create particles when page loads
         document.addEventListener('DOMContentLoaded', createParticles);
-
-        // Also create immediately
         createParticles();
 
         // Password visibility toggle
@@ -508,7 +593,6 @@
             }
         }
 
-        // Forgot password function
         function showForgotPassword() {
             const email = document.getElementById('email').value;
             
@@ -526,25 +610,69 @@
             }
         }
 
-        // Email validation
         function validateEmail(email) {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             return emailRegex.test(email);
         }
 
-        // FIXED LOGIN FORM HANDLING - Proper password change flow
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        function showStep(stepNumber) {
+            document.getElementById('step1').classList.remove('active');
+            document.getElementById('step2').classList.remove('active');
+            document.getElementById(`step${stepNumber}`).classList.add('active');
+        }
+
+        function backToCredentials() {
+            showStep(1);
+            tempAuthData = null;
+            usingBackupCode = false;
+            
+            // Reset form
+            document.getElementById('twoFactorCode').value = '';
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+
+        function useBackupCode() {
+            usingBackupCode = !usingBackupCode;
+            const codeInput = document.getElementById('twoFactorCode');
+            const label = document.querySelector('label[for="twoFactorCode"]');
+            const description = document.querySelector('#step2 p');
+            const link = document.querySelector('.backup-code-link a');
+            
+            if (usingBackupCode) {
+                codeInput.placeholder = 'BACKUP-CODE';
+                codeInput.maxLength = 12;
+                codeInput.pattern = '[A-Z0-9-]{8,12}';
+                codeInput.style.letterSpacing = '0.1em';
+                label.textContent = 'Backup Code';
+                description.textContent = 'Enter one of your saved backup codes';
+                link.textContent = 'Use authenticator app instead';
+            } else {
+                codeInput.placeholder = '000000';
+                codeInput.maxLength = 6;
+                codeInput.pattern = '[0-9]{6}';
+                codeInput.style.letterSpacing = '0.25em';
+                label.textContent = 'Two-Factor Authentication';
+                description.textContent = 'Enter the 6-digit code from your authenticator app';
+                link.textContent = 'Lost your phone? Use a backup code';
+            }
+            
+            codeInput.value = '';
+            codeInput.focus();
+        }
+
+        // Step 1: Email/Password submission
+        document.getElementById('credentialsForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const loginBtn = document.getElementById('loginBtn');
+            const credentialsBtn = document.getElementById('credentialsBtn');
             const errorMessage = document.getElementById('errorMessage');
             const successMessage = document.getElementById('successMessage');
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             
-            console.log('🚀 Login attempt:', { email, password: '***' });
+            console.log('🚀 Step 1: Credentials submission');
             
-            // Basic validation
             if (!validateEmail(email)) {
                 errorMessage.textContent = 'Please enter a valid email address.';
                 errorMessage.style.display = 'block';
@@ -559,15 +687,12 @@
                 return;
             }
             
-            // Show loading state
-            loginBtn.classList.add('loading');
-            loginBtn.querySelector('.btn-text').textContent = 'Signing In...';
+            credentialsBtn.classList.add('loading');
+            credentialsBtn.querySelector('.btn-text').textContent = 'Verifying...';
             errorMessage.style.display = 'none';
             successMessage.style.display = 'none';
             
             try {
-                console.log('📡 Making API request...');
-                
                 const response = await fetch('/api/auth', {
                     method: 'POST',
                     headers: {
@@ -576,23 +701,19 @@
                     body: JSON.stringify({ email, password })
                 });
 
-                console.log('📊 Response status:', response.status);
                 const data = await response.json();
-                console.log('📋 Response data:', data);
+                console.log('📊 Step 1 response:', data);
 
                 if (response.ok && data.success) {
                     // Check if password change is required
                     if (data.passwordChangeRequired) {
-                        console.log('🔐 Password change required, redirecting to setup...');
-                        
-                        // Store user data temporarily for setup page
+                        console.log('🔐 Password change required');
                         localStorage.setItem('aequitas_temp_user', JSON.stringify(data.user));
                         localStorage.setItem('aequitas_password_change_required', 'true');
                         
-                        // Show message and redirect
-                        successMessage.textContent = 'Password change required. Redirecting to setup...';
+                        successMessage.textContent = 'Password change required. Redirecting...';
                         successMessage.style.display = 'block';
-                        loginBtn.querySelector('.btn-text').textContent = 'Redirecting...';
+                        credentialsBtn.querySelector('.btn-text').textContent = 'Redirecting...';
                         
                         setTimeout(() => {
                             window.location.href = 'setup.html';
@@ -600,23 +721,50 @@
                         return;
                     }
                     
-                    // Normal login flow - no password change needed
+                    // Check if 2FA setup is required
+                    if (data.twoFactorSetupRequired) {
+                        console.log('🔐 2FA setup required');
+                        localStorage.setItem('aequitas_auth_token', data.token);
+                        localStorage.setItem('aequitas_user_data', JSON.stringify(data.user));
+                        
+                        successMessage.textContent = '2FA setup required. Redirecting...';
+                        successMessage.style.display = 'block';
+                        credentialsBtn.querySelector('.btn-text').textContent = 'Redirecting...';
+                        
+                        setTimeout(() => {
+                            window.location.href = '2fa-setup.html';
+                        }, 1500);
+                        return;
+                    }
+                    
+                    // Check if 2FA is required
+                    if (data.twoFactorRequired) {
+                        console.log('🔐 2FA verification required');
+                        tempAuthData = data;
+                        
+                        credentialsBtn.querySelector('.btn-text').textContent = 'Verified!';
+                        successMessage.textContent = 'Credentials verified. Please enter your 2FA code.';
+                        successMessage.style.display = 'block';
+                        
+                        setTimeout(() => {
+                            showStep(2);
+                            document.getElementById('twoFactorCode').focus();
+                        }, 1500);
+                        return;
+                    }
+                    
+                    // No 2FA required - direct login
+                    console.log('✅ Direct login successful');
                     localStorage.setItem('aequitas_auth_token', data.token);
                     localStorage.setItem('aequitas_user_data', JSON.stringify(data.user));
                     
-                    console.log('✅ Login successful, user role:', data.user.role);
-                    
-                    // Success state
-                    loginBtn.querySelector('.btn-text').textContent = 'Success!';
+                    credentialsBtn.querySelector('.btn-text').textContent = 'Success!';
                     successMessage.textContent = 'Login successful! Redirecting...';
                     successMessage.style.display = 'block';
                     
-                    // Redirect based on user role and setup status
                     setTimeout(() => {
                         if (data.user.role === 'admin') {
                             window.location.href = 'admin.html';
-                        } else if (data.user.role === 'pending' || data.user.setupRequired) {
-                            window.location.href = 'setup.html';
                         } else {
                             window.location.href = 'dashboard.html';
                         }
@@ -626,11 +774,10 @@
                     throw new Error(data.error || 'Login failed');
                 }
             } catch (error) {
-                console.error('💥 Login error:', error);
-                loginBtn.classList.remove('loading');
-                loginBtn.querySelector('.btn-text').textContent = 'Sign In Securely';
+                console.error('💥 Step 1 error:', error);
+                credentialsBtn.classList.remove('loading');
+                credentialsBtn.querySelector('.btn-text').textContent = 'Sign In Securely';
                 
-                // Show debug info in error message
                 if (error.message.includes('Invalid credentials')) {
                     errorMessage.textContent = 'Invalid email or password. Please check your credentials and try again.';
                 } else {
@@ -640,14 +787,115 @@
             }
         });
 
-        // Enter key support
+        // Step 2: 2FA submission
+        document.getElementById('twoFactorForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const twoFactorBtn = document.getElementById('twoFactorBtn');
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+            const code = document.getElementById('twoFactorCode').value;
+            
+            console.log('🚀 Step 2: 2FA submission');
+            
+            if (!tempAuthData) {
+                errorMessage.textContent = 'Session expired. Please start over.';
+                errorMessage.style.display = 'block';
+                backToCredentials();
+                return;
+            }
+            
+            // Validate code format
+            if (usingBackupCode) {
+                if (code.length < 8 || !/^[A-Z0-9-]+$/.test(code)) {
+                    errorMessage.textContent = 'Please enter a valid backup code.';
+                    errorMessage.style.display = 'block';
+                    return;
+                }
+            } else {
+                if (code.length !== 6 || !/^\d{6}$/.test(code)) {
+                    errorMessage.textContent = 'Please enter a valid 6-digit code.';
+                    errorMessage.style.display = 'block';
+                    return;
+                }
+            }
+            
+            twoFactorBtn.classList.add('loading');
+            twoFactorBtn.querySelector('.btn-text').textContent = 'Verifying...';
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/auth/verify-2fa-login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        email: tempAuthData.email,
+                        token: code,
+                        isBackupCode: usingBackupCode
+                    })
+                });
+
+                const data = await response.json();
+                console.log('📊 Step 2 response:', data);
+
+                if (response.ok && data.success) {
+                    localStorage.setItem('aequitas_auth_token', data.token);
+                    localStorage.setItem('aequitas_user_data', JSON.stringify(data.user));
+                    
+                    twoFactorBtn.querySelector('.btn-text').textContent = 'Success!';
+                    successMessage.textContent = 'Login successful! Redirecting...';
+                    successMessage.style.display = 'block';
+                    
+                    setTimeout(() => {
+                        if (data.user.role === 'admin') {
+                            window.location.href = 'admin.html';
+                        } else {
+                            window.location.href = 'dashboard.html';
+                        }
+                    }, 1500);
+                    
+                } else {
+                    throw new Error(data.error || 'Invalid 2FA code');
+                }
+            } catch (error) {
+                console.error('💥 Step 2 error:', error);
+                twoFactorBtn.classList.remove('loading');
+                twoFactorBtn.querySelector('.btn-text').textContent = 'Verify & Sign In';
+                
+                if (usingBackupCode) {
+                    errorMessage.textContent = 'Invalid backup code. Please try again or use your authenticator app.';
+                } else {
+                    errorMessage.textContent = 'Invalid authentication code. Please check your authenticator app and try again.';
+                }
+                errorMessage.style.display = 'block';
+            }
+        });
+
+        // Only allow numbers in 2FA code input (when not using backup codes)
+        document.getElementById('twoFactorCode').addEventListener('input', function(e) {
+            if (!usingBackupCode) {
+                e.target.value = e.target.value.replace(/\D/g, '');
+            } else {
+                e.target.value = e.target.value.toUpperCase();
+            }
+        });
+
+        // Enter key support for password field
         document.getElementById('password').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+                document.getElementById('credentialsForm').dispatchEvent(new Event('submit'));
+            }
+        });
+
+        // Enter key support for 2FA field
+        document.getElementById('twoFactorCode').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('twoFactorForm').dispatchEvent(new Event('submit'));
             }
         });
     </script>
-</body>
-</html>
 </body>
 </html>
