@@ -1562,15 +1562,38 @@
             const user = userData.id ? userData : tempUserData;
             
             // CHECK SETUP STATUS - If already submitted, show status page
-            if (user.setupStatus === 'review_pending' || localStorage.getItem('setup_submitted') === 'true') {
+            // FIXED: Only show status page if user has ACTUALLY completed setup and submitted for review
+            const actualSetupStatus = user.setup_status || user.setupStatus;
+            console.log('🔍 Setup page - checking user status:', {
+                setup_status: user.setup_status,
+                setupStatus: user.setupStatus,
+                actualSetupStatus: actualSetupStatus,
+                role: user.role,
+                password_must_change: user.password_must_change
+            });
+            
+            // ONLY show status page for users who have COMPLETED setup
+            if (actualSetupStatus === 'review_pending' && user.role === 'pending') {
+                console.log('✅ User has completed setup and is under review - showing status page');
                 showStatusPage();
                 return;
             }
             
-            if (passwordChangeRequired) {
-                document.getElementById('passwordChangeSection').style.display = 'block';
-                showNotification('Password change required before continuing setup.', 'warning');
+            // CRITICAL: For users with setup_status = "setup_pending", they need to complete setup!
+            if (actualSetupStatus === 'setup_pending' || !actualSetupStatus) {
+                console.log('📋 User needs to complete setup - showing setup form');
+                // Continue with normal setup flow - DON'T return here
             }
+            
+            // FIXED: Check password change requirement from BOTH sources
+            passwordChangeRequired = localStorage.getItem('aequitas_password_change_required') === 'true' || 
+                                     user.password_must_change === true;
+            
+            console.log('🔐 Password change analysis:', {
+                fromLocalStorage: localStorage.getItem('aequitas_password_change_required'),
+                fromUserData: user.password_must_change,
+                finalDecision: passwordChangeRequired
+            });
 
             const firstName = user.firstName || user.first_name || 'User';
             const lastName = user.lastName || user.last_name || '';
