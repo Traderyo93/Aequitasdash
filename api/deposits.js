@@ -68,10 +68,10 @@ module.exports = async function handler(req, res) {
       const { userId, amount, depositDate, purpose } = req.body;
       
       // Validation
-      if (!amount || !depositDate || !purpose) {
+      if (!amount || !depositDate) {
         return res.status(400).json({ 
           success: false, 
-          error: 'Missing required fields: amount, depositDate, purpose' 
+          error: 'Missing required fields: amount, depositDate' 
         });
       }
       
@@ -188,7 +188,7 @@ async function addDepositWithPerformance(targetUserId, amount, depositDate, purp
         status, deposit_date, created_at, client_name, 
         client_email, added_by
       ) VALUES (
-        gen_random_uuid(), ${targetUserId}, ${reference}, ${parseFloat(amount)}, ${purpose},
+        gen_random_uuid(), ${targetUserId}, ${reference}, ${parseFloat(amount)}, 'additional',
         'completed', ${depositDate}::date, NOW(), 
         ${targetUser.first_name + ' ' + targetUser.last_name},
         ${targetUser.email}, ${addedBy}
