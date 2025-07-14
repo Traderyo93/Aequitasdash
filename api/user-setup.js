@@ -102,22 +102,24 @@ module.exports = async function handler(req, res) {
           });
         }
         
-        // FIXED: Proper setup progress calculation
-        let setupProgress = 0;
+        // FIXED: Use actual database value for NEW pending users, not calculated
+        let setupProgress = userData.setup_progress || 0;
+        
+        // Only calculate progress if the user has actually started setup
         const hasPersonalInfo = userData.first_name && userData.last_name && userData.phone && userData.address;
         const hasDocuments = documents.length >= 3;
         const hasAgreements = documents.some(d => d.document_type === 'Signed Memorandum');
         
-        // Calculate progress based on actual completion
-        if (hasPersonalInfo) setupProgress += 33;
-        if (hasDocuments) setupProgress += 34; 
-        if (hasAgreements) setupProgress += 33;
-        
-        setupProgress = Math.min(setupProgress, 100);
-        
-        // For NEW users who haven't started, should be 0%
-        if (!hasPersonalInfo && !hasDocuments && !hasAgreements) {
-          setupProgress = 0;
+        // NEW USERS should show 0% until they actually complete steps
+        if (userData.role === 'pending' && userData.setup_status === 'setup_pending' && !hasPersonalInfo && !hasDocuments) {
+            setupProgress = 0;  // Force 0% for brand new users
+        } else {
+            // Only for users who have started, calculate progress
+            setupProgress = 0;
+            if (hasPersonalInfo) setupProgress += 33;
+            if (hasDocuments) setupProgress += 34; 
+            if (hasAgreements) setupProgress += 33;
+            setupProgress = Math.min(setupProgress, 100);
         }
         
         return res.status(200).json({
