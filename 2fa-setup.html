@@ -198,7 +198,7 @@
         .app-icons {
             display: flex;
             justify-content: center;
-            gap: 2rem;
+            gap: 3rem;
             margin: 2rem 0;
         }
 
@@ -220,11 +220,11 @@
         }
 
         .app-icon-wrapper {
-            width: 56px;
-            height: 56px;
-            background: rgba(59, 130, 246, 0.1);
+            width: 64px;
+            height: 64px;
+            background: rgba(255, 255, 255, 0.95);
             border: 2px solid rgba(59, 130, 246, 0.3);
-            border-radius: 1rem;
+            border-radius: 1.25rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -232,33 +232,32 @@
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .app-icon:hover .app-icon-wrapper {
             border-color: #3b82f6;
-            background: rgba(59, 130, 246, 0.2);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            background: rgba(255, 255, 255, 1);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+            transform: scale(1.05);
         }
 
         .google-icon {
-            font-size: 2rem;
-            background: linear-gradient(45deg, #4285f4, #ea4335, #fbbc05, #34a853);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .apple-icon {
-            font-size: 2rem;
-            color: #ffffff;
+            width: 40px;
+            height: 40px;
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjQiIGN5PSIyNCIgcj0iMjIiIGZpbGw9IiM0Mjg1RjQiLz4KPHBhdGggZD0iTTM1LjUgMjMuNUgzNlYyNC41SDM1LjVWMjMuNVpNMTIgMjQiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIvPgo8cGF0aCBkPSJNMjQgMTBDMjkuNSAxMCAzNCAxMi41IDM3IDIwTDMzIDIzQzMwLjUgMTggMjcuNSAxNiAyNCAxNkMxOCAxNiAxMyAyMSAxMyAyNFMxOCAzMiAyNCAzMkMyNy41IDMyIDMwLjUgMzAgMzMgMjVMMzcgMjhDMzQgMzUuNSAyOS41IDM4IDI0IDM4QzE0LjUgMzggNyAzMC41IDcgMjRTMTQuNSAxMCAyNCAxMFoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
         }
 
         .authy-icon {
-            font-size: 2rem;
-            background: linear-gradient(45deg, #ec1c24, #ff6b6b);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            width: 40px;
+            height: 40px;
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjQiIGN5PSIyNCIgcj0iMjIiIGZpbGw9IiNFQzE5MjQiLz4KPHBhdGggZD0iTTI0IDhMMzIgMTZIMzZWMzJIMTJWMTZIMTZMMjQgOFoiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik0yNCAyMEM5NC44IDIwIDI5IDI0IDI5IDI4UzI3LjIgMzYgMjQgMzZTMTkgMzIgMTkgMjhTMjEuMiAyMCAyNCAyMFoiIGZpbGw9IiNFQzE5MjQiLz4KPC9zdmc+Cg==');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
         }
 
         .qr-container {
@@ -592,19 +591,13 @@
             <div class="app-icons">
                 <a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2" target="_blank" class="app-icon">
                     <div class="app-icon-wrapper">
-                        <span class="google-icon">G</span>
+                        <div class="google-icon"></div>
                     </div>
-                    <span>Google Auth</span>
-                </a>
-                <a href="https://apps.apple.com/app/google-authenticator/id388497605" target="_blank" class="app-icon">
-                    <div class="app-icon-wrapper">
-                        <span class="apple-icon">🍎</span>
-                    </div>
-                    <span>iOS App</span>
+                    <span>Google Authenticator</span>
                 </a>
                 <a href="https://authy.com/download/" target="_blank" class="app-icon">
                     <div class="app-icon-wrapper">
-                        <span class="authy-icon">🔐</span>
+                        <div class="authy-icon"></div>
                     </div>
                     <span>Authy</span>
                 </a>
