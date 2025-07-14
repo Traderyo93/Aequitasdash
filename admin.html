@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1754,10 +1753,6 @@
 
                     <div class="form-row">
                         <div class="form-field">
-                            <label for="initialDeposit">Initial Account Value</label>
-                            <input type="number" id="initialDeposit" name="initialDeposit" min="0" step="0.01">
-                        </div>
-                        <div class="form-field">
                             <label for="clientStatus">Status</label>
                             <select id="clientStatus" name="status">
                                 <option value="active">Active</option>
@@ -1858,14 +1853,11 @@
             return localStorage.getItem('aequitas_auth_token');
         }
 
-        // === LIVE TRADING ADMIN FUNCTIONS ===
-
-        // Create new client with simulation
-        async function createNewClientWithSimulation(clientData) {
+        // Create basic client (no live trading setup)
+        async function createBasicClient(clientData) {
             try {
-                console.log('🎯 Creating new client with simulation:', clientData);
+                console.log('👤 Creating basic client:', clientData);
                 
-                // First, create the user in the database with CORRECT status
                 const userResponse = await fetch('/api/users', {
                     method: 'POST',
                     headers: {
@@ -1878,9 +1870,8 @@
                         email: clientData.email,
                         phone: clientData.phone,
                         address: clientData.address,
-                        role: 'pending',              // FIXED: Was 'client'
-                        status: 'setup_pending',      // FIXED: Was 'active'
-                        setupStatus: 'incomplete'     // FIXED: Was missing
+                        role: 'client',
+                        status: 'active'
                     })
                 });
                 
@@ -1890,54 +1881,26 @@
                     throw new Error(userData.error || 'Failed to create user');
                 }
                 
-                const newUser = userData.user;
-                const userId = newUser.id;
-                // Then set up live trading simulation
-                const simulationResponse = await fetch('/api/live-trading-simulation', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${getAuthToken()}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        action: 'create_simulation_account',
-                        userId: userId,
-                        startingBalance: clientData.startingBalance,
-                        inceptionDate: clientData.inceptionDate,
-                        liveTrading: clientData.liveTrading
-                    })
-                });
-                
-                const simulationData = await simulationResponse.json();
-                
-                if (!simulationData.success) {
-                    throw new Error(simulationData.error || 'Failed to create simulation account');
-                }
-                
-                showNotification(
-                    `Client created successfully! ${clientData.liveTrading ? 'Live trading enabled with historical backfill.' : 'Manual updates only.'}`,
-                    'success'
-                );
+                showNotification('Client created successfully!', 'success');
                 
                 // Add to local clients array
                 const newClient = {
-                    id: userId,
+                    id: userData.user.id,
                     firstName: clientData.firstName,
                     lastName: clientData.lastName,
                     email: clientData.email,
                     phone: clientData.phone,
                     address: clientData.address,
-                    status: 'setup_pending',
+                    status: 'active',
                     joinDate: new Date().toISOString().split('T')[0],
-                    totalDeposits: clientData.startingBalance,
-                    accountValue: clientData.startingBalance,
-                    startingBalance: clientData.startingBalance,
+                    totalDeposits: 0,
+                    accountValue: 0,
                     lastActive: new Date().toISOString().split('T')[0]
                 };
                 
                 clients.push(newClient);
                 
-                console.log('✅ Client created with simulation account:', simulationData);
+                console.log('✅ Basic client created:', userData.user);
                 
             } catch (error) {
                 console.error('💥 Failed to create client:', error);
@@ -1950,14 +1913,13 @@
             try {
                 console.log('📝 Updating existing client:', clientId, clientData);
                 
-                const response = await fetch('/api/live-trading-simulation', {
-                    method: 'POST',
+                const response = await fetch('/api/users', {
+                    method: 'PUT',
                     headers: {
                         'Authorization': `Bearer ${getAuthToken()}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        action: 'update_client_profile',
                         userId: clientId,
                         firstName: clientData.firstName,
                         lastName: clientData.lastName,
@@ -2040,16 +2002,15 @@
             }
             
             try {
-                const response = await fetch('/api/live-trading-simulation', {
+                const response = await fetch('/api/deposits', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${getAuthToken()}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        action: 'add_deposit',
                         userId: clientId,
-                        depositAmount: parseFloat(depositAmount),
+                        amount: parseFloat(depositAmount),
                         depositDate: depositDate
                     })
                 });
@@ -2057,7 +2018,7 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    showNotification(`Deposit of $${parseFloat(depositAmount).toLocaleString()} added successfully!`, 'success');
+                    showNotification(`Deposit of ${parseFloat(depositAmount).toLocaleString()} added successfully!`, 'success');
                     closeDepositModal();
                     await fetchAdminStats();
                     renderClientsTable();
@@ -2146,6 +2107,75 @@
                 console.error('💥 Failed to load withdrawals:', error);
                 withdrawals = [];
                 showNotification('Failed to load withdrawal requests', 'error');
+            }
+        }
+
+        // Render clients table
+        function renderClientsTable() {
+            const tbody = document.getElementById('clientsTableBody');
+            const searchTerm = document.getElementById('clientSearch').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            
+            let filteredClients = clients.filter(client => {
+                const matchesSearch = (client.firstName || '').toLowerCase().includes(searchTerm) ||
+                    (client.lastName || '').toLowerCase().includes(searchTerm) ||
+                    (client.email || '').toLowerCase().includes(searchTerm);
+                const matchesStatus = !statusFilter || client.status === statusFilter;
+                return matchesSearch && matchesStatus;
+            });
+            
+            if (filteredClients.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                            <div style="font-size: 18px; margin-bottom: 8px;">No clients found</div>
+                            <div style="font-size: 14px;">Try adjusting your search filters or add a new client.</div>
+                        </td>
+                    </tr>
+                `;
+            } else {
+                tbody.innerHTML = filteredClients.map(client => {
+                    const hasDeposits = client.totalDeposits && parseFloat(client.totalDeposits) > 0;
+                    const balanceDisplay = hasDeposits 
+                        ? `${parseFloat(client.accountValue).toLocaleString()}`
+                        : 'No Deposits';
+                    
+                    return `
+                        <tr>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div class="client-avatar">${(client.firstName || 'U').charAt(0)}</div>
+                                    <div>
+                                        <div style="font-weight: 500;">${client.firstName} ${client.lastName}</div>
+                                        <div style="font-size: 12px; color: var(--text-tertiary);">ID: ${client.id}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>${client.email}</td>
+                            <td>${client.phone || 'Not provided'}</td>
+                            <td>${hasDeposits ? parseFloat(client.totalDeposits).toLocaleString() : '0'}</td>
+                            <td style="color: ${hasDeposits ? 'var(--success)' : 'var(--text-secondary)'}; font-weight: 600;">${balanceDisplay}</td>
+                            <td><span class="status ${client.status}">${client.status}</span></td>
+                            <td>${new Date(client.joinDate).toLocaleDateString()}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="action-btn view" onclick="viewClient('${client.id}')" title="View Details">
+                                        <span class="icon icon-eye"></span>
+                                    </button>
+                                    <button class="action-btn edit" onclick="editClient('${client.id}')" title="Edit">
+                                        <span class="icon icon-edit"></span>
+                                    </button>
+                                    <button class="action-btn edit" onclick="addClientDeposit('${client.id}')" title="Add Deposit">
+                                        <span class="icon icon-money"></span>
+                                    </button>
+                                    <button class="action-btn delete" onclick="deleteClient('${client.id}')" title="Delete">
+                                        <span class="icon icon-trash"></span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
             }
         }
 
@@ -2972,11 +3002,11 @@
             const activeDepositsEl = document.getElementById('activeDeposits');
             if (activeDepositsEl) {
                 if (stats.activeDepositsThisMonth >= 1000000) {
-                    activeDepositsEl.textContent = `$${(stats.activeDepositsThisMonth / 1000000).toFixed(1)}M`;
+                    activeDepositsEl.textContent = `${(stats.activeDepositsThisMonth / 1000000).toFixed(1)}M`;
                 } else if (stats.activeDepositsThisMonth >= 1000) {
-                    activeDepositsEl.textContent = `$${(stats.activeDepositsThisMonth / 1000).toFixed(1)}K`;
+                    activeDepositsEl.textContent = `${(stats.activeDepositsThisMonth / 1000).toFixed(1)}K`;
                 } else {
-                    activeDepositsEl.textContent = `$${stats.activeDepositsThisMonth.toLocaleString()}`;
+                    activeDepositsEl.textContent = `${stats.activeDepositsThisMonth.toLocaleString()}`;
                 }
             }
             
@@ -2990,9 +3020,9 @@
             const systemStatusEl = document.getElementById('systemStatus');
             if (systemStatusEl) {
                 if (stats.totalClientBalances >= 1000000) {
-                    systemStatusEl.textContent = `$${(stats.totalClientBalances / 1000000).toFixed(1)}M`;
+                    systemStatusEl.textContent = `${(stats.totalClientBalances / 1000000).toFixed(1)}M`;
                 } else {
-                    systemStatusEl.textContent = `$${stats.totalClientBalances.toLocaleString()}`;
+                    systemStatusEl.textContent = `${stats.totalClientBalances.toLocaleString()}`;
                 }
             }
             
@@ -3515,74 +3545,6 @@
         }
         // === CLIENT MANAGEMENT FUNCTIONS ===
 
-        // Render clients table
-        function renderClientsTable() {
-            const tbody = document.getElementById('clientsTableBody');
-            const searchTerm = document.getElementById('clientSearch').value.toLowerCase();
-            const statusFilter = document.getElementById('statusFilter').value;
-            
-            let filteredClients = clients.filter(client => {
-                const matchesSearch = (client.firstName || '').toLowerCase().includes(searchTerm) ||
-                    (client.lastName || '').toLowerCase().includes(searchTerm) ||
-                    (client.email || '').toLowerCase().includes(searchTerm);
-                const matchesStatus = !statusFilter || client.status === statusFilter;
-                return matchesSearch && matchesStatus;
-            });
-            
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const paginatedClients = filteredClients.slice(startIndex, endIndex);
-            
-            if (paginatedClients.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="8" style="text-align: center; padding: 40px; color: var(--text-secondary);">
-                            <div style="font-size: 18px; margin-bottom: 8px;">No clients found</div>
-                            <div style="font-size: 14px;">Try adjusting your search filters or add a new client.</div>
-                        </td>
-                    </tr>
-                `;
-            } else {
-                tbody.innerHTML = paginatedClients.map(client => `
-                    <tr>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <div class="client-avatar">${(client.firstName || 'U').charAt(0)}</div>
-                                <div>
-                                    <div style="font-weight: 500;">${client.firstName} ${client.lastName}</div>
-                                    <div style="font-size: 12px; color: var(--text-tertiary);">ID: ${client.id}</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>${client.email}</td>
-                        <td>${client.phone || 'Not provided'}</td>
-                        <td>$${client.totalDeposits.toLocaleString()}</td>
-                        <td style="color: var(--success); font-weight: 600;">$${client.accountValue.toLocaleString()}</td>
-                        <td><span class="status ${client.status}">${client.status}</span></td>
-                        <td>${new Date(client.joinDate).toLocaleDateString()}</td>
-                        <td>
-                            <div class="action-buttons">
-                                <button class="action-btn view" onclick="viewClient('${client.id}')" title="View Details">
-                                    <span class="icon icon-eye"></span>
-                                </button>
-                                <button class="action-btn edit" onclick="editClient('${client.id}')" title="Edit">
-                                    <span class="icon icon-edit"></span>
-                                </button>
-                                <button class="action-btn edit" onclick="addClientDeposit('${client.id}')" title="Add Deposit">
-                                    <span class="icon icon-money"></span>
-                                </button>
-                                <button class="action-btn delete" onclick="deleteClient('${client.id}')" title="Delete">
-                                    <span class="icon icon-trash"></span>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `).join('');
-            }
-            
-            updatePagination(filteredClients.length);
-        }
-
         // Render deposits table 
         function renderDepositsTable() {
             const tbody = document.getElementById('depositsTableBody');
@@ -3616,7 +3578,7 @@
                             <div style="font-weight: 500;">${deposit.clientName}</div>
                             <div style="font-size: 12px; color: var(--text-tertiary);">${deposit.clientEmail || ''}</div>
                         </td>
-                        <td>$${deposit.amount.toLocaleString()}</td>
+                        <td>${deposit.amount.toLocaleString()}</td>
                         <td style="text-transform: capitalize;">${deposit.purpose}</td>
                         <td><span class="status ${deposit.status}">${deposit.status}</span></td>
                         <td>${new Date(deposit.date).toLocaleDateString()}</td>
@@ -3669,7 +3631,7 @@
                     </div>
                     <div class="modal-form-group">
                         <label>Amount</label>
-                        <div style="font-weight: 600; color: var(--success);">$${deposit.amount.toLocaleString()}</div>
+                        <div style="font-weight: 600; color: var(--success);">${deposit.amount.toLocaleString()}</div>
                     </div>
                     <div class="modal-form-group">
                         <label>Purpose</label>
@@ -3832,52 +3794,6 @@
             document.getElementById('modalTitle').textContent = 'Add New Client';
             document.getElementById('saveClientBtn').textContent = 'Save Client';
             document.getElementById('clientForm').reset();
-            
-            // Add live trading simulation fields
-            const existingForm = document.getElementById('clientForm');
-            
-            // Remove existing simulation fields if present
-            const existingSimFields = document.getElementById('simulationFields');
-            if (existingSimFields) {
-                existingSimFields.remove();
-            }
-            
-            const simulationFields = document.createElement('div');
-            simulationFields.id = 'simulationFields';
-            simulationFields.innerHTML = `
-                <div class="form-row">
-                    <div class="form-field">
-                        <label for="startingBalance">Starting Balance</label>
-                        <input type="number" id="startingBalance" name="startingBalance" step="0.01" min="0" value="100000">
-                    </div>
-                    <div class="form-field">
-                        <label for="inceptionDate">Inception Date</label>
-                        <input type="date" id="inceptionDate" name="inceptionDate" max="${new Date().toISOString().split('T')[0]}" value="${new Date().toISOString().split('T')[0]}">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-field">
-                        <label for="liveTrading">Live Trading Mode</label>
-                        <select id="liveTrading" name="liveTrading">
-                            <option value="true">Yes - Enable Live Trading</option>
-                            <option value="false">No - Manual Updates Only</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-field full-width">
-                    <label>Live Trading Simulation</label>
-                    <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 6px; font-size: 12px; color: var(--text-secondary);">
-                        <strong>How it works:</strong><br>
-                        • Starting balance creates initial account<br>
-                        • System runs your Python script daily for real returns<br>
-                        • Additional deposits can be added anytime<br>
-                        • Client sees real equity curve based on algorithm performance<br>
-                        • Historical performance backfilled from inception date
-                    </div>
-                </div>
-            `;
-            
-            existingForm.appendChild(simulationFields);
             openModal('clientModal');
         }
 
@@ -3905,7 +3821,6 @@
             document.getElementById('email').value = client.email || '';
             document.getElementById('phone').value = client.phone || '';
             document.getElementById('address').value = client.address || '';
-            document.getElementById('initialDeposit').value = client.accountValue || 0;
             document.getElementById('clientStatus').value = client.status || 'active';
             document.getElementById('clientId').value = client.id;
             
@@ -3955,11 +3870,11 @@
                     </div>
                     <div class="modal-form-group">
                         <label>Current Balance</label>
-                        <div style="font-weight: 600; color: var(--success);">$${client.accountValue.toLocaleString()}</div>
+                        <div style="font-weight: 600; color: var(--success);">${client.accountValue.toLocaleString()}</div>
                     </div>
                     <div class="modal-form-group">
                         <label>Total Deposits</label>
-                        <div style="font-weight: 600; color: var(--accent);">$${client.totalDeposits.toLocaleString()}</div>
+                        <div style="font-weight: 600; color: var(--accent);">${client.totalDeposits.toLocaleString()}</div>
                     </div>
                     <div class="modal-form-group full-width">
                         <label>Recent Deposits (${clientDeposits.length})</label>
@@ -3971,7 +3886,7 @@
                                         <span class="status ${d.status}">${d.status}</span>
                                     </div>
                                     <div style="font-size: 12px; color: var(--text-secondary);">
-                                        $${d.amount.toLocaleString()} • ${new Date(d.date).toLocaleDateString()}
+                                        ${d.amount.toLocaleString()} • ${new Date(d.date).toLocaleDateString()}
                                     </div>
                                 </div>
                             `).join('') : '<div style="color: var(--text-secondary);">No deposits yet</div>'}
@@ -4010,7 +3925,7 @@
             }
         }
 
-        // Form submission - CREATE REAL USER IN DATABASE
+        // Form submission - CREATE BASIC CLIENT
         document.getElementById('clientForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -4018,7 +3933,6 @@
             const originalText = submitBtn.textContent;
             
             try {
-                // Show loading state
                 submitBtn.disabled = true;
                 submitBtn.textContent = 'Saving...';
                 
@@ -4029,19 +3943,15 @@
                     email: formData.get('email'),
                     phone: formData.get('phone'),
                     address: formData.get('address'),
-                    initialDeposit: parseFloat(formData.get('initialDeposit')) || 0,
-                    status: formData.get('status') || 'active',
-                    startingBalance: parseFloat(formData.get('startingBalance') || 100000),
-                    inceptionDate: formData.get('inceptionDate'),
-                    liveTrading: formData.get('liveTrading') === 'true'
+                    status: formData.get('status') || 'active'
                 };
                 
                 if (editingClientId) {
                     // Update existing client
                     await updateExistingClient(editingClientId, clientData);
                 } else {
-                    // Create new client with simulation
-                    await createNewClientWithSimulation(clientData);
+                    // Create new basic client
+                    await createBasicClient(clientData);
                 }
                 
                 // Refresh data and close modal
@@ -4053,7 +3963,6 @@
                 console.error('Failed to save client:', error);
                 showNotification(`Failed to save client: ${error.message}`, 'error');
             } finally {
-                // Reset button state
                 submitBtn.disabled = false;
                 submitBtn.textContent = originalText;
             }
@@ -4065,7 +3974,7 @@
             const csvContent = "data:text/csv;charset=utf-8," 
                 + "ID,First Name,Last Name,Email,Phone,Status,Join Date,Total Deposits,Current Balance\n"
                 + clients.map(client => 
-                    `${client.id},${client.firstName},${client.lastName},${client.email},${client.phone || ''},${client.status},${client.joinDate},$${client.totalDeposits},$${client.accountValue}`
+                    `${client.id},${client.firstName},${client.lastName},${client.email},${client.phone || ''},${client.status},${client.joinDate},${client.totalDeposits},${client.accountValue}`
                 ).join("\n");
             
             const encodedUri = encodeURI(csvContent);
@@ -4093,8 +4002,8 @@ Pending Clients: ${clients.filter(c => c.status === 'pending').length}
 Inactive Clients: ${clients.filter(c => c.status === 'inactive').length}
 Pending Users: ${pendingUsers.length}
 
-Total Client Assets: $${clients.reduce((sum, c) => sum + c.accountValue, 0).toLocaleString()}
-Total Deposits Made: $${clients.reduce((sum, c) => sum + c.totalDeposits, 0).toLocaleString()}
+Total Client Assets: ${clients.reduce((sum, c) => sum + c.accountValue, 0).toLocaleString()}
+Total Deposits Made: ${clients.reduce((sum, c) => sum + c.totalDeposits, 0).toLocaleString()}
 Pending Deposits: ${deposits.filter(d => d.status === 'pending').length}
 Approved Deposits: ${deposits.filter(d => d.status === 'approved').length}
 Completed Deposits: ${deposits.filter(d => d.status === 'completed').length}
@@ -4102,7 +4011,7 @@ Completed Deposits: ${deposits.filter(d => d.status === 'completed').length}
 Pending Withdrawals: ${withdrawals.filter(w => w.status === 'pending').length}
 Approved Withdrawals: ${withdrawals.filter(w => w.status === 'approved').length}
 Completed Withdrawals: ${withdrawals.filter(w => w.status === 'completed').length}
-Total Withdrawal Amount: $${withdrawals.reduce((sum, w) => sum + w.amount, 0).toLocaleString()}
+Total Withdrawal Amount: ${withdrawals.reduce((sum, w) => sum + w.amount, 0).toLocaleString()}
 
 ==========================================
 
@@ -4110,7 +4019,7 @@ TOP CLIENTS BY ACCOUNT VALUE:
 ${clients
    .sort((a, b) => b.accountValue - a.accountValue)
    .slice(0, 10)
-   .map((client, index) => `${index + 1}. ${client.firstName} ${client.lastName} - $${client.accountValue.toLocaleString()}`)
+   .map((client, index) => `${index + 1}. ${client.firstName} ${client.lastName} - ${client.accountValue.toLocaleString()}`)
    .join('\n')}
 
 ==========================================
@@ -4119,7 +4028,7 @@ RECENT DEPOSIT ACTIVITY:
 ${deposits
    .sort((a, b) => new Date(b.date) - new Date(a.date))
    .slice(0, 10)
-   .map(deposit => `${deposit.reference} - ${deposit.clientName} - $${deposit.amount.toLocaleString()} - ${deposit.status}`)
+   .map(deposit => `${deposit.reference} - ${deposit.clientName} - ${deposit.amount.toLocaleString()} - ${deposit.status}`)
    .join('\n')}
 
 ==========================================
@@ -4128,7 +4037,7 @@ RECENT WITHDRAWAL ACTIVITY:
 ${withdrawals.length > 0 ? withdrawals
    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
    .slice(0, 10)
-   .map(withdrawal => `${withdrawal.reference} - ${withdrawal.client_name} - $${withdrawal.amount.toLocaleString()} - ${withdrawal.status}`)
+   .map(withdrawal => `${withdrawal.reference} - ${withdrawal.client_name} - ${withdrawal.amount.toLocaleString()} - ${withdrawal.status}`)
    .join('\n') : 'No withdrawal requests yet'}
 
 ==========================================
@@ -4303,8 +4212,6 @@ For questions, contact: admin@aequitascap.com`;
     </script>
 </body>
 </html>
-        
-        
         
     
         
