@@ -29,6 +29,7 @@
         }
 
         [data-theme="dark"] {
+            /* Dark Theme */
             --bg-primary: #0f172a;
             --bg-secondary: #1e293b;
             --bg-tertiary: #334155;
@@ -52,7 +53,7 @@
             transition: all 0.3s ease;
         }
 
-        /* Icon System */
+        /* Solid Color Icons */
         .icon {
             width: 20px;
             height: 20px;
@@ -123,13 +124,8 @@
             mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M18 15l-6-6-6 6'/%3E%3C/svg%3E");
         }
 
-        .icon-refresh {
-            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15'/%3E%3C/svg%3E");
-        }
-
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+        .icon-users {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m22 0v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75M13 7a4 4 0 11-8 0 4 4 0 018 0z'/%3E%3C/svg%3E");
         }
 
         /* Sidebar */
@@ -317,7 +313,7 @@
         .top-user-info {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 6px; /* FIXED: Reduced gap from 12px to 6px */
             color: var(--text-secondary);
             font-size: 14px;
             font-weight: 500;
@@ -398,51 +394,6 @@
 
         .stat-neutral {
             color: var(--text-tertiary);
-        }
-
-        .live-trading-status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
-            margin-top: 8px;
-        }
-
-        .badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        .badge.live-trading {
-            background: #10b981;
-            color: white;
-        }
-
-        .badge.manual {
-            background: #f59e0b;
-            color: white;
-        }
-
-        .refresh-btn {
-            background: none;
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .refresh-btn:hover {
-            background: var(--bg-tertiary);
-            color: var(--text-primary);
         }
 
         /* Chart Section */
@@ -538,104 +489,33 @@
             max-height: 400px;
         }
 
-        /* Performance Stats Grid */
-        .performance-stats {
-            background: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 32px;
-        }
-
-        .performance-stats-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 20px;
-        }
-
-        .performance-stats-grid {
+        /* Widgets Grid */
+        .widgets-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 16px;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
         }
 
-        .performance-stat-item {
-            text-align: center;
-            padding: 16px;
-            border-radius: 8px;
-            background: var(--bg-secondary);
-        }
-
-        .performance-stat-label {
-            display: block;
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-
-        .performance-stat-value {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        /* Deposit History */
-        .deposit-history {
+        .widget-card {
             background: var(--bg-primary);
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 32px;
+            padding: 20px;
+            height: 400px;
         }
 
-        .deposit-history-title {
-            font-size: 18px;
+        .widget-title {
+            font-size: 16px;
             font-weight: 600;
             color: var(--text-primary);
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
-        .deposit-table {
+        .tradingview-widget {
             width: 100%;
-            border-collapse: collapse;
-        }
-
-        .deposit-table th,
-        .deposit-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .deposit-table th {
-            background: var(--bg-secondary);
-            font-weight: 600;
-            color: var(--text-secondary);
-            font-size: 14px;
-        }
-
-        .deposit-table td {
-            color: var(--text-primary);
-        }
-
-        .status {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        .status.completed {
-            background: #10b981;
-            color: white;
-        }
-
-        .status.pending {
-            background: #f59e0b;
-            color: white;
+            height: calc(100% - 40px);
+            border-radius: 8px;
+            overflow: hidden;
         }
 
         /* Responsive */
@@ -651,6 +531,10 @@
 
             .main-content {
                 margin-left: 0;
+            }
+
+            .widgets-grid {
+                grid-template-columns: 1fr;
             }
         }
 
@@ -670,10 +554,6 @@
             .chart-filters {
                 flex-wrap: wrap;
             }
-
-            .performance-stats-grid {
-                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            }
         }
     </style>
 </head>
@@ -692,11 +572,11 @@
         <nav class="sidebar-nav">
             <div class="nav-section">
                 <div class="nav-section-title">Account</div>
-                <a href="#" class="nav-item active">
+                <a href="dashboard.html" class="nav-item active">
                     <span class="icon icon-dashboard"></span>
                     <span>Overview</span>
                 </a>
-                <a href="#" class="nav-item">
+                <a href="statements.html" class="nav-item">
                     <span class="icon icon-document"></span>
                     <span>Statements</span>
                 </a>
@@ -704,11 +584,11 @@
 
             <div class="nav-section">
                 <div class="nav-section-title">Trading</div>
-                <a href="#" class="nav-item">
+                <a href="deposit.html" class="nav-item">
                     <span class="icon icon-money"></span>
                     <span>Deposit</span>
                 </a>
-                <a href="#" class="nav-item">
+                <a href="withdrawal.html" class="nav-item">
                     <span class="icon icon-bank"></span>
                     <span>Withdraw</span>
                 </a>
@@ -716,13 +596,22 @@
 
             <div class="nav-section">
                 <div class="nav-section-title">Settings</div>
-                <a href="#" class="nav-item">
+                <a href="profile.html" class="nav-item">
                     <span class="icon icon-user"></span>
                     <span>Profile</span>
                 </a>
-                <a href="#" class="nav-item">
+                <a href="support.html" class="nav-item">
                     <span class="icon icon-chat"></span>
                     <span>Support</span>
+                </a>
+            </div>
+
+            <!-- Admin Section -->
+            <div class="nav-section" id="adminSection" style="display: none;">
+                <div class="nav-section-title">Admin</div>
+                <a href="admin.html" class="nav-item">
+                    <span class="icon icon-users"></span>
+                    <span>Client Management</span>
                 </a>
             </div>
         </nav>
@@ -731,8 +620,8 @@
             <div class="user-info">
                 <div class="user-avatar" id="userAvatar">A</div>
                 <div class="user-details">
-                    <h4 id="userName">Alex Johnson</h4>
-                    <p id="userEmail">alex@example.com</p>
+                    <h4 id="userName">Loading...</h4>
+                    <p id="userEmail">Loading...</p>
                 </div>
             </div>
             <button class="logout-btn" onclick="logout()">
@@ -748,7 +637,7 @@
             <h1 class="page-title">Account Overview</h1>
             <div class="top-user-info">
                 <span>Welcome back,</span>
-                <span id="topUserName">Alex</span>
+                <span id="topUserName">Loading...</span>
             </div>
         </div>
 
@@ -757,305 +646,338 @@
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-header">
-                        <div class="stat-label">Current Balance</div>
+                        <div class="stat-label">Account Balance</div>
                         <div class="stat-icon" style="background: rgba(59, 130, 246, 0.1);">
                             <span class="icon icon-dollar" style="color: #3b82f6;"></span>
                         </div>
                     </div>
-                    <div class="stat-value" id="accountValue">$125,450</div>
+                    <div class="stat-value" id="accountBalance">$2,850,000</div>
                     <div class="stat-change stat-positive" id="balanceChange">
                         <span class="icon icon-trending-up"></span>
-                        <span>+2.5%</span>
-                    </div>
-                    <div class="live-trading-status">
-                        <span id="liveTradingStatus">
-                            <span class="badge live-trading">Live Trading Active</span>
-                        </span>
-                        <span>Since: <span id="inceptionDate">Jan 15, 2024</span></span>
+                        <span>+2.1%</span>
                     </div>
                 </div>
 
                 <div class="stat-card">
                     <div class="stat-header">
-                        <div class="stat-label">Total Profit</div>
+                        <div class="stat-label">Account Profit</div>
                         <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1);">
                             <span class="icon icon-trending-up" style="color: #10b981;"></span>
                         </div>
                     </div>
-                    <div class="stat-value" id="totalProfit">$25,450</div>
+                    <div class="stat-value" id="accountProfit">$1,850,000</div>
                     <div class="stat-change stat-positive" id="profitChange">
                         <span class="icon icon-chart"></span>
-                        <span id="totalReturn">25.45%</span>
+                        <span>+185%</span>
                     </div>
                 </div>
 
                 <div class="stat-card">
                     <div class="stat-header">
-                        <div class="stat-label">Today's Performance</div>
+                        <div class="stat-label">Starting Balance</div>
                         <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1);">
                             <span class="icon icon-target" style="color: #f59e0b;"></span>
                         </div>
                     </div>
-                    <div class="stat-value" id="todayReturn">+1.2%</div>
-                    <div class="stat-change stat-positive" id="todayChange">
-                        <span class="icon icon-dollar"></span>
-                        <span id="todayPnL">+$1,465</span>
+                    <div class="stat-value" id="startingBalance">$1,000,000</div>
+                    <div class="stat-change stat-neutral">
+                        <span class="icon icon-document"></span>
+                        <span>Initial deposit</span>
                     </div>
                 </div>
+            </div>
 
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <div class="stat-label">Total Deposits</div>
-                        <div class="stat-icon" style="background: rgba(139, 92, 246, 0.1);">
-                            <span class="icon icon-bank" style="color: #8b5cf6;"></span>
+           <!-- Equity Curve Chart -->
+<div class="chart-section" id="chartSection">
+    <div class="chart-header">
+        <div class="chart-header-left" onclick="toggleChart()">
+            <button class="chart-collapse-btn" id="chartCollapseBtn">
+                <span class="icon icon-chevron-up"></span>
+            </button>
+            <h2 class="chart-title">Account Equity Curve</h2>
+        </div>
+        <div class="chart-filters">
+            <button class="filter-btn active" onclick="updateChartPeriod('1M', this)">1M</button>
+            <button class="filter-btn" onclick="updateChartPeriod('3M', this)">3M</button>
+            <button class="filter-btn" onclick="updateChartPeriod('12M', this)">12M</button>
+            <button class="filter-btn" onclick="updateChartPeriod('ALL', this)">ALL</button>
+        </div>
+    </div>
+    <div class="chart-content" id="chartContent">
+        <div class="chart-container">
+            <canvas id="equityChart"></canvas>
+        </div>
+    </div>
+</div>
+
+            <!-- TradingView Widgets -->
+            <div class="widgets-grid">
+                <div class="widget-card">
+                    <h3 class="widget-title">Market News</h3>
+                    <div class="tradingview-widget">
+                        <!-- TradingView Widget BEGIN -->
+                        <div class="tradingview-widget-container" id="marketNewsWidget">
+                            <div class="tradingview-widget-container__widget"></div>
                         </div>
-                    </div>
-                    <div class="stat-value" id="totalDeposits">$100,000</div>
-                    <div class="stat-change">
-                        <button class="refresh-btn" onclick="refreshDashboard()">
-                            <span class="icon icon-refresh"></span>
-                            <span>Refresh</span>
-                        </button>
+                        <!-- TradingView Widget END -->
                     </div>
                 </div>
-            </div>
 
-            <!-- Equity Curve Chart -->
-            <div class="chart-section" id="chartSection">
-                <div class="chart-header">
-                    <div class="chart-header-left" onclick="toggleChart()">
-                        <button class="chart-collapse-btn" id="chartCollapseBtn">
-                            <span class="icon icon-chevron-up"></span>
-                        </button>
-                        <h2 class="chart-title">Account Equity Curve</h2>
+                <div class="widget-card">
+                    <h3 class="widget-title">Economic Calendar</h3>
+                    <div class="tradingview-widget">
+                        <!-- TradingView Widget BEGIN -->
+                        <div class="tradingview-widget-container" id="economicCalendarWidget">
+                            <div class="tradingview-widget-container__widget"></div>
+                        </div>
+                        <!-- TradingView Widget END -->
                     </div>
-                    <div class="chart-filters">
-                        <button class="filter-btn active" onclick="updateChartPeriod('1M', this)">1M</button>
-                        <button class="filter-btn" onclick="updateChartPeriod('3M', this)">3M</button>
-                        <button class="filter-btn" onclick="updateChartPeriod('6M', this)">6M</button>
-                        <button class="filter-btn" onclick="updateChartPeriod('ALL', this)">ALL</button>
-                    </div>
-                </div>
-                <div class="chart-content" id="chartContent">
-                    <div class="chart-container">
-                        <canvas id="equityChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Performance Statistics -->
-            <div class="performance-stats">
-                <h3 class="performance-stats-title">Performance Statistics</h3>
-                <div class="performance-stats-grid">
-                    <div class="performance-stat-item">
-                        <span class="performance-stat-label">Win Rate</span>
-                        <span class="performance-stat-value" id="winRate">72.5%</span>
-                    </div>
-                    <div class="performance-stat-item">
-                        <span class="performance-stat-label">Best Day</span>
-                        <span class="performance-stat-value" id="bestDay">+5.2%</span>
-                    </div>
-                    <div class="performance-stat-item">
-                        <span class="performance-stat-label">Worst Day</span>
-                        <span class="performance-stat-value" id="worstDay">-2.1%</span>
-                    </div>
-                    <div class="performance-stat-item">
-                        <span class="performance-stat-label">Avg Daily Return</span>
-                        <span class="performance-stat-value" id="avgDailyReturn">+0.8%</span>
-                    </div>
-                    <div class="performance-stat-item">
-                        <span class="performance-stat-label">Max Win Streak</span>
-                        <span class="performance-stat-value" id="maxWinStreak">12 days</span>
-                    </div>
-                    <div class="performance-stat-item">
-                        <span class="performance-stat-label">Max Loss Streak</span>
-                        <span class="performance-stat-value" id="maxLossStreak">3 days</span>
-                    </div>
-                    <div class="performance-stat-item">
-                        <span class="performance-stat-label">Sharpe Ratio</span>
-                        <span class="performance-stat-value" id="sharpeRatio">1.85</span>
-                    </div>
-                    <div class="performance-stat-item">
-                        <span class="performance-stat-label">Trading Days</span>
-                        <span class="performance-stat-value" id="totalTradingDays">185</span>
-                    </div>
-                    <div class="performance-stat-item">
-                        <span class="performance-stat-label">Profitable Days</span>
-                        <span class="performance-stat-value" id="profitableDays">134</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Deposit History -->
-            <div class="deposit-history">
-                <h3 class="deposit-history-title">Deposit History</h3>
-                <div style="max-height: 300px; overflow-y: auto;">
-                    <table class="deposit-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Amount</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="depositsTableBody">
-                            <tr>
-                                <td>Jan 15, 2024</td>
-                                <td>$100,000</td>
-                                <td><span class="status completed">Completed</span></td>
-                            </tr>
-                            <tr>
-                                <td>Feb 1, 2024</td>
-                                <td>$25,000</td>
-                                <td><span class="status completed">Completed</span></td>
-                            </tr>
-                            <tr>
-                                <td>Mar 15, 2024</td>
-                                <td>$10,000</td>
-                                <td><span class="status pending">Pending</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Scripts -->
     <script>
         // Global variables
         let currentTheme = 'light';
         let currentPeriod = '1M';
         let chartCollapsed = false;
-        let equityChart = null;
-
-        // Fixed formatCurrency function
-        function formatCurrency(amount, short = false) {
-            if (amount === null || amount === undefined || isNaN(amount)) {
-                return '$0';
+        
+        // Universal Navigation System
+        function initializeNavigation() {
+            // Get current page name
+            const currentPage = window.location.pathname.split('/').pop() || 'dashboard.html';
+            
+            console.log('Current page:', currentPage);
+            
+            // Remove active class from all nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Add active class to current page
+            let currentNavItem = document.querySelector(`.nav-item[href="${currentPage}"]`);
+            
+            // Handle special cases
+            if (!currentNavItem) {
+                if (currentPage.includes('dashboard') || currentPage === '' || currentPage === 'index.html') {
+                    currentNavItem = document.querySelector(`.nav-item[href="dashboard.html"]`);
+                }
             }
             
-            const absAmount = Math.abs(amount);
-            const isNegative = amount < 0;
-            
-            let formatted;
-            
-            if (short && absAmount >= 1000000) {
-                formatted = '$' + (absAmount / 1000000).toFixed(1) + 'M';
-            } else if (short && absAmount >= 1000) {
-                formatted = '$' + (absAmount / 1000).toFixed(1) + 'K';
-            } else {
-                formatted = '$' + absAmount.toLocaleString('en-US', {
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0
-                });
+            if (currentNavItem) {
+                currentNavItem.classList.add('active');
+                console.log('Set active:', currentNavItem.href);
             }
             
-            return isNegative ? '-' + formatted : formatted;
-        }
-
-        // Utility functions
-        function updateElement(id, value) {
-            const element = document.getElementById(id);
-            if (element) {
-                element.textContent = value;
-            }
-        }
-
-        function setElementClass(id, className) {
-            const element = document.getElementById(id);
-            if (element) {
-                element.classList.remove('stat-positive', 'stat-negative', 'stat-neutral');
-                element.classList.add(className);
-            }
-        }
-
-        function showNotification(message, type = 'info') {
-            const notification = document.createElement('div');
-            notification.className = `notification notification-${type}`;
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
-                color: white;
-                padding: 12px 16px;
-                border-radius: 8px;
-                z-index: 10000;
-                font-weight: 500;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-                transform: translateX(100%);
-                transition: transform 0.3s ease;
-            `;
-            notification.textContent = message;
-            
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.style.transform = 'translateX(0)';
-            }, 100);
-            
-            setTimeout(() => {
-                notification.style.transform = 'translateX(100%)';
-                setTimeout(() => {
-                    if (document.body.contains(notification)) {
-                        document.body.removeChild(notification);
+            // Handle navigation clicks - ensure authentication
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    const token = localStorage.getItem('aequitas_auth_token');
+                    if (!token) {
+                        e.preventDefault();
+                        showNotification('Please log in to access this page.', 'warning');
+                        setTimeout(() => {
+                            window.location.href = 'login.html';
+                        }, 1000);
+                        return;
                     }
-                }, 300);
-            }, 3000);
+                });
+            });
         }
-
-        // Theme toggle
+        
+        // Theme Toggle
         function toggleTheme() {
             currentTheme = currentTheme === 'light' ? 'dark' : 'light';
             document.documentElement.setAttribute('data-theme', currentTheme);
             
             const themeToggle = document.querySelector('.theme-toggle .icon');
-            if (themeToggle) {
-                themeToggle.className = currentTheme === 'light' ? 'icon icon-moon' : 'icon icon-sun';
-            }
+            themeToggle.className = currentTheme === 'light' ? 'icon icon-moon' : 'icon icon-sun';
             
             // Update chart theme
-            if (equityChart) {
-                createChart();
+            if (window.equityChart) {
+                createEquityChart();
             }
+            
+            // FIXED: Update TradingView widgets theme
+            updateTradingViewTheme();
             
             localStorage.setItem('aequitas_theme', currentTheme);
         }
 
-        // Logout function
+        // Chart Toggle
+        function toggleChart() {
+            const chartSection = document.getElementById('chartSection');
+            const chartContent = document.getElementById('chartContent');
+            const collapseBtn = document.getElementById('chartCollapseBtn');
+            
+            chartCollapsed = !chartCollapsed;
+            
+            if (chartCollapsed) {
+                chartSection.classList.add('collapsed');
+                collapseBtn.innerHTML = '<span class="icon icon-chevron-down"></span>';
+            } else {
+                chartSection.classList.remove('collapsed');
+                collapseBtn.innerHTML = '<span class="icon icon-chevron-up"></span>';
+                
+                // Recreate chart when expanding
+                setTimeout(() => {
+                    if (window.equityChart) {
+                        createEquityChart();
+                    }
+                }, 300);
+            }
+        }
+
+        // Logout
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
                 localStorage.removeItem('aequitas_auth_token');
                 localStorage.removeItem('aequitas_user_data');
-                showNotification('Logged out successfully!', 'success');
-                setTimeout(() => {
-                    window.location.href = 'login.html';
-                }, 1000);
+                console.log('Logged out, redirecting to login');
+                window.location.href = 'login.html';
             }
         }
 
-        // Chart functions
-        function createChart() {
-            const ctx = document.getElementById('equityChart');
-            if (!ctx) return;
+        // Generate realistic hedge fund equity curve data
+        function generateEquityData(period) {
+            const now = new Date();
+            let dataPoints;
+            let startDate = new Date();
             
-            // Destroy existing chart
-            if (equityChart) {
-                equityChart.destroy();
-                equityChart = null;
+            switch(period) {
+                case '1M':
+                    dataPoints = 30;
+                    startDate.setMonth(startDate.getMonth() - 1);
+                    break;
+                case '3M':
+                    dataPoints = 90;
+                    startDate.setMonth(startDate.getMonth() - 3);
+                    break;
+                case '12M':
+                    dataPoints = 365;
+                    startDate.setFullYear(startDate.getFullYear() - 1);
+                    break;
+                case 'ALL':
+                    dataPoints = 1095; // 3 years
+                    startDate.setFullYear(startDate.getFullYear() - 3);
+                    break;
             }
             
-            // Generate sample data
-            const data = generateChartData();
+            const data = [];
+            const startValue = 1000000; // $1M starting capital
+            let currentValue = startValue;
+            
+            // Create realistic hedge fund performance pattern
+            const annualReturn = 0.18; // 18% annual target return
+            const volatility = 0.15; // 15% annual volatility
+            const dailyReturn = annualReturn / 252; // 252 trading days per year
+            const dailyVol = volatility / Math.sqrt(252);
+            
+            for (let i = 0; i < dataPoints; i++) {
+                const date = new Date(startDate);
+                date.setDate(date.getDate() + i);
+                
+                // Skip weekends for more realistic trading data
+                if (date.getDay() === 0 || date.getDay() === 6) {
+                    continue;
+                }
+                
+                // Generate realistic returns with market cycles
+                const marketCycle = Math.sin((i / dataPoints) * 4 * Math.PI) * 0.3;
+                const randomComponent = (Math.random() - 0.5) * 2 * dailyVol;
+                const trendComponent = dailyReturn * (1 + marketCycle);
+                
+                // Add some drawdown periods (realistic hedge fund performance)
+                let drawdownFactor = 1;
+                if (i > dataPoints * 0.3 && i < dataPoints * 0.45) {
+                    drawdownFactor = 0.85; // 15% drawdown period
+                } else if (i > dataPoints * 0.7 && i < dataPoints * 0.75) {
+                    drawdownFactor = 0.95; // Smaller correction
+                }
+                
+                const dailyChange = (trendComponent + randomComponent) * drawdownFactor;
+                currentValue *= (1 + dailyChange);
+                
+                // Ensure we don't go below reasonable levels
+                currentValue = Math.max(currentValue, startValue * 0.70);
+                
+                data.push({
+                    date: date.toISOString().split('T')[0],
+                    value: Math.round(currentValue)
+                });
+            }
+            
+            console.log(`Generated ${data.length} data points for ${period}`);
+            return data;
+        }
+
+       // Update Chart Period - FIXED VERSION
+        function updateChartPeriod(period, element) {
+            console.log(`Updating chart to period: ${period}`);
+            
+            // Prevent the event from bubbling up to the chart header click
+            event.stopPropagation();
+            
+            // Always ensure chart is expanded when using filters
+            const chartSection = document.getElementById('chartSection');
+            const collapseBtn = document.getElementById('chartCollapseBtn');
+            
+            if (chartCollapsed) {
+                chartCollapsed = false;
+                chartSection.classList.remove('collapsed');
+                collapseBtn.innerHTML = '<span class="icon icon-chevron-up"></span>';
+            }
+            
+            // Update active filter button
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+            
+            currentPeriod = period;
+            
+            // Create chart with slight delay to ensure expansion animation completes
+            setTimeout(() => {
+                createEquityChart();
+            }, 100);
+        }
+
+        // Create Equity Chart - FIXED VERSION
+        function createEquityChart() {
+            console.log('createEquityChart function called for period:', currentPeriod);
+            
+            const ctx = document.getElementById('equityChart');
+            if (!ctx) {
+                console.error('Chart canvas not found');
+                return;
+            }
+            
+            console.log('Chart canvas found, creating chart...');
+            
+            // FIXED: Properly check if chart exists before destroying
+            if (window.equityChart && typeof window.equityChart.destroy === 'function') {
+                console.log('Destroying existing chart');
+                window.equityChart.destroy();
+                window.equityChart = null;
+            }
+            
+            // Force canvas sizing
+            const container = ctx.parentElement;
+            container.style.height = '400px';
+            container.style.width = '100%';
+            ctx.style.width = '100%';
+            ctx.style.height = '400px';
+            
+            const data = generateEquityData(currentPeriod);
             const isDark = currentTheme === 'dark';
             
-            equityChart = new Chart(ctx, {
+            window.equityChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: data.labels,
+                    labels: data.map(d => d.date),
                     datasets: [{
-                        label: 'Account Balance',
-                        data: data.values,
+                        label: 'Account Value',
+                        data: data.map(d => d.value),
                         borderColor: '#3b82f6',
                         backgroundColor: 'rgba(59, 130, 246, 0.1)',
                         borderWidth: 2,
@@ -1067,7 +989,7 @@
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false,
+                    maintainAspectRatio: false, // KEY FIX for full area
                     plugins: {
                         legend: {
                             display: false
@@ -1082,7 +1004,7 @@
                             borderWidth: 1,
                             callbacks: {
                                 label: function(context) {
-                                    return 'Balance: ' + formatCurrency(context.parsed.y);
+                                    return 'Account Value: ' + formatCurrency(context.parsed.y);
                                 }
                             }
                         }
@@ -1095,7 +1017,7 @@
                             },
                             ticks: {
                                 color: isDark ? '#94a3b8' : '#64748b',
-                                maxTicksLimit: 8
+                                maxTicksLimit: 6
                             }
                         },
                         y: {
@@ -1117,237 +1039,319 @@
                     }
                 }
             });
+            
+            console.log('Chart created successfully');
         }
 
-        function generateChartData() {
-            const labels = [];
-            const values = [];
-            const startDate = new Date();
-            const startValue = 100000;
+        // FIXED: Update TradingView widgets theme
+        function updateTradingViewTheme() {
+            const colorTheme = currentTheme === 'dark' ? 'dark' : 'light';
             
-            // Generate data based on current period
-            let days = 30; // Default 1M
-            switch(currentPeriod) {
-                case '3M': days = 90; break;
-                case '6M': days = 180; break;
-                case 'ALL': days = 365; break;
-            }
+            // Update Market News Widget
+            const marketNewsContainer = document.getElementById('marketNewsWidget');
+            marketNewsContainer.innerHTML = '<div class="tradingview-widget-container__widget"></div>';
             
-            startDate.setDate(startDate.getDate() - days);
-            
-            for (let i = 0; i < days; i++) {
-                const date = new Date(startDate);
-                date.setDate(date.getDate() + i);
-                
-                labels.push(date.toLocaleDateString('en-US', { 
-                    month: 'short', 
-                    day: 'numeric' 
-                }));
-                
-                // Generate realistic performance curve
-                const progress = i / days;
-                const trend = progress * 25000; // 25% gain over period
-                const volatility = (Math.random() - 0.5) * 5000;
-                values.push(startValue + trend + volatility);
-            }
-            
-            return { labels, values };
-        }
-
-        function toggleChart() {
-            const chartSection = document.getElementById('chartSection');
-            const collapseBtn = document.getElementById('chartCollapseBtn');
-            
-            chartCollapsed = !chartCollapsed;
-            
-            if (chartCollapsed) {
-                chartSection.classList.add('collapsed');
-                collapseBtn.innerHTML = '<span class="icon icon-chevron-down"></span>';
-            } else {
-                chartSection.classList.remove('collapsed');
-                collapseBtn.innerHTML = '<span class="icon icon-chevron-up"></span>';
-                
-                // Recreate chart when expanding
-                setTimeout(() => {
-                    createChart();
-                }, 300);
-            }
-        }
-
-        function updateChartPeriod(period, element) {
-            if (event) {
-                event.stopPropagation();
-            }
-            
-            // Always ensure chart is expanded when using filters
-            const chartSection = document.getElementById('chartSection');
-            const collapseBtn = document.getElementById('chartCollapseBtn');
-            
-            if (chartCollapsed) {
-                chartCollapsed = false;
-                chartSection.classList.remove('collapsed');
-                collapseBtn.innerHTML = '<span class="icon icon-chevron-up"></span>';
-            }
-            
-            // Update active filter button
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            element.classList.add('active');
-            
-            currentPeriod = period;
-            
-            // Update chart with new period
-            setTimeout(() => {
-                createChart();
-            }, 100);
-        }
-
-        function refreshDashboard() {
-            const refreshBtn = document.querySelector('.refresh-btn');
-            const originalContent = refreshBtn.innerHTML;
-            
-            refreshBtn.innerHTML = '<span class="icon icon-refresh" style="animation: spin 1s linear infinite;"></span><span>Refreshing...</span>';
-            refreshBtn.disabled = true;
-            
-            setTimeout(() => {
-                // Simulate data refresh
-                updateRandomData();
-                
-                refreshBtn.innerHTML = originalContent;
-                refreshBtn.disabled = false;
-                
-                showNotification('Dashboard refreshed successfully!', 'success');
-            }, 2000);
-        }
-
-        function updateRandomData() {
-            // Update some random values to simulate live data
-            const newBalance = 125000 + (Math.random() - 0.5) * 10000;
-            const newProfit = newBalance - 100000;
-            const newReturn = (newProfit / 100000) * 100;
-            const todayChange = (Math.random() - 0.5) * 5;
-            
-            updateElement('accountValue', formatCurrency(newBalance));
-            updateElement('totalProfit', formatCurrency(newProfit));
-            updateElement('totalReturn', newReturn.toFixed(2) + '%');
-            updateElement('todayReturn', (todayChange > 0 ? '+' : '') + todayChange.toFixed(2) + '%');
-            updateElement('todayPnL', (todayChange > 0 ? '+' : '') + formatCurrency(todayChange * 1000));
-            
-            // Update colors
-            setElementClass('totalProfit', newProfit >= 0 ? 'stat-positive' : 'stat-negative');
-            setElementClass('profitChange', newProfit >= 0 ? 'stat-positive' : 'stat-negative');
-            setElementClass('todayReturn', todayChange >= 0 ? 'stat-positive' : 'stat-negative');
-            setElementClass('todayChange', todayChange >= 0 ? 'stat-positive' : 'stat-negative');
-            
-            // Update balance change
-            const balanceChangeEl = document.getElementById('balanceChange');
-            if (balanceChangeEl) {
-                balanceChangeEl.innerHTML = `<span class="icon icon-trending-up"></span><span>${(todayChange > 0 ? '+' : '') + todayChange.toFixed(2)}%</span>`;
-                balanceChangeEl.className = todayChange >= 0 ? 'stat-change stat-positive' : 'stat-change stat-negative';
-            }
-            
-            // Recreate chart with new data
-            createChart();
-        }
-
-        // Initialize everything when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Dashboard loading...');
-            
-            // Initialize theme from localStorage
-            const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
-            currentTheme = savedTheme;
-            document.documentElement.setAttribute('data-theme', currentTheme);
-            
-            const themeToggle = document.querySelector('.theme-toggle .icon');
-            if (themeToggle) {
-                themeToggle.className = currentTheme === 'light' ? 'icon icon-moon' : 'icon icon-sun';
-            }
-            
-            // Initialize chart
-            setTimeout(() => {
-                createChart();
-            }, 100);
-            
-            // Initialize keyboard shortcuts
-            document.addEventListener('keydown', function(e) {
-                // Ctrl/Cmd + R for refresh
-                if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
-                    e.preventDefault();
-                    refreshDashboard();
-                }
-                
-                // Ctrl/Cmd + T for theme toggle
-                if ((e.ctrlKey || e.metaKey) && e.key === 't') {
-                    e.preventDefault();
-                    toggleTheme();
-                }
-                
-                // Ctrl/Cmd + C for chart toggle
-                if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
-                    e.preventDefault();
-                    toggleChart();
-                }
+            const marketNewsScript = document.createElement('script');
+            marketNewsScript.type = 'text/javascript';
+            marketNewsScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-timeline.js';
+            marketNewsScript.async = true;
+            marketNewsScript.innerHTML = JSON.stringify({
+                "feedMode": "market",
+                "market": "stock",
+                "isTransparent": false,
+                "displayMode": "regular",
+                "width": "100%",
+                "height": "100%",
+                "colorTheme": colorTheme,
+                "locale": "en"
             });
+            marketNewsContainer.appendChild(marketNewsScript);
             
-            // Add mobile menu toggle if needed
-            if (window.innerWidth <= 1024) {
-                const sidebar = document.getElementById('sidebar');
-                const mainContent = document.querySelector('.main-content');
-                
-                mainContent.addEventListener('click', function() {
-                    sidebar.classList.remove('open');
-                });
-                
-                // Add hamburger menu button for mobile
-                const hamburger = document.createElement('button');
-                hamburger.innerHTML = '☰';
-                hamburger.style.cssText = `
-                    position: fixed;
-                    top: 16px;
-                    left: 16px;
-                    z-index: 1001;
-                    background: var(--accent);
-                    color: white;
-                    border: none;
-                    padding: 8px 12px;
-                    border-radius: 4px;
-                    font-size: 16px;
-                    cursor: pointer;
-                    display: none;
-                `;
-                
-                if (window.innerWidth <= 1024) {
-                    hamburger.style.display = 'block';
-                }
-                
-                hamburger.addEventListener('click', function() {
-                    sidebar.classList.toggle('open');
-                });
-                
-                document.body.appendChild(hamburger);
-                
-                // Update hamburger visibility on resize
-                window.addEventListener('resize', function() {
-                    if (window.innerWidth <= 1024) {
-                        hamburger.style.display = 'block';
-                    } else {
-                        hamburger.style.display = 'none';
-                        sidebar.classList.remove('open');
-                    }
-                });
+            // Update Economic Calendar Widget
+            const economicCalendarContainer = document.getElementById('economicCalendarWidget');
+            economicCalendarContainer.innerHTML = '<div class="tradingview-widget-container__widget"></div>';
+            
+            const economicCalendarScript = document.createElement('script');
+            economicCalendarScript.type = 'text/javascript';
+            economicCalendarScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-events.js';
+            economicCalendarScript.async = true;
+            economicCalendarScript.innerHTML = JSON.stringify({
+                "colorTheme": colorTheme,
+                "isTransparent": false,
+                "width": "100%",
+                "height": "100%",
+                "locale": "en",
+                "importanceFilter": "-1,0,1",
+                "currencyFilter": "USD,EUR,ITL,NZD,CHF,AUD,RUB,JPY,TRY,ZAR,CNY,GBP,CAD,MXN"
+            });
+            economicCalendarContainer.appendChild(economicCalendarScript);
+        }
+
+        // Format currency
+        function formatCurrency(amount, short = false) {
+            if (short && amount >= 1000000) {
+                return '$' + (amount / 1000000).toFixed(1) + 'M';
+            } else if (short && amount >= 1000) {
+                return '$' + (amount / 1000).toFixed(0) + 'K';
             }
             
-            console.log('Dashboard loaded successfully');
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(amount);
+        }
+        // Load dashboard data
+        function loadDashboard() {
+            console.log('Loading dashboard data...');
+            
+            try {
+                // Get user data from localStorage or use demo data
+                let userData;
+                const userDataString = localStorage.getItem('aequitas_user_data');
+                
+                if (userDataString) {
+                    userData = JSON.parse(userDataString);
+                } else {
+                    // Use demo data
+                    userData = {
+                        firstName: 'Admin',
+                        lastName: 'User', 
+                        email: 'admin@aequitascap.com',
+                        accountValue: 2850000
+                    };
+                }
+                
+                console.log('Using user data:', userData);
+
+                // Update user info in sidebar and top bar
+                const firstName = userData.firstName || 'Admin';
+                const lastName = userData.lastName || 'User';
+                const email = userData.email || 'admin@aequitascap.com';
+                
+                // Update elements safely
+                const userNameEl = document.getElementById('userName');
+                const userEmailEl = document.getElementById('userEmail'); 
+                const topUserNameEl = document.getElementById('topUserName');
+                const userAvatarEl = document.getElementById('userAvatar');
+                
+                if (userNameEl) userNameEl.textContent = firstName + ' ' + lastName;
+                if (userEmailEl) userEmailEl.textContent = email;
+                if (topUserNameEl) topUserNameEl.textContent = firstName;
+                if (userAvatarEl) userAvatarEl.textContent = firstName.charAt(0).toUpperCase();
+
+                // Calculate account metrics
+                const startingBalance = 1000000; // $1M Demo starting balance
+                const currentBalance = userData.accountValue || 2850000;
+                const profit = currentBalance - startingBalance;
+                const profitPercent = ((profit / startingBalance) * 100);
+
+                console.log('Account metrics:', {
+                    startingBalance,
+                    currentBalance,
+                    profit,
+                    profitPercent
+                });
+
+                // Update account stats
+                const accountBalanceEl = document.getElementById('accountBalance');
+                const accountProfitEl = document.getElementById('accountProfit');
+                const startingBalanceEl = document.getElementById('startingBalance');
+                
+                if (accountBalanceEl) accountBalanceEl.textContent = formatCurrency(currentBalance);
+                if (accountProfitEl) accountProfitEl.textContent = formatCurrency(profit);
+                if (startingBalanceEl) startingBalanceEl.textContent = formatCurrency(startingBalance);
+
+                // Update change indicators
+                const balanceChange = document.getElementById('balanceChange');
+                const profitChange = document.getElementById('profitChange');
+                
+                // Simulate daily change (slight positive bias for demo)
+                const dailyChange = (Math.random() - 0.3) * 2.5;
+                
+                if (balanceChange) {
+                    if (dailyChange >= 0) {
+                        balanceChange.innerHTML = `<span class="icon icon-trending-up"></span><span>+${dailyChange.toFixed(2)}%</span>`;
+                        balanceChange.className = 'stat-change stat-positive';
+                    } else {
+                        balanceChange.innerHTML = `<span class="icon icon-trending-up" style="transform: rotate(180deg);"></span><span>${dailyChange.toFixed(2)}%</span>`;
+                        balanceChange.className = 'stat-change stat-negative';
+                    }
+                }
+                
+                if (profitChange) {
+                    if (profit >= 0) {
+                        profitChange.innerHTML = `<span class="icon icon-trending-up"></span><span>+${profitPercent.toFixed(1)}%</span>`;
+                        profitChange.className = 'stat-change stat-positive';
+                    } else {
+                        profitChange.innerHTML = `<span class="icon icon-trending-up" style="transform: rotate(180deg);"></span><span>${profitPercent.toFixed(1)}%</span>`;
+                        profitChange.className = 'stat-change stat-negative';
+                    }
+                }
+
+                console.log('Dashboard data loaded successfully');
+
+            } catch (error) {
+                console.error('Dashboard load error:', error);
+                // Set basic demo data on error
+                const userNameEl = document.getElementById('userName');
+                const userEmailEl = document.getElementById('userEmail');
+                const topUserNameEl = document.getElementById('topUserName');
+                const userAvatarEl = document.getElementById('userAvatar');
+                
+                if (userNameEl) userNameEl.textContent = 'Admin User';
+                if (userEmailEl) userEmailEl.textContent = 'admin@aequitascap.com';
+                if (topUserNameEl) topUserNameEl.textContent = 'Admin';
+                if (userAvatarEl) userAvatarEl.textContent = 'A';
+            }
+        }
+
+        // Initialize TradingView Widgets
+        function initializeTradingViewWidgets() {
+            const colorTheme = currentTheme === 'dark' ? 'dark' : 'light';
+            
+            // Initialize Market News Widget
+            const marketNewsContainer = document.getElementById('marketNewsWidget');
+            const marketNewsScript = document.createElement('script');
+            marketNewsScript.type = 'text/javascript';
+            marketNewsScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-timeline.js';
+            marketNewsScript.async = true;
+            marketNewsScript.innerHTML = JSON.stringify({
+                "feedMode": "market",
+                "market": "stock",
+                "isTransparent": false,
+                "displayMode": "regular",
+                "width": "100%",
+                "height": "100%",
+                "colorTheme": colorTheme,
+                "locale": "en"
+            });
+            marketNewsContainer.appendChild(marketNewsScript);
+            
+            // Initialize Economic Calendar Widget
+            const economicCalendarContainer = document.getElementById('economicCalendarWidget');
+            const economicCalendarScript = document.createElement('script');
+            economicCalendarScript.type = 'text/javascript';
+            economicCalendarScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-events.js';
+            economicCalendarScript.async = true;
+            economicCalendarScript.innerHTML = JSON.stringify({
+                "colorTheme": colorTheme,
+                "isTransparent": false,
+                "width": "100%",
+                "height": "100%",
+                "locale": "en",
+                "importanceFilter": "-1,0,1",
+                "currencyFilter": "USD,EUR,ITL,NZD,CHF,AUD,RUB,JPY,TRY,ZAR,CNY,GBP,CAD,MXN"
+            });
+            economicCalendarContainer.appendChild(economicCalendarScript);
+        }
+
+        // Notification system
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 16px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 500;
+                z-index: 10001;
+                max-width: 400px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                animation: slideInRight 0.3s ease-out;
+                ${type === 'success' ? 'background: linear-gradient(135deg, #10b981, #059669);' : ''}
+                ${type === 'error' ? 'background: linear-gradient(135deg, #ef4444, #dc2626);' : ''}
+                ${type === 'warning' ? 'background: linear-gradient(135deg, #f59e0b, #d97706);' : ''}
+                ${type === 'info' ? 'background: linear-gradient(135deg, #3b82f6, #2563eb);' : ''}
+            `;
+            
+            notification.innerHTML = `
+                <div style="display: flex; align-items: flex-start; gap: 8px;">
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.style.animation = 'slideOutRight 0.3s ease-in';
+                    setTimeout(() => notification.remove(), 300);
+                }
+            }, 5000);
+        }
+
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing dashboard...');
+    
+    // CHECK: Redirect pending users to setup
+    const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
+    if (userData.role === 'pending' && userData.setupStatus !== 'approved') {
+        console.log('🔄 Pending user detected, redirecting to setup...');
+        window.location.href = 'setup.html';
+        return;
+    }
+    
+    // Load saved theme
+    const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
+            console.log('Saved theme:', savedTheme);
+            
+            if (savedTheme === 'dark') {
+                currentTheme = 'dark';
+                document.documentElement.setAttribute('data-theme', 'dark');
+                const themeToggle = document.querySelector('.theme-toggle .icon');
+                themeToggle.className = 'icon icon-sun';
+            }
+            
+            // Initialize navigation
+            initializeNavigation();
+            
+            // Load dashboard data first
+            loadDashboard();
+
+            // Initialize TradingView widgets
+            initializeTradingViewWidgets();
+
+            // Create chart after everything is loaded - FIXED TIMING
+            setTimeout(() => {
+                console.log('Creating equity chart...');
+                createEquityChart();
+            }, 200);
+            
+            // Show admin section if user is admin
+            if (userData.role === 'admin') {
+                const adminSection = document.getElementById('adminSection');
+                if (adminSection) adminSection.style.display = 'block';
+            }
+            
+            console.log('Dashboard initialization complete');
         });
 
-        // Window resize handler
+        // Handle window resize - re-render chart
         window.addEventListener('resize', function() {
-            if (equityChart) {
-                equityChart.resize();
+            if (window.equityChart) {
+                setTimeout(() => {
+                    window.equityChart.resize();
+                }, 100);
+            }
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            if (window.innerWidth <= 1024) {
+                const sidebar = document.getElementById('sidebar');
+                const isClickInsideSidebar = sidebar.contains(event.target);
+                const isClickOnToggle = event.target.closest('.mobile-menu-btn') || event.target.closest('.sidebar-toggle');
+                
+                if (!isClickInsideSidebar && !isClickOnToggle && !sidebar.classList.contains('collapsed')) {
+                    sidebar.classList.add('collapsed');
+                }
             }
         });
     </script>
-</body>
-</html>
 </body>
 </html>
