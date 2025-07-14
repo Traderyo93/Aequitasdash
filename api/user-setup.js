@@ -39,12 +39,14 @@ module.exports = async function handler(req, res) {
           return res.status(403).json({ success: false, error: 'Admin access required' });
         }
         
-        // Get user data
+        // Get user data with all fields including new boolean columns
         const userResult = await sql`
           SELECT 
             id, email, first_name, last_name, phone, address, date_of_birth,
             created_at, updated_at, role, setup_status, setup_step, setup_progress,
-            account_value, starting_balance
+            account_value, starting_balance,
+            personal_info_completed, documents_uploaded, legal_agreements_signed,
+            password_must_change
           FROM users 
           WHERE id = ${userId}
         `;
@@ -98,54 +100,25 @@ module.exports = async function handler(req, res) {
             success: false,
             error: error.message
           });
-          
-          // If user completed setup but no documents found, create placeholders
-          if (userData.setup_status === 'review_pending') {
-            documents = [
-              {
-                document_type: 'Identity Document',
-                file_name: `${userData.first_name}_${userData.last_name}_ID.pdf`,
-                file_url: 'placeholder://id-document',
-                uploaded_at: userData.updated_at,
-                is_placeholder: true
-              },
-              {
-                document_type: 'Proof of Address',
-                file_name: `${userData.first_name}_${userData.last_name}_Address.pdf`,
-                file_url: 'placeholder://address-document',
-                uploaded_at: userData.updated_at,
-                is_placeholder: true
-              },
-              {
-                document_type: 'Signed Memorandum',
-                file_name: `${userData.first_name}_${userData.last_name}_Memorandum.pdf`,
-                file_url: 'placeholder://memorandum-document',
-                uploaded_at: userData.updated_at,
-                is_placeholder: true
-              }
-            ];
-            
-            debugInfo.searchAttempts.push({
-              method: 'placeholders_for_completed_setup',
-              found: documents.length,
-              success: true
-            });
-          }
         }
         
-        // Calculate setup progress
+        // FIXED: Proper setup progress calculation
         let setupProgress = 0;
-        if (userData.first_name && userData.last_name && userData.phone && userData.address) {
-          setupProgress += 40; // Personal info completed
-        }
-        if (userData.date_of_birth) {
-          setupProgress += 10; // DOB provided
-        }
-        if (documents.length >= 3) {
-          setupProgress += 50; // All documents uploaded
-        }
+        const hasPersonalInfo = userData.first_name && userData.last_name && userData.phone && userData.address;
+        const hasDocuments = documents.length >= 3;
+        const hasAgreements = documents.some(d => d.document_type === 'Signed Memorandum');
+        
+        // Calculate progress based on actual completion
+        if (hasPersonalInfo) setupProgress += 33;
+        if (hasDocuments) setupProgress += 34; 
+        if (hasAgreements) setupProgress += 33;
         
         setupProgress = Math.min(setupProgress, 100);
+        
+        // For NEW users who haven't started, should be 0%
+        if (!hasPersonalInfo && !hasDocuments && !hasAgreements) {
+          setupProgress = 0;
+        }
         
         return res.status(200).json({
           success: true,
@@ -157,8 +130,8 @@ module.exports = async function handler(req, res) {
             phone: userData.phone || 'Not provided',
             date_of_birth: userData.date_of_birth || null,
             address: userData.address || 'Not provided',
-            setup_status: userData.setup_status || 'review_pending',
-            setup_step: userData.setup_step || 3,
+            setup_status: userData.setup_status || 'setup_pending',
+            setup_step: userData.setup_step || 1,
             setup_progress: setupProgress,
             created_at: userData.created_at,
             updated_at: userData.updated_at,
@@ -167,9 +140,10 @@ module.exports = async function handler(req, res) {
             starting_balance: userData.starting_balance || 0,
             documents: documents,
             document_count: documents.length,
-            personal_info_completed: !!(userData.first_name && userData.last_name && userData.phone && userData.address),
+            personal_info_completed: hasPersonalInfo,
             documents_uploaded: documents.length,
-            legal_agreements_signed: documents.some(d => d.document_type === 'Signed Memorandum'),
+            legal_agreements_signed: hasAgreements,
+            password_must_change: userData.password_must_change || false,
             setup_completed_at: userData.role === 'pending' ? userData.updated_at : null
           },
           debug: debugInfo
@@ -180,18 +154,21 @@ module.exports = async function handler(req, res) {
       if (user.role === 'admin') {
         console.log('📋 Admin fetching all pending users');
         
+        // FIXED: Include all necessary fields in query
         const pendingUsers = await sql`
           SELECT 
-            id, email, first_name, last_name, phone, date_of_birth, 
-            created_at, updated_at, role, setup_status, setup_progress
+            id, email, first_name, last_name, phone, date_of_birth, address,
+            created_at, updated_at, role, setup_status, setup_progress,
+            personal_info_completed, documents_uploaded, legal_agreements_signed,
+            password_must_change, setup_step
           FROM users 
-          WHERE role = 'pending'
+          WHERE role = 'pending' OR setup_status LIKE '%pending%'
           ORDER BY created_at DESC
         `;
         
         console.log('📋 Found pending users:', pendingUsers.rows.length);
         
-        // Add document count for each user
+        // FIXED: Proper progress calculation without hardcoded 90%
         const usersWithDocCounts = await Promise.all(
           pendingUsers.rows.map(async (user) => {
             let docCount = 0;
@@ -204,18 +181,39 @@ module.exports = async function handler(req, res) {
               `;
               docCount = parseInt(docCountResult.rows[0].count) || 0;
             } catch (e) {
-              // Assume documents exist if setup completed
-              docCount = user.setup_status === 'review_pending' ? 3 : 0;
+              docCount = 0; // Don't assume documents exist
+            }
+            
+            // PROPER setup progress calculation
+            let setupProgress = 0;
+            
+            // Only count steps as complete if they're actually complete
+            const hasPersonalInfo = user.first_name && user.last_name && user.phone && user.address;
+            const hasDocuments = docCount >= 3;
+            const hasAgreements = user.legal_agreements_signed;
+            
+            if (hasPersonalInfo) setupProgress += 33;
+            if (hasDocuments) setupProgress += 34;
+            if (hasAgreements) setupProgress += 33;
+            
+            // Users just created should be 0%
+            if (!hasPersonalInfo && !hasDocuments && !hasAgreements) {
+              setupProgress = 0;
             }
             
             return {
               ...user,
-              setup_status: user.setup_status || 'review_pending',
-              setup_step: user.setup_step || 3,
-              setup_progress: user.setup_progress || 90,
+              setup_status: user.setup_status || 'setup_pending',
+              setup_progress: setupProgress, // FIXED: No more hardcoded 90%
               document_count: docCount,
               phone: user.phone || 'Not provided',
-              address: user.address || 'Not provided'
+              address: user.address || 'Not provided',
+              
+              // Include the boolean fields for proper frontend handling
+              personal_info_completed: hasPersonalInfo,
+              documents_uploaded: docCount,
+              legal_agreements_signed: hasAgreements,
+              password_must_change: user.password_must_change || false
             };
           })
         );
@@ -228,8 +226,12 @@ module.exports = async function handler(req, res) {
       
       // Regular user - get their own status
       const result = await sql`
-        SELECT id, email, first_name, last_name, date_of_birth, created_at, role, setup_status, setup_progress
-        FROM users WHERE id = ${user.id}
+        SELECT 
+          id, email, first_name, last_name, date_of_birth, created_at, role, 
+          setup_status, setup_progress, personal_info_completed, documents_uploaded,
+          legal_agreements_signed, password_must_change
+        FROM users 
+        WHERE id = ${user.id}
       `;
       
       if (result.rows.length === 0) {
@@ -238,11 +240,18 @@ module.exports = async function handler(req, res) {
       
       const userStatus = result.rows[0];
       
+      // Calculate actual progress for user
+      let setupProgress = 0;
+      if (userStatus.personal_info_completed) setupProgress += 33;
+      if (userStatus.documents_uploaded >= 3) setupProgress += 34;
+      if (userStatus.legal_agreements_signed) setupProgress += 33;
+      
       return res.status(200).json({
         success: true,
-        setupStatus: userStatus.setup_status || (userStatus.role === 'pending' ? 'review_pending' : 'approved'),
-        setupStep: 3,
-        setupProgress: userStatus.setup_progress || 90
+        setupStatus: userStatus.setup_status || 'setup_pending',
+        setupStep: 1,
+        setupProgress: setupProgress,
+        passwordChangeRequired: userStatus.password_must_change || false
       });
     }
     
@@ -272,33 +281,59 @@ module.exports = async function handler(req, res) {
       if (setupStatus) updateFields.setup_status = setupStatus;
       if (setupStep) updateFields.setup_step = setupStep;
       
-      // Calculate progress
+      // Calculate progress properly
       let progress = 0;
-      if (personalInfo?.firstName && personalInfo?.lastName && personalInfo?.phone && personalInfo?.address) {
-        progress += 40;
+      const hasPersonalInfo = personalInfo?.firstName && personalInfo?.lastName && personalInfo?.phone && personalInfo?.address;
+      const hasDocuments = uploadedDocuments && Object.values(uploadedDocuments).filter(doc => doc).length >= 3;
+      
+      if (hasPersonalInfo) {
+        progress += 33;
+        updateFields.personal_info_completed = true;
       }
-      if (personalInfo?.dateOfBirth) progress += 10;
-      if (uploadedDocuments && Object.values(uploadedDocuments).filter(doc => doc).length >= 3) {
-        progress += 50;
+      if (hasDocuments) {
+        progress += 34;
+        updateFields.documents_uploaded = Object.values(uploadedDocuments).filter(doc => doc).length;
+      }
+      if (setupStatus === 'review_pending') {
+        progress += 33;
+        updateFields.legal_agreements_signed = true;
       }
       
       updateFields.setup_progress = progress;
       
       // Update user record
-      await sql`
+      const updateQuery = `
         UPDATE users 
         SET 
-          first_name = COALESCE(${updateFields.first_name}, first_name),
-          last_name = COALESCE(${updateFields.last_name}, last_name),
-          phone = COALESCE(${updateFields.phone}, phone),
-          date_of_birth = COALESCE(${updateFields.date_of_birth}, date_of_birth),
-          address = COALESCE(${updateFields.address}, address),
-          setup_status = COALESCE(${updateFields.setup_status}, setup_status),
-          setup_step = COALESCE(${updateFields.setup_step}, setup_step),
-          setup_progress = ${updateFields.setup_progress},
+          first_name = COALESCE($1, first_name),
+          last_name = COALESCE($2, last_name),
+          phone = COALESCE($3, phone),
+          date_of_birth = COALESCE($4, date_of_birth),
+          address = COALESCE($5, address),
+          setup_status = COALESCE($6, setup_status),
+          setup_step = COALESCE($7, setup_step),
+          setup_progress = $8,
+          personal_info_completed = COALESCE($9, personal_info_completed),
+          documents_uploaded = COALESCE($10, documents_uploaded),
+          legal_agreements_signed = COALESCE($11, legal_agreements_signed),
           updated_at = NOW()
-        WHERE id = ${user.id}
+        WHERE id = $12
       `;
+      
+      await sql.query(updateQuery, [
+        updateFields.first_name,
+        updateFields.last_name,
+        updateFields.phone,
+        updateFields.date_of_birth,
+        updateFields.address,
+        updateFields.setup_status,
+        updateFields.setup_step,
+        updateFields.setup_progress,
+        updateFields.personal_info_completed,
+        updateFields.documents_uploaded,
+        updateFields.legal_agreements_signed,
+        user.id
+      ]);
       
       console.log('✅ Setup progress saved for user:', user.id);
       
@@ -333,6 +368,10 @@ module.exports = async function handler(req, res) {
             setup_status = 'setup_pending',
             setup_progress = 0,
             setup_step = 1,
+            personal_info_completed = false,
+            documents_uploaded = 0,
+            legal_agreements_signed = false,
+            password_must_change = true,
             updated_at = NOW()
           WHERE id = ${userId}
         `;
