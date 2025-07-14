@@ -2091,54 +2091,108 @@ function showTempPasswordModal(firstName, lastName, email, tempPassword) {
             modal.style.display = 'block';
         }
 
-        async function submitDeposit(clientId) {
+        async function submitClientDeposit(clientId) {
+            console.log('🚀 DEPOSIT SUBMISSION STARTED');
+            console.log('📋 Client ID:', clientId);
+            
             const depositAmount = document.getElementById('depositAmount').value;
             const depositDate = document.getElementById('depositDate').value;
+            const depositPurpose = document.getElementById('depositPurpose').value;
             
-            if (!depositAmount || !depositDate) {
+            console.log('📊 Form Values:', {
+                depositAmount,
+                depositDate,
+                depositPurpose,
+                clientId
+            });
+            
+            if (!depositAmount || !depositDate || !depositPurpose) {
+                console.error('❌ Validation failed - missing fields');
                 showNotification('Please fill in all fields', 'warning');
                 return;
             }
             
+            if (parseFloat(depositAmount) <= 0) {
+                console.error('❌ Validation failed - invalid amount');
+                showNotification('Please enter a valid amount greater than 0', 'warning');
+                return;
+            }
+            
+            const submitBtn = document.querySelector('#addDepositModal .btn-primary');
+            const originalText = submitBtn.textContent;
+            
             try {
+                // Show loading state
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Adding Deposit...';
+                
+                console.log('📡 Making API request to /api/deposits...');
+                
+                const requestBody = {
+                    userId: clientId,
+                    amount: parseFloat(depositAmount),
+                    depositDate: depositDate,
+                    purpose: depositPurpose
+                };
+                
+                console.log('📤 Request body:', requestBody);
+                console.log('🔑 Auth token exists:', !!getAuthToken());
+                
                 const response = await fetch('/api/deposits', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${getAuthToken()}`,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        userId: clientId,
-                        amount: parseFloat(depositAmount),
-                        depositDate: depositDate
-                    })
+                    body: JSON.stringify(requestBody)
                 });
                 
-                const data = await response.json();
+                console.log('📊 Response status:', response.status);
+                console.log('📊 Response ok:', response.ok);
+                
+                let data;
+                try {
+                    data = await response.json();
+                    console.log('📋 Response data:', data);
+                } catch (parseError) {
+                    console.error('❌ JSON parse error:', parseError);
+                    const responseText = await response.text();
+                    console.error('📄 Raw response:', responseText);
+                    throw new Error('Invalid JSON response from server');
+                }
                 
                 if (data.success) {
-                    showNotification(`Deposit of ${parseFloat(depositAmount).toLocaleString()} added successfully!`, 'success');
-                    closeDepositModal();
+                    console.log('✅ Deposit added successfully!');
+                    showNotification(`Deposit of $${parseFloat(depositAmount).toLocaleString()} added successfully!`, 'success');
+                    closeAddDepositModal();
+                    
+                    // Refresh data
+                    console.log('🔄 Refreshing admin stats...');
                     await fetchAdminStats();
                     renderClientsTable();
+                    
                 } else {
+                    console.error('❌ API returned error:', data.error);
                     throw new Error(data.error || 'Failed to add deposit');
                 }
                 
             } catch (error) {
-                console.error('💥 Failed to add deposit:', error);
+                console.error('💥 DEPOSIT SUBMISSION FAILED:', error);
+                console.error('💥 Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    name: error.name
+                });
+                
                 showNotification(`Failed to add deposit: ${error.message}`, 'error');
+                
+            } finally {
+                // Reset button
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+                console.log('🏁 Deposit submission process finished');
             }
         }
-
-        function closeDepositModal() {
-            const modal = document.getElementById('depositModal');
-            if (modal) {
-                modal.style.display = 'none';
-                document.body.removeChild(modal);
-            }
-        }
-
         async function triggerDailyUpdate() {
             if (!confirm('Run daily update for all live trading users? This will execute the Python script.')) {
                 return;
