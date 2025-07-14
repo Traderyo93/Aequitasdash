@@ -1586,14 +1586,37 @@
             }
             
             // FIXED: Check password change requirement from BOTH sources
-            passwordChangeRequired = localStorage.getItem('aequitas_password_change_required') === 'true' || 
-                                     user.password_must_change === true;
+            const localStorageFlag = localStorage.getItem('aequitas_password_change_required');
+            const userDataFlag = user.password_must_change;
+            
+            // Convert string "true" to boolean true for comparison
+            passwordChangeRequired = (localStorageFlag === 'true') || (userDataFlag === true);
             
             console.log('🔐 Password change analysis:', {
-                fromLocalStorage: localStorage.getItem('aequitas_password_change_required'),
-                fromUserData: user.password_must_change,
+                fromLocalStorage: localStorageFlag,
+                fromUserData: userDataFlag,
+                localStorageFlag_equals_true: localStorageFlag === 'true',
+                userDataFlag_equals_true: userDataFlag === true,
                 finalDecision: passwordChangeRequired
             });
+            
+            // CRITICAL FIX: Actually show/hide the password section based on requirement
+            const passwordSection = document.getElementById('passwordChangeSection');
+            if (passwordChangeRequired) {
+                console.log('🔐 Password change required - showing password section');
+                if (passwordSection) {
+                    passwordSection.style.display = 'block';
+                    console.log('✅ Password section made visible');
+                } else {
+                    console.error('❌ Password section element not found!');
+                }
+                showNotification('Password change required before continuing setup.', 'warning');
+            } else {
+                console.log('📋 Password change not required - hiding password section');
+                if (passwordSection) {
+                    passwordSection.style.display = 'none';
+                }
+            }
 
             const firstName = user.firstName || user.first_name || 'User';
             const lastName = user.lastName || user.last_name || '';
