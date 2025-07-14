@@ -311,20 +311,37 @@ module.exports = async function handler(req, res) {
         try {
             const csvPath = path.join(process.cwd(), 'data', 'daily_returns_simple.csv');
             
-            // Calculate cumulative return (simplified for now)
-            const cumulativeReturn = 0; // You can enhance this later
+            // Read existing CSV to get last cumulative return
+            const csvContent = fs.readFileSync(csvPath, 'utf8');
+            const lines = csvContent.split('\n');
             
-            const newRow = `\n${date},${dailyReturn.toFixed(6)},${cumulativeReturn.toFixed(6)}`;
+            let lastCumulativeReturn = 0;
+            
+            // Find the last valid cumulative return
+            for (let i = lines.length - 1; i >= 1; i--) {
+                const line = lines[i].trim();
+                if (line) {
+                    const values = line.split(',');
+                    if (values.length >= 3) {
+                        lastCumulativeReturn = parseFloat(values[2]);
+                        break;
+                    }
+                }
+            }
+            
+            // Calculate new cumulative return: ADD daily to previous cumulative
+            const newCumulativeReturn = lastCumulativeReturn + dailyReturn;
+            
+            const newRow = `\n${date},${dailyReturn.toFixed(6)},${newCumulativeReturn.toFixed(6)}`;
             
             fs.appendFileSync(csvPath, newRow);
-            console.log(`📊 Appended today's return to CSV: ${date} = ${dailyReturn.toFixed(4)}%`);
+            console.log(`📊 CSV updated: ${date} = ${dailyReturn.toFixed(4)}% daily, ${newCumulativeReturn.toFixed(4)}% cumulative`);
             
         } catch (error) {
             console.error('💥 Failed to append to CSV:', error);
-            // Don't throw - this is not critical
+            throw error;
         }
     }
-    
     // ===================================================================
     // CALCULATE DAILY RETURN FROM PYTHON SCRIPT
     // ===================================================================
