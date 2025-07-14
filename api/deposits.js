@@ -1,4 +1,4 @@
-// api/deposits.js - COMPLETE FIXED VERSION WITH COMMONJS
+// api/deposits.js - SIMPLE DEPOSIT + CSV-BASED PERFORMANCE CALCULATION
 const { sql } = require('@vercel/postgres');
 const jwt = require('jsonwebtoken');
 
@@ -61,7 +61,7 @@ module.exports = async function handler(req, res) {
     }
     
     if (req.method === 'POST') {
-      console.log('💰 POST deposit request - TRADING INTEGRATION VERSION');
+      console.log('💰 POST deposit request - SIMPLE DEPOSIT + CSV PERFORMANCE');
       console.log('📋 Request body:', req.body);
       console.log('👤 User making request:', { id: user.id, role: user.role });
       
@@ -96,7 +96,7 @@ module.exports = async function handler(req, res) {
       
       // Check if target user exists
       const userCheck = await sql`
-        SELECT id, first_name, last_name, email, account_value, starting_balance, live_trading_enabled, total_deposits
+        SELECT id, first_name, last_name, email, account_value, total_deposits
         FROM users 
         WHERE id = ${targetUserId}
       `;
@@ -111,72 +111,8 @@ module.exports = async function handler(req, res) {
       const targetUser = userCheck.rows[0];
       console.log('👤 Target user found:', targetUser.email);
       
-      // ===== INTEGRATION WITH LIVE TRADING SIMULATION =====
-      console.log('🔄 Calling live-trading-simulation.js for deposit processing...');
-      
-      try {
-        // Call the live trading simulation to handle the deposit with backtesting
-        const tradingResult = await processDepositWithTrading(targetUserId, amount, depositDate);
-        
-        if (tradingResult.success) {
-          console.log('✅ Live trading simulation processed deposit successfully');
-          
-          // Create deposit record in deposits table for admin tracking
-          const reference = 'DEP' + Date.now().toString().slice(-8);
-          
-          const depositRecord = await sql`
-            INSERT INTO deposits (
-              id,
-              user_id,
-              reference,
-              amount,
-              currency,
-              purpose,
-              status,
-              deposit_date,
-              created_at,
-              client_name,
-              client_email,
-              added_by
-            ) VALUES (
-              gen_random_uuid(),
-              ${targetUserId},
-              ${reference},
-              ${parseFloat(amount)},
-              'USD',
-              ${purpose},
-              'completed',
-              ${depositDate}::date,
-              NOW(),
-              ${targetUser.first_name + ' ' + targetUser.last_name},
-              ${targetUser.email},
-              ${user.id}
-            )
-            RETURNING *
-          `;
-          
-          return res.status(200).json({
-            success: true,
-            message: `Deposit processed successfully with trading simulation!`,
-            deposit: depositRecord.rows[0],
-            tradingResult: tradingResult
-          });
-          
-        } else {
-          console.error('❌ Live trading simulation failed:', tradingResult.error);
-          
-          // Fallback to simple deposit without trading simulation
-          console.log('⚠️ Falling back to simple deposit without trading simulation');
-          return await addDepositDirectly(targetUserId, amount, depositDate, purpose, user.id, targetUser, res);
-        }
-        
-      } catch (tradingError) {
-        console.error('💥 Trading simulation error:', tradingError);
-        
-        // Fallback to simple deposit
-        console.log('⚠️ Trading simulation failed, falling back to direct deposit');
-        return await addDepositDirectly(targetUserId, amount, depositDate, purpose, user.id, targetUser, res);
-      }
+      // ===== ADD DEPOSIT + CALCULATE PERFORMANCE FROM CSV =====
+      return await addDepositWithPerformance(targetUserId, amount, depositDate, purpose, user.id, targetUser, res);
     }
     
     if (req.method === 'PUT') {
@@ -238,265 +174,10 @@ module.exports = async function handler(req, res) {
   }
 };
 
-// ===== TRADING SIMULATION INTEGRATION FUNCTION =====
-async function processDepositWithTrading(userId, depositAmount, depositDate) {
+// ===== ADD DEPOSIT + CALCULATE PERFORMANCE FROM CSV =====
+async function addDepositWithPerformance(targetUserId, amount, depositDate, purpose, addedBy, targetUser, res) {
   try {
-    console.log('🎯 Processing deposit with trading simulation:', { userId, depositAmount, depositDate });
-    
-    // Get current user info
-    const userResult = await sql`
-      SELECT current_balance, total_deposits, live_trading_enabled, inception_date
-      FROM users 
-      WHERE id = ${userId}
-    `;
-    
-    if (userResult.rows.length === 0) {
-      throw new Error('User not found');
-    }
-    
-    const userInfo = userResult.rows[0];
-    const currentBalance = parseFloat(userInfo.current_balance || 0);
-    const currentTotalDeposits = parseFloat(userInfo.total_deposits || 0);
-    const isFirstDeposit = currentTotalDeposits === 0;
-    
-    // Record the deposit in user_deposits table
-    await sql`
-      INSERT INTO user_deposits (
-        user_id, deposit_amount, deposit_date, 
-        balance_before_deposit, balance_after_deposit, status
-      ) VALUES (
-        ${userId}, ${depositAmount}, ${depositDate}, 
-        ${currentBalance}, ${currentBalance + parseFloat(depositAmount)}, 'completed'
-      )
-    `;
-    
-    const newTotalDeposits = currentTotalDeposits + parseFloat(depositAmount);
-    
-    if (isFirstDeposit) {
-      // First deposit - enable live trading and set inception date
-      await sql`
-        UPDATE users 
-        SET 
-          live_trading_enabled = true,
-          inception_date = ${depositDate},
-          starting_balance = ${depositAmount},
-          current_balance = ${depositAmount},
-          total_deposits = ${newTotalDeposits},
-          account_value = ${depositAmount},
-          total_return_percent = 0,
-          last_backtest_update = ${depositDate},
-          updated_at = NOW()
-        WHERE id = ${userId}
-      `;
-      
-      console.log('🎯 First deposit - enabling live trading and backfilling from inception');
-      
-      // Backfill performance from inception date to today
-      await backfillUserPerformance(userId, depositDate);
-      
-      return {
-        success: true,
-        message: 'First deposit added - live trading enabled and historical performance calculated',
-        userId: userId,
-        depositAmount: depositAmount,
-        depositDate: depositDate,
-        inceptionDate: depositDate,
-        liveTrading: true
-      };
-      
-    } else {
-      // Additional deposit - update totals and recalculate performance
-      await sql`
-        UPDATE users 
-        SET 
-          total_deposits = ${newTotalDeposits},
-          updated_at = NOW()
-        WHERE id = ${userId}
-      `;
-      
-      console.log('💰 Additional deposit - recalculating performance from inception');
-      
-      // Recalculate performance from original inception date
-      await backfillUserPerformance(userId, userInfo.inception_date);
-      
-      return {
-        success: true,
-        message: 'Additional deposit added and performance recalculated',
-        userId: userId,
-        depositAmount: depositAmount,
-        depositDate: depositDate,
-        newTotalDeposits: newTotalDeposits
-      };
-    }
-    
-  } catch (error) {
-    console.error('💥 Trading simulation integration failed:', error);
-    return {
-      success: false,
-      error: error.message
-    };
-  }
-}
-
-// ===== BACKFILL USER PERFORMANCE FUNCTION =====
-async function backfillUserPerformance(userId, inceptionDate) {
-  try {
-    console.log(`📊 BACKFILLING user ${userId} from inception: ${inceptionDate}`);
-    
-    // Load historical returns from CSV
-    const historicalReturns = await loadHistoricalReturnsCSV();
-    
-    // Get user deposits chronologically
-    const depositsResult = await sql`
-      SELECT deposit_amount, deposit_date
-      FROM user_deposits
-      WHERE user_id = ${userId}
-      ORDER BY deposit_date ASC
-    `;
-    
-    const deposits = depositsResult.rows;
-    console.log(`💰 Found ${deposits.length} deposits for user`);
-    
-    // Clear existing performance data
-    await sql`DELETE FROM daily_performance WHERE user_id = ${userId}`;
-    
-    // Process each day from inception to today
-    const startDate = new Date(inceptionDate);
-    const today = new Date();
-    
-    let currentBalance = 0;
-    let depositIndex = 0;
-    
-    for (let date = new Date(startDate); date <= today; date.setDate(date.getDate() + 1)) {
-      const dateStr = date.toISOString().split('T')[0];
-      
-      // Apply any deposits for this date
-      while (depositIndex < deposits.length && 
-             new Date(deposits[depositIndex].deposit_date).toISOString().split('T')[0] === dateStr) {
-        
-        const depositAmount = parseFloat(deposits[depositIndex].deposit_amount);
-        console.log(`💵 Adding deposit: $${depositAmount} on ${dateStr}`);
-        currentBalance += depositAmount;
-        depositIndex++;
-      }
-      
-      // Skip if no balance yet
-      if (currentBalance === 0) continue;
-      
-      // Get daily return from CSV
-      const dailyReturn = historicalReturns[dateStr] || 0;
-      
-      // Apply return to current balance
-      const openingBalance = currentBalance;
-      const dailyPnL = openingBalance * (dailyReturn / 100);
-      currentBalance = openingBalance + dailyPnL;
-      
-      // Store daily performance
-      await sql`
-        INSERT INTO daily_performance (
-          user_id, trade_date, daily_return_percent,
-          opening_balance, closing_balance, daily_pnl
-        ) VALUES (
-          ${userId}, ${dateStr}, ${dailyReturn},
-          ${openingBalance}, ${currentBalance}, ${dailyPnL}
-        )
-      `;
-      
-      if (Math.abs(dailyReturn) > 0.001) { // Only log significant returns
-        console.log(`📈 ${dateStr}: ${dailyReturn.toFixed(4)}% → $${currentBalance.toLocaleString()}`);
-      }
-    }
-    
-    // Update user's final balance and total return
-    const totalDeposits = deposits.reduce((sum, dep) => sum + parseFloat(dep.deposit_amount), 0);
-    const totalReturn = totalDeposits > 0 ? ((currentBalance - totalDeposits) / totalDeposits) * 100 : 0;
-    
-    await sql`
-      UPDATE users 
-      SET 
-        current_balance = ${currentBalance},
-        account_value = ${currentBalance},
-        total_return_percent = ${totalReturn},
-        last_backtest_update = CURRENT_DATE,
-        updated_at = NOW()
-      WHERE id = ${userId}
-    `;
-    
-    console.log(`✅ BACKFILL COMPLETE: $${totalDeposits.toLocaleString()} deposits → $${currentBalance.toLocaleString()} (${totalReturn.toFixed(2)}% return)`);
-    
-  } catch (error) {
-    console.error('💥 Backfill failed:', error);
-    throw error;
-  }
-}
-
-// ===== LOAD HISTORICAL RETURNS FROM CSV =====
-async function loadHistoricalReturnsCSV() {
-  try {
-    // Try to read from file system (for local/server environment)
-    const fs = require('fs');
-    const path = require('path');
-    
-    const csvPath = path.join(process.cwd(), 'data', 'daily_returns_simple.csv');
-    
-    if (fs.existsSync(csvPath)) {
-      const csvContent = fs.readFileSync(csvPath, 'utf8');
-      return parseCSVContent(csvContent);
-    } else {
-      console.log('📊 CSV file not found locally, trying public URL...');
-      
-      // Try to fetch from public URL (for Vercel deployment)
-      const response = await fetch(`${process.env.VERCEL_URL || 'http://localhost:3000'}/data/daily_returns_simple.csv`);
-      
-      if (response.ok) {
-        const csvContent = await response.text();
-        return parseCSVContent(csvContent);
-      } else {
-        throw new Error('CSV file not accessible via URL');
-      }
-    }
-  } catch (error) {
-    console.error('💥 Failed to load historical returns CSV:', error);
-    console.log('⚠️ Using empty returns data - trading simulation will not apply historical returns');
-    return {}; // Return empty object if CSV fails to load
-  }
-}
-
-// ===== PARSE CSV CONTENT =====
-function parseCSVContent(csvContent) {
-  try {
-    const lines = csvContent.split('\n');
-    const returns = {};
-    
-    // Skip header row
-    for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
-      
-      const values = line.split(',');
-      if (values.length >= 2) {
-        const date = values[0].trim();
-        const dailyReturn = parseFloat(values[1].trim());
-        
-        if (!isNaN(dailyReturn)) {
-          returns[date] = dailyReturn;
-        }
-      }
-    }
-    
-    console.log(`📊 Loaded ${Object.keys(returns).length} historical daily returns from CSV`);
-    return returns;
-    
-  } catch (error) {
-    console.error('💥 Failed to parse CSV content:', error);
-    return {};
-  }
-}
-
-// ===== SIMPLE DEPOSIT FALLBACK FUNCTION =====
-async function addDepositDirectly(targetUserId, amount, depositDate, purpose, addedBy, targetUser, res) {
-  try {
-    console.log('💰 Adding deposit directly (SIMPLE VERSION)');
+    console.log('💰 Adding deposit + calculating performance from CSV');
     
     const reference = 'DEP' + Date.now().toString().slice(-8);
     
@@ -515,40 +196,169 @@ async function addDepositDirectly(targetUserId, amount, depositDate, purpose, ad
       RETURNING *
     `;
     
-    // Get user's current account values
-    const userResult = await sql`
-      SELECT account_value, total_deposits FROM users WHERE id = ${targetUserId}
+    // Get all user's deposits to calculate total performance
+    const allDepositsResult = await sql`
+      SELECT deposit_date, amount FROM deposits 
+      WHERE user_id = ${targetUserId} AND status = 'completed'
+      ORDER BY deposit_date ASC
     `;
     
-    const currentUser = userResult.rows[0] || {};
-    const currentAccountValue = parseFloat(currentUser.account_value || 0);
-    const currentTotalDeposits = parseFloat(currentUser.total_deposits || 0);
+    const allDeposits = allDepositsResult.rows;
+    console.log(`📊 User has ${allDeposits.length} total deposits`);
     
-    // Update user's account (simple addition)
-    const newAccountValue = currentAccountValue + parseFloat(amount);
-    const newTotalDeposits = currentTotalDeposits + parseFloat(amount);
+    // Load CSV data for performance calculation
+    const csvData = await loadCSVData();
     
+    // Calculate user's current balance based on all deposits + performance
+    const performanceResult = calculateUserPerformance(allDeposits, csvData);
+    
+    console.log('📈 Performance calculation result:', performanceResult);
+    
+    // Update user's account with calculated performance
     await sql`
       UPDATE users 
       SET 
-        account_value = ${newAccountValue},
-        total_deposits = ${newTotalDeposits},
+        account_value = ${performanceResult.currentBalance},
+        total_deposits = ${performanceResult.totalDeposits},
+        total_return_percent = ${performanceResult.totalReturnPercent},
         updated_at = NOW()
       WHERE id = ${targetUserId}
     `;
     
-    console.log(`✅ Simple deposit complete: $${amount} added, new balance: $${newAccountValue.toLocaleString()}`);
+    console.log(`✅ Deposit added + performance calculated:`);
+    console.log(`   - Deposits: $${performanceResult.totalDeposits.toLocaleString()}`);
+    console.log(`   - Current Value: $${performanceResult.currentBalance.toLocaleString()}`);
+    console.log(`   - Total Return: ${performanceResult.totalReturnPercent.toFixed(2)}%`);
     
     return res.status(200).json({
       success: true,
-      message: 'Deposit added successfully',
+      message: 'Deposit added and performance calculated from trading data!',
       deposit: depositResult.rows[0],
-      newAccountValue: newAccountValue,
-      newTotalDeposits: newTotalDeposits
+      performance: {
+        totalDeposits: performanceResult.totalDeposits,
+        currentBalance: performanceResult.currentBalance,
+        totalProfit: performanceResult.currentBalance - performanceResult.totalDeposits,
+        totalReturnPercent: performanceResult.totalReturnPercent,
+        daysTrading: performanceResult.daysTrading
+      }
     });
     
   } catch (error) {
-    console.error('💥 Direct deposit failed:', error);
-    throw error;
+    console.error('💥 Deposit + performance calculation failed:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to add deposit and calculate performance',
+      details: error.message
+    });
   }
+}
+
+// ===== LOAD CSV DATA =====
+async function loadCSVData() {
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    
+    // Try to read from file system first
+    const csvPath = path.join(process.cwd(), 'data', 'daily_returns_simple.csv');
+    
+    let csvContent;
+    if (fs.existsSync(csvPath)) {
+      csvContent = fs.readFileSync(csvPath, 'utf8');
+      console.log('📊 CSV loaded from local file system');
+    } else {
+      // Try to fetch from public URL (for Vercel deployment)
+      console.log('📊 CSV not found locally, trying public URL...');
+      const response = await fetch(`${process.env.VERCEL_URL || 'http://localhost:3000'}/data/daily_returns_simple.csv`);
+      
+      if (response.ok) {
+        csvContent = await response.text();
+        console.log('📊 CSV loaded from public URL');
+      } else {
+        throw new Error('CSV file not accessible');
+      }
+    }
+    
+    // Parse CSV content
+    const lines = csvContent.split('\n');
+    const csvData = {};
+    
+    // Skip header row, parse date and daily return
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      
+      const values = line.split(',');
+      if (values.length >= 2) {
+        const date = values[0].trim();
+        const dailyReturn = parseFloat(values[1].trim());
+        
+        if (!isNaN(dailyReturn)) {
+          csvData[date] = dailyReturn / 100; // Convert percentage to decimal
+        }
+      }
+    }
+    
+    console.log(`📊 Parsed ${Object.keys(csvData).length} trading days from CSV`);
+    return csvData;
+    
+  } catch (error) {
+    console.error('💥 Failed to load CSV data:', error);
+    console.log('⚠️ Using zero returns - performance calculation will show deposit amounts only');
+    return {}; // Return empty object if CSV fails to load
+  }
+}
+
+// ===== CALCULATE USER PERFORMANCE =====
+function calculateUserPerformance(deposits, csvData) {
+  console.log('🧮 Calculating user performance from deposits + CSV data');
+  
+  let totalBalance = 0;
+  let totalDeposits = 0;
+  let tradingDays = 0;
+  
+  // Sort deposits by date
+  const sortedDeposits = deposits.sort((a, b) => new Date(a.deposit_date) - new Date(b.deposit_date));
+  
+  // Process each deposit and apply performance from deposit date to today
+  for (const deposit of sortedDeposits) {
+    const depositAmount = parseFloat(deposit.amount);
+    const depositDate = new Date(deposit.deposit_date);
+    const today = new Date();
+    
+    console.log(`💵 Processing deposit: $${depositAmount.toLocaleString()} on ${depositDate.toISOString().split('T')[0]}`);
+    
+    totalDeposits += depositAmount;
+    let currentDepositValue = depositAmount;
+    let daysForThisDeposit = 0;
+    
+    // Apply daily returns from deposit date to today
+    for (let date = new Date(depositDate); date <= today; date.setDate(date.getDate() + 1)) {
+      const dateStr = date.toISOString().split('T')[0];
+      
+      // Skip weekends (Saturday = 6, Sunday = 0)
+      if (date.getDay() === 0 || date.getDay() === 6) continue;
+      
+      const dailyReturn = csvData[dateStr] || 0;
+      
+      if (dailyReturn !== 0) {
+        currentDepositValue *= (1 + dailyReturn);
+        daysForThisDeposit++;
+      }
+    }
+    
+    totalBalance += currentDepositValue;
+    tradingDays = Math.max(tradingDays, daysForThisDeposit);
+    
+    console.log(`   → Grew to: $${currentDepositValue.toLocaleString()} over ${daysForThisDeposit} trading days`);
+  }
+  
+  const totalReturnPercent = totalDeposits > 0 ? ((totalBalance - totalDeposits) / totalDeposits) * 100 : 0;
+  
+  return {
+    totalDeposits,
+    currentBalance: totalBalance,
+    totalReturnPercent,
+    daysTrading: tradingDays
+  };
 }
