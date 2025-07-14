@@ -1,4 +1,4 @@
-// api/auth.js - COMPLETE AUTHENTICATION API WITH FIXED PASSWORD CHANGE
+// api/auth.js - COMPLETE AUTHENTICATION API WITH 2FA INTEGRATION
 const { sql } = require('@vercel/postgres');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -27,12 +27,13 @@ module.exports = async function handler(req, res) {
 
     console.log('🔐 Auth attempt for:', email, 'with newPassword:', !!newPassword);
 
-    // Get user from database
+    // Get user from database with 2FA fields
     const result = await sql`
       SELECT 
         id, email, password_hash, role, first_name, last_name, 
         account_value, starting_balance, setup_status, setup_step, 
-        password_must_change, created_at, last_login
+        password_must_change, created_at, last_login,
+        two_factor_enabled, two_factor_setup_required, two_factor_secret, backup_codes
       FROM users 
       WHERE email = ${email} AND role != 'deleted'
     `;
@@ -43,7 +44,7 @@ module.exports = async function handler(req, res) {
     }
 
     const user = result.rows[0];
-    console.log('👤 User found:', email, 'Role:', user.role, 'Password must change:', user.password_must_change);
+    console.log('👤 User found:', email, 'Role:', user.role, 'Password must change:', user.password_must_change, '2FA enabled:', user.two_factor_enabled);
     
     // Verify current password
     let passwordValid;
@@ -118,7 +119,7 @@ module.exports = async function handler(req, res) {
         
         // Generate NEW JWT token for the user with updated password
         const token = jwt.sign(
-          { id: user.id, email: user.email, role: user.role },
+          { userId: user.id, id: user.id, email: user.email, role: user.role },
           process.env.JWT_SECRET || 'aequitas-secret-key-2025',
           { expiresIn: '24h' }
         );
@@ -173,8 +174,55 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // NORMAL LOGIN FLOW - No password change needed
-    console.log('🔓 Normal login flow for user:', email);
+    // ===================================================================
+    // 2FA CHECKS - NEW ADDITION
+    // ===================================================================
+
+    // Check if 2FA setup is required (new users or users who haven't set up 2FA)
+    if (!user.two_factor_enabled && user.two_factor_setup_required !== false) {
+      console.log('🔐 2FA setup required for user:', email);
+      
+      const token = jwt.sign(
+        { userId: user.id, id: user.id, email: user.email, role: user.role },
+        process.env.JWT_SECRET || 'aequitas-secret-key-2025',
+        { expiresIn: '1h' }
+      );
+      
+      return res.status(200).json({
+        success: true,
+        twoFactorSetupRequired: true,
+        token: token,
+        user: { 
+          id: user.id, 
+          email: user.email, 
+          role: user.role,
+          firstName: user.first_name,
+          lastName: user.last_name,
+          setupStatus: user.setup_status,
+          setupStep: user.setup_step,
+          setupRequired: user.setup_status !== 'approved'
+        },
+        message: '2FA setup required - redirecting to setup'
+      });
+    }
+
+    // Check if 2FA verification is required (existing users with 2FA enabled)
+    if (user.two_factor_enabled) {
+      console.log('🔐 2FA verification required for user:', email);
+      
+      return res.status(200).json({
+        success: true,
+        twoFactorRequired: true,
+        email: user.email,
+        message: 'Please enter your 2FA code'
+      });
+    }
+
+    // ===================================================================
+    // NORMAL LOGIN FLOW - No 2FA required
+    // ===================================================================
+    
+    console.log('🔓 Normal login flow for user:', email, '(No 2FA required)');
     
     // Update last login timestamp
     try {
@@ -190,7 +238,7 @@ module.exports = async function handler(req, res) {
 
     // Generate JWT token
     const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
+      { userId: user.id, id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET || 'aequitas-secret-key-2025',
       { expiresIn: '24h' }
     );
