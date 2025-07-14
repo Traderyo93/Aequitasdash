@@ -1,4 +1,4 @@
-// api/deposits.js - SIMPLE DEPOSIT + CSV-BASED PERFORMANCE CALCULATION
+// api/deposits.js - FIXED VERSION WITH CORRECT COLUMN NAMES
 const { sql } = require('@vercel/postgres');
 const jwt = require('jsonwebtoken');
 
@@ -181,11 +181,11 @@ async function addDepositWithPerformance(targetUserId, amount, depositDate, purp
     
     const reference = 'DEP' + Date.now().toString().slice(-8);
     
-    // Insert deposit record
+    // ===== FIXED: Use correct column names from your actual database schema =====
     const depositResult = await sql`
       INSERT INTO deposits (
         id, user_id, reference, amount, purpose,
-        status, deposit_date, created_at, client_name, 
+        status, date, created_at, client_name, 
         client_email, added_by
       ) VALUES (
         gen_random_uuid(), ${targetUserId}, ${reference}, ${parseFloat(amount)}, ${purpose},
@@ -196,11 +196,11 @@ async function addDepositWithPerformance(targetUserId, amount, depositDate, purp
       RETURNING *
     `;
         
-    // Get all user's deposits to calculate total performance
+    // Get all user's deposits to calculate total performance - FIXED column name
     const allDepositsResult = await sql`
-      SELECT deposit_date, amount FROM deposits 
+      SELECT date, amount FROM deposits 
       WHERE user_id = ${targetUserId} AND status = 'completed'
-      ORDER BY deposit_date ASC
+      ORDER BY date ASC
     `;
     
     const allDeposits = allDepositsResult.rows;
@@ -317,13 +317,13 @@ function calculateUserPerformance(deposits, csvData) {
   let totalDeposits = 0;
   let tradingDays = 0;
   
-  // Sort deposits by date
-  const sortedDeposits = deposits.sort((a, b) => new Date(a.deposit_date) - new Date(b.deposit_date));
+  // Sort deposits by date - FIXED: using 'date' instead of 'deposit_date'
+  const sortedDeposits = deposits.sort((a, b) => new Date(a.date) - new Date(b.date));
   
   // Process each deposit and apply performance from deposit date to today
   for (const deposit of sortedDeposits) {
     const depositAmount = parseFloat(deposit.amount);
-    const depositDate = new Date(deposit.deposit_date);
+    const depositDate = new Date(deposit.date); // FIXED: using 'date' column
     const today = new Date();
     
     console.log(`💵 Processing deposit: $${depositAmount.toLocaleString()} on ${depositDate.toISOString().split('T')[0]}`);
