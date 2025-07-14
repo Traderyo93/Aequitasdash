@@ -1,4 +1,4 @@
-// api/deposits.js - COMPLETE FIXED VERSION
+// api/deposits.js - COMPLETE UPDATED VERSION WITH TRADING INTEGRATION
 import { sql } from '@vercel/postgres';
 import jwt from 'jsonwebtoken';
 
@@ -12,7 +12,7 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
   
-  // FIXED: Proper JWT authentication
+  // Authentication check
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith('Bearer ')) {
     return res.status(401).json({ success: false, error: 'Authentication required' });
@@ -61,8 +61,8 @@ export default async function handler(req, res) {
     }
     
     if (req.method === 'POST') {
-      // FIXED: Handle admin adding deposits for clients
-      console.log('💰 POST deposit request:', req.body);
+      console.log('💰 POST deposit request - TRADING INTEGRATION VERSION');
+      console.log('📋 Request body:', req.body);
       console.log('👤 User making request:', { id: user.id, role: user.role });
       
       const { userId, amount, depositDate, purpose } = req.body;
@@ -96,7 +96,7 @@ export default async function handler(req, res) {
       
       // Check if target user exists
       const userCheck = await sql`
-        SELECT id, first_name, last_name, email, account_value, starting_balance
+        SELECT id, first_name, last_name, email, account_value, starting_balance, live_trading_enabled, total_deposits
         FROM users 
         WHERE id = ${targetUserId}
       `;
@@ -109,68 +109,74 @@ export default async function handler(req, res) {
       }
       
       const targetUser = userCheck.rows[0];
+      console.log('👤 Target user found:', targetUser.email);
       
-      // Generate reference number
-      const reference = 'DEP' + Date.now().toString().slice(-8);
+      // ===== INTEGRATION WITH LIVE TRADING SIMULATION =====
+      console.log('🔄 Calling live-trading-simulation.js for deposit processing...');
       
-      // Insert deposit record
-      const depositResult = await sql`
-        INSERT INTO deposits (
-          id,
-          user_id,
-          reference,
-          amount,
-          currency,
-          purpose,
-          status,
-          deposit_date,
-          created_at,
-          client_name,
-          client_email,
-          added_by
-        ) VALUES (
-          gen_random_uuid(),
-          ${targetUserId},
-          ${reference},
-          ${parseFloat(amount)},
-          'USD',
-          ${purpose},
-          'completed',
-          ${depositDate}::date,
-          NOW(),
-          ${targetUser.first_name + ' ' + targetUser.last_name},
-          ${targetUser.email},
-          ${user.id}
-        )
-        RETURNING *
-      `;
-      
-      // Update user's account balance
-      const newAccountValue = (parseFloat(targetUser.account_value) || 0) + parseFloat(amount);
-      const newStartingBalance = (parseFloat(targetUser.starting_balance) || 0) + parseFloat(amount);
-      
-      await sql`
-        UPDATE users 
-        SET 
-          account_value = ${newAccountValue},
-          starting_balance = ${newStartingBalance},
-          updated_at = NOW()
-        WHERE id = ${targetUserId}
-      `;
-      
-      console.log('✅ Deposit added successfully:', {
-        reference: reference,
-        amount: parseFloat(amount),
-        targetUser: targetUser.email,
-        newBalance: newAccountValue
-      });
-      
-      return res.status(200).json({
-        success: true,
-        message: 'Deposit added successfully',
-        deposit: depositResult.rows[0],
-        newAccountValue: newAccountValue
-      });
+      try {
+        // Call the live trading simulation to handle the deposit with backtesting
+        const tradingResult = await processDepositWithTrading(targetUserId, amount, depositDate);
+        
+        if (tradingResult.success) {
+          console.log('✅ Live trading simulation processed deposit successfully');
+          
+          // Create deposit record in deposits table for admin tracking
+          const reference = 'DEP' + Date.now().toString().slice(-8);
+          
+          const depositRecord = await sql`
+            INSERT INTO deposits (
+              id,
+              user_id,
+              reference,
+              amount,
+              currency,
+              purpose,
+              status,
+              deposit_date,
+              created_at,
+              client_name,
+              client_email,
+              added_by
+            ) VALUES (
+              gen_random_uuid(),
+              ${targetUserId},
+              ${reference},
+              ${parseFloat(amount)},
+              'USD',
+              ${purpose},
+              'completed',
+              ${depositDate}::date,
+              NOW(),
+              ${targetUser.first_name + ' ' + targetUser.last_name},
+              ${targetUser.email},
+              ${user.id}
+            )
+            RETURNING *
+          `;
+          
+          return res.status(200).json({
+            success: true,
+            message: `Deposit processed successfully with trading simulation!`,
+            deposit: depositRecord.rows[0],
+            tradingResult: tradingResult
+          });
+          
+        } else {
+          console.error('❌ Live trading simulation failed:', tradingResult.error);
+          
+          // Fallback to simple deposit without trading simulation
+          console.log('⚠️ Falling back to simple deposit without trading simulation');
+          return await addDepositDirectly(targetUserId, amount, depositDate, purpose, user.id, targetUser);
+        }
+        
+      } catch (tradingError) {
+        console.error('💥 Trading simulation error:', tradingError);
+        
+        // Fallback to simple deposit
+        console.log('⚠️ Trading simulation failed, falling back to direct deposit');
+        return await addDepositDirectly(targetUserId, amount, depositDate, purpose, user.id, targetUser);
+      }
     }
     
     if (req.method === 'PUT') {
@@ -229,5 +235,326 @@ export default async function handler(req, res) {
       error: 'Internal server error',
       details: error.message
     });
+  }
+  
+  // ===== TRADING SIMULATION INTEGRATION FUNCTION =====
+  async function processDepositWithTrading(userId, depositAmount, depositDate) {
+    try {
+      console.log('🎯 Processing deposit with trading simulation:', { userId, depositAmount, depositDate });
+      
+      // Get current user info
+      const userResult = await sql`
+        SELECT current_balance, total_deposits, live_trading_enabled, inception_date
+        FROM users 
+        WHERE id = ${userId}
+      `;
+      
+      if (userResult.rows.length === 0) {
+        throw new Error('User not found');
+      }
+      
+      const userInfo = userResult.rows[0];
+      const currentBalance = parseFloat(userInfo.current_balance || 0);
+      const currentTotalDeposits = parseFloat(userInfo.total_deposits || 0);
+      const isFirstDeposit = currentTotalDeposits === 0;
+      
+      // Record the deposit in user_deposits table
+      await sql`
+        INSERT INTO user_deposits (
+          user_id, deposit_amount, deposit_date, 
+          balance_before_deposit, balance_after_deposit, status
+        ) VALUES (
+          ${userId}, ${depositAmount}, ${depositDate}, 
+          ${currentBalance}, ${currentBalance + parseFloat(depositAmount)}, 'completed'
+        )
+      `;
+      
+      const newTotalDeposits = currentTotalDeposits + parseFloat(depositAmount);
+      
+      if (isFirstDeposit) {
+        // First deposit - enable live trading and set inception date
+        await sql`
+          UPDATE users 
+          SET 
+            live_trading_enabled = true,
+            inception_date = ${depositDate},
+            starting_balance = ${depositAmount},
+            current_balance = ${depositAmount},
+            total_deposits = ${newTotalDeposits},
+            account_value = ${depositAmount},
+            total_return_percent = 0,
+            last_backtest_update = ${depositDate},
+            updated_at = NOW()
+          WHERE id = ${userId}
+        `;
+        
+        console.log('🎯 First deposit - enabling live trading and backfilling from inception');
+        
+        // Backfill performance from inception date to today
+        await backfillUserPerformance(userId, depositDate);
+        
+        return {
+          success: true,
+          message: 'First deposit added - live trading enabled and historical performance calculated',
+          userId: userId,
+          depositAmount: depositAmount,
+          depositDate: depositDate,
+          inceptionDate: depositDate,
+          liveTrading: true
+        };
+        
+      } else {
+        // Additional deposit - update totals and recalculate performance
+        await sql`
+          UPDATE users 
+          SET 
+            total_deposits = ${newTotalDeposits},
+            updated_at = NOW()
+          WHERE id = ${userId}
+        `;
+        
+        console.log('💰 Additional deposit - recalculating performance from inception');
+        
+        // Recalculate performance from original inception date
+        await backfillUserPerformance(userId, userInfo.inception_date);
+        
+        return {
+          success: true,
+          message: 'Additional deposit added and performance recalculated',
+          userId: userId,
+          depositAmount: depositAmount,
+          depositDate: depositDate,
+          newTotalDeposits: newTotalDeposits
+        };
+      }
+      
+    } catch (error) {
+      console.error('💥 Trading simulation integration failed:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+  
+  // ===== BACKFILL USER PERFORMANCE FUNCTION =====
+  async function backfillUserPerformance(userId, inceptionDate) {
+    try {
+      console.log(`📊 BACKFILLING user ${userId} from inception: ${inceptionDate}`);
+      
+      // Load historical returns from CSV
+      const historicalReturns = await loadHistoricalReturnsCSV();
+      
+      // Get user deposits chronologically
+      const depositsResult = await sql`
+        SELECT deposit_amount, deposit_date
+        FROM user_deposits
+        WHERE user_id = ${userId}
+        ORDER BY deposit_date ASC
+      `;
+      
+      const deposits = depositsResult.rows;
+      console.log(`💰 Found ${deposits.length} deposits for user`);
+      
+      // Clear existing performance data
+      await sql`DELETE FROM daily_performance WHERE user_id = ${userId}`;
+      
+      // Process each day from inception to today
+      const startDate = new Date(inceptionDate);
+      const today = new Date();
+      
+      let currentBalance = 0;
+      let depositIndex = 0;
+      
+      for (let date = new Date(startDate); date <= today; date.setDate(date.getDate() + 1)) {
+        const dateStr = date.toISOString().split('T')[0];
+        
+        // Apply any deposits for this date
+        while (depositIndex < deposits.length && 
+               new Date(deposits[depositIndex].deposit_date).toISOString().split('T')[0] === dateStr) {
+          
+          const depositAmount = parseFloat(deposits[depositIndex].deposit_amount);
+          console.log(`💵 Adding deposit: $${depositAmount} on ${dateStr}`);
+          currentBalance += depositAmount;
+          depositIndex++;
+        }
+        
+        // Skip if no balance yet
+        if (currentBalance === 0) continue;
+        
+        // Get daily return from CSV
+        const dailyReturn = historicalReturns[dateStr] || 0;
+        
+        // Apply return to current balance
+        const openingBalance = currentBalance;
+        const dailyPnL = openingBalance * (dailyReturn / 100);
+        currentBalance = openingBalance + dailyPnL;
+        
+        // Store daily performance
+        await sql`
+          INSERT INTO daily_performance (
+            user_id, trade_date, daily_return_percent,
+            opening_balance, closing_balance, daily_pnl
+          ) VALUES (
+            ${userId}, ${dateStr}, ${dailyReturn},
+            ${openingBalance}, ${currentBalance}, ${dailyPnL}
+          )
+        `;
+        
+        if (Math.abs(dailyReturn) > 0.001) { // Only log significant returns
+          console.log(`📈 ${dateStr}: ${dailyReturn.toFixed(4)}% → $${currentBalance.toLocaleString()}`);
+        }
+      }
+      
+      // Update user's final balance and total return
+      const totalDeposits = deposits.reduce((sum, dep) => sum + parseFloat(dep.deposit_amount), 0);
+      const totalReturn = totalDeposits > 0 ? ((currentBalance - totalDeposits) / totalDeposits) * 100 : 0;
+      
+      await sql`
+        UPDATE users 
+        SET 
+          current_balance = ${currentBalance},
+          account_value = ${currentBalance},
+          total_return_percent = ${totalReturn},
+          last_backtest_update = CURRENT_DATE,
+          updated_at = NOW()
+        WHERE id = ${userId}
+      `;
+      
+      console.log(`✅ BACKFILL COMPLETE: $${totalDeposits.toLocaleString()} deposits → $${currentBalance.toLocaleString()} (${totalReturn.toFixed(2)}% return)`);
+      
+    } catch (error) {
+      console.error('💥 Backfill failed:', error);
+      throw error;
+    }
+  }
+  
+  // ===== LOAD HISTORICAL RETURNS FROM CSV =====
+  async function loadHistoricalReturnsCSV() {
+    try {
+      // Try to read from file system (for local/server environment)
+      const fs = require('fs');
+      const path = require('path');
+      
+      const csvPath = path.join(process.cwd(), 'data', 'daily_returns_simple.csv');
+      
+      if (fs.existsSync(csvPath)) {
+        const csvContent = fs.readFileSync(csvPath, 'utf8');
+        return parseCSVContent(csvContent);
+      } else {
+        console.log('📊 CSV file not found locally, trying public URL...');
+        
+        // Try to fetch from public URL (for Vercel deployment)
+        const response = await fetch(`${process.env.VERCEL_URL || 'http://localhost:3000'}/data/daily_returns_simple.csv`);
+        
+        if (response.ok) {
+          const csvContent = await response.text();
+          return parseCSVContent(csvContent);
+        } else {
+          throw new Error('CSV file not accessible via URL');
+        }
+      }
+    } catch (error) {
+      console.error('💥 Failed to load historical returns CSV:', error);
+      console.log('⚠️ Using empty returns data - trading simulation will not apply historical returns');
+      return {}; // Return empty object if CSV fails to load
+    }
+  }
+  
+  // ===== PARSE CSV CONTENT =====
+  function parseCSVContent(csvContent) {
+    try {
+      const lines = csvContent.split('\n');
+      const returns = {};
+      
+      // Skip header row
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        
+        const values = line.split(',');
+        if (values.length >= 2) {
+          const date = values[0].trim();
+          const dailyReturn = parseFloat(values[1].trim());
+          
+          if (!isNaN(dailyReturn)) {
+            returns[date] = dailyReturn;
+          }
+        }
+      }
+      
+      console.log(`📊 Loaded ${Object.keys(returns).length} historical daily returns from CSV`);
+      return returns;
+      
+    } catch (error) {
+      console.error('💥 Failed to parse CSV content:', error);
+      return {};
+    }
+  }
+  
+  // ===== FALLBACK FUNCTION - DIRECT DEPOSIT WITHOUT TRADING =====
+  async function addDepositDirectly(targetUserId, amount, depositDate, purpose, addedBy, targetUser) {
+    try {
+      console.log('💰 Adding deposit directly to database (no trading simulation)');
+      
+      const reference = 'DEP' + Date.now().toString().slice(-8);
+      
+      // Insert deposit record
+      const depositResult = await sql`
+        INSERT INTO deposits (
+          id,
+          user_id,
+          reference,
+          amount,
+          currency,
+          purpose,
+          status,
+          deposit_date,
+          created_at,
+          client_name,
+          client_email,
+          added_by
+        ) VALUES (
+          gen_random_uuid(),
+          ${targetUserId},
+          ${reference},
+          ${parseFloat(amount)},
+          'USD',
+          ${purpose},
+          'completed',
+          ${depositDate}::date,
+          NOW(),
+          ${targetUser.first_name + ' ' + targetUser.last_name},
+          ${targetUser.email},
+          ${addedBy}
+        )
+        RETURNING *
+      `;
+      
+      // Update user's account balance (simple addition without trading simulation)
+      const newAccountValue = (parseFloat(targetUser.account_value) || 0) + parseFloat(amount);
+      const newStartingBalance = (parseFloat(targetUser.starting_balance) || 0) + parseFloat(amount);
+      
+      await sql`
+        UPDATE users 
+        SET 
+          account_value = ${newAccountValue},
+          starting_balance = ${newStartingBalance},
+          updated_at = NOW()
+        WHERE id = ${targetUserId}
+      `;
+      
+      return res.status(200).json({
+        success: true,
+        message: 'Deposit added directly (trading simulation unavailable)',
+        deposit: depositResult.rows[0],
+        newAccountValue: newAccountValue,
+        note: 'Trading simulation was not applied - manual backfill may be required'
+      });
+      
+    } catch (error) {
+      console.error('💥 Direct deposit failed:', error);
+      throw error;
+    }
   }
 }
