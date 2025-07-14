@@ -1,6 +1,122 @@
-// api/admin-stats.js - COMPLETE FIXED VERSION WITH PROPER SEPARATION
+// api/admin-stats.js - COMPLETE FIXED VERSION WITH CUMULATIVE RETURNS CALCULATION
 const { sql } = require('@vercel/postgres');
 const jwt = require('jsonwebtoken');
+
+// CSV Data Cache
+let csvCache = null;
+let csvCacheTime = null;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+// Load CSV data with cumulative returns
+async function loadCSVData() {
+  // Check cache first
+  if (csvCache && csvCacheTime && Date.now() - csvCacheTime < CACHE_DURATION) {
+    return csvCache;
+  }
+
+  try {
+    const response = await fetch('https://aequitasdash.vercel.app/data/daily_returns_simple.csv');
+    if (!response.ok) {
+      throw new Error('CSV file not accessible');
+    }
+    
+    const csvContent = await response.text();
+    const lines = csvContent.split('\n');
+    const csvData = {};
+    
+    // Skip header row, parse date and CUMULATIVE return (column 3)
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      
+      const values = line.split(',');
+      if (values.length >= 3) {
+        const date = values[0].trim();
+        const cumulativeReturn = parseFloat(values[2].trim()); // Column 3: Cumulative_Return_Percent
+        
+        if (!isNaN(cumulativeReturn)) {
+          csvData[date] = cumulativeReturn; // Store as percentage
+        }
+      }
+    }
+    
+    console.log(`📊 Loaded ${Object.keys(csvData).length} trading days from CSV (cumulative returns)`);
+    
+    // Update cache
+    csvCache = csvData;
+    csvCacheTime = Date.now();
+    
+    return csvData;
+  } catch (error) {
+    console.error('💥 Failed to load CSV data:', error);
+    return {};
+  }
+}
+
+// Calculate account performance using cumulative returns
+function calculateAccountPerformance(deposits, csvData) {
+  console.log('🧮 Calculating performance with CUMULATIVE returns logic');
+  
+  const endDate = new Date();
+  let totalDeposits = 0;
+  let finalBalance = 0;
+  
+  // Sort deposits chronologically
+  const sortedDeposits = deposits.sort((a, b) => {
+    const dateA = new Date(a.deposit_date || a.created_at);
+    const dateB = new Date(b.deposit_date || b.created_at);
+    return dateA - dateB;
+  });
+  
+  // Process each deposit separately
+  for (const deposit of sortedDeposits) {
+    const depositAmount = parseFloat(deposit.amount);
+    const depositDate = new Date(deposit.deposit_date || deposit.created_at);
+    const depositDateStr = depositDate.toISOString().split('T')[0];
+    
+    totalDeposits += depositAmount;
+    
+    // Get cumulative return at deposit date (baseline)
+    const startCumulative = csvData[depositDateStr];
+    if (!startCumulative) {
+      console.log(`⚠️ No CSV data for deposit date ${depositDateStr}, using deposit amount as-is`);
+      finalBalance += depositAmount;
+      continue;
+    }
+    
+    // Get cumulative return at end date
+    const endDateStr = endDate.toISOString().split('T')[0];
+    let endCumulative = csvData[endDateStr];
+    
+    // If no data for exact end date, find the latest available date
+    if (!endCumulative) {
+      const availableDates = Object.keys(csvData).sort().reverse();
+      const latestDate = availableDates.find(date => date <= endDateStr);
+      if (latestDate) {
+        endCumulative = csvData[latestDate];
+        console.log(`📅 Using latest available date ${latestDate} for end calculation`);
+      } else {
+        endCumulative = startCumulative; // No growth if no data
+      }
+    }
+    
+    // Calculate performance for this deposit
+    const performanceMultiplier = endCumulative / startCumulative;
+    const currentDepositValue = depositAmount * performanceMultiplier;
+    
+    console.log(`💰 Deposit $${depositAmount.toLocaleString()} on ${depositDateStr}:`);
+    console.log(`   📊 Cumulative: ${startCumulative.toFixed(2)}% → ${endCumulative.toFixed(2)}%`);
+    console.log(`   📈 Multiplier: ${performanceMultiplier.toFixed(4)}x`);
+    console.log(`   💵 Value: $${currentDepositValue.toLocaleString()}`);
+    
+    finalBalance += currentDepositValue;
+  }
+  
+  return {
+    totalDeposits,
+    currentBalance: finalBalance
+  };
+}
 
 module.exports = async function handler(req, res) {
   // Set CORS headers first
@@ -50,6 +166,9 @@ module.exports = async function handler(req, res) {
 
     console.log('📊 Admin stats request from:', decoded.email);
     
+    // Load CSV data for performance calculations
+    const csvData = await loadCSVData();
+    
     // 1. TOTAL APPROVED CLIENTS - ONLY role = 'client' AND status = 'active'
     let totalClients = 0;
     try {
@@ -65,22 +184,7 @@ module.exports = async function handler(req, res) {
       totalClients = 0;
     }
     
-    // 2. TOTAL CLIENT BALANCES - Only active clients
-    let totalClientBalances = 0;
-    try {
-      const totalBalancesResult = await sql`
-        SELECT COALESCE(SUM(account_value), 0) as total
-        FROM users 
-        WHERE role = 'client' AND status = 'active'
-      `;
-      totalClientBalances = parseFloat(totalBalancesResult.rows[0].total || 0);
-      console.log('📊 Total client balances:', totalClientBalances);
-    } catch (balanceError) {
-      console.log('📊 Balance calculation error:', balanceError.message);
-      totalClientBalances = 0;
-    }
-    
-    // 3. ACTIVE DEPOSITS THIS MONTH
+    // 2. ACTIVE DEPOSITS THIS MONTH
     const currentMonth = new Date().getMonth() + 1;
     const currentYear = new Date().getFullYear();
     
@@ -100,7 +204,7 @@ module.exports = async function handler(req, res) {
       activeDepositsThisMonth = 0;
     }
     
-    // 4. PENDING REQUESTS - ONLY role = 'pending'
+    // 3. PENDING REQUESTS - ONLY role = 'pending'
     let pendingRequests = 0;
     
     // Count ONLY pending users (not clients with pending setup_status)
@@ -130,7 +234,7 @@ module.exports = async function handler(req, res) {
       console.log('📊 No deposits table yet for pending count');
     }
     
-    // 5. ALL CLIENTS - ONLY show role = 'client' AND status = 'active'
+    // 4. ALL CLIENTS - ONLY show role = 'client' AND status = 'active'
     let allClientsResult;
     try {
       allClientsResult = await sql`
@@ -148,13 +252,13 @@ module.exports = async function handler(req, res) {
       allClientsResult = { rows: [] };
     }
     
-    // 6. ALL DEPOSITS (only from active clients)
+    // 5. ALL DEPOSITS (only from active clients)
     let allDepositsResult = { rows: [] };
     try {
       allDepositsResult = await sql`
         SELECT 
           d.id, d.user_id, d.reference, d.amount, d.purpose, d.status, 
-          d.created_at, d.approved_at, d.approved_by,
+          d.created_at, d.approved_at, d.approved_by, d.deposit_date,
           u.first_name, u.last_name, u.email
         FROM deposits d
         LEFT JOIN users u ON d.user_id = u.id
@@ -166,7 +270,7 @@ module.exports = async function handler(req, res) {
       console.log('📊 No deposits table yet, using empty array');
     }
     
-    // 7. CALCULATE GROWTH METRICS
+    // 6. CALCULATE GROWTH METRICS
     const lastMonth = currentMonth === 1 ? 12 : currentMonth - 1;
     const lastMonthYear = currentMonth === 1 ? currentYear - 1 : currentYear;
     
@@ -188,7 +292,7 @@ module.exports = async function handler(req, res) {
       depositGrowth = 0;
     }
     
-    // 8. NEW CLIENTS THIS MONTH (only active clients)
+    // 7. NEW CLIENTS THIS MONTH (only active clients)
     let newClients = 0;
     try {
       const newClientsResult = await sql`
@@ -216,12 +320,13 @@ module.exports = async function handler(req, res) {
       purpose: deposit.purpose,
       status: deposit.status,
       date: deposit.created_at,
+      deposit_date: deposit.deposit_date,
       approvedAt: deposit.approved_at,
       approvedBy: deposit.approved_by,
       userId: deposit.user_id
     }));
 
-    // Format ONLY ACTIVE CLIENTS for frontend
+    // Format ONLY ACTIVE CLIENTS for frontend with REAL PERFORMANCE CALCULATION
     const formattedClients = allClientsResult.rows.map(client => {
       // Safe date formatting
       const formatDate = (dateValue) => {
@@ -230,6 +335,29 @@ module.exports = async function handler(req, res) {
         if (dateValue instanceof Date) return dateValue.toISOString().split('T')[0];
         return 'Unknown';
       };
+
+      // Get client's deposits for performance calculation
+      const clientDeposits = formattedDeposits
+        .filter(d => d.userId === client.id && d.status !== 'rejected')
+        .map(d => ({
+          amount: d.amount,
+          deposit_date: d.deposit_date || d.date,
+          created_at: d.date
+        }));
+
+      const totalDeposits = clientDeposits.reduce((sum, d) => sum + d.amount, 0);
+      
+      // Calculate REAL account value using cumulative returns
+      let accountValue = totalDeposits; // Default fallback
+      if (clientDeposits.length > 0 && Object.keys(csvData).length > 0) {
+        try {
+          const performance = calculateAccountPerformance(clientDeposits, csvData);
+          accountValue = performance.currentBalance;
+          console.log(`💰 Client ${client.email}: $${totalDeposits} → $${accountValue.toFixed(2)}`);
+        } catch (perfError) {
+          console.log(`⚠️ Performance calculation failed for ${client.email}:`, perfError.message);
+        }
+      }
 
       return {
         id: client.id,
@@ -240,24 +368,21 @@ module.exports = async function handler(req, res) {
         address: client.address || 'Not provided',
         status: 'active', // All clients in this list are active
         joinDate: formatDate(client.created_at),
-        totalDeposits: 0, // Will be calculated from deposits
-        accountValue: parseFloat(client.account_value || 0),
-        startingBalance: parseFloat(client.starting_balance || 0),
+        totalDeposits,
+        accountValue, // REAL calculated value using cumulative returns
+        startingBalance: totalDeposits, // Starting balance = total deposits
         lastActive: formatDate(client.last_login) !== 'Unknown' ? formatDate(client.last_login) : formatDate(client.created_at)
       };
     });
 
-    // Calculate total deposits per client
-    formattedClients.forEach(client => {
-      const clientDeposits = formattedDeposits.filter(d => d.userId === client.id);
-      client.totalDeposits = clientDeposits.reduce((sum, d) => sum + d.amount, 0);
-    });
+    // Calculate TOTAL CLIENT BALANCES using real performance
+    const totalClientBalances = formattedClients.reduce((sum, client) => sum + client.accountValue, 0);
 
     const stats = {
       totalClients,
       activeDepositsThisMonth,
       pendingRequests,
-      totalClientBalances,
+      totalClientBalances, // Now uses REAL calculated balances
       depositGrowth: parseFloat(depositGrowth.toFixed(1)),
       newClients
     };
@@ -266,6 +391,7 @@ module.exports = async function handler(req, res) {
     console.log('👥 Active clients returned:', formattedClients.length);
     console.log('💰 Deposits returned:', formattedDeposits.length);
     console.log('⏳ Total pending requests:', pendingRequests);
+    console.log('💵 Total client balances (REAL):', totalClientBalances.toLocaleString());
     
     // Verify separation
     const clientEmails = formattedClients.map(c => c.email);
@@ -274,7 +400,7 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({
       success: true,
       stats,
-      clients: formattedClients,     // ONLY role='client' AND status='active'
+      clients: formattedClients,     // ONLY role='client' AND status='active' with REAL values
       deposits: formattedDeposits    // ONLY deposits from active clients
     });
     
