@@ -313,7 +313,7 @@
         .top-user-info {
             display: flex;
             align-items: center;
-            gap: 6px; /* FIXED: Reduced gap from 12px to 6px */
+            gap: 6px;
             color: var(--text-secondary);
             font-size: 14px;
             font-weight: 500;
@@ -800,7 +800,7 @@
                 createEquityChart();
             }
             
-            // FIXED: Update TradingView widgets theme
+            // Update TradingView widgets theme
             updateTradingViewTheme();
             
             localStorage.setItem('aequitas_theme', currentTheme);
@@ -840,8 +840,180 @@
             }
         }
 
-        // Generate realistic hedge fund equity curve data
-        function generateEquityData(period) {
+        // ===== REAL CSV DATA FUNCTIONS =====
+        
+        // Load real CSV data and user deposits to generate equity curve
+        async function generateEquityData(period) {
+            try {
+                console.log('📊 Loading REAL equity data from CSV + user deposits for period:', period);
+                
+                // Get user's auth token
+                const authToken = localStorage.getItem('aequitas_auth_token');
+                if (!authToken) {
+                    console.log('⚠️ No auth token, using demo data');
+                    return generateDemoData(period);
+                }
+                
+                // Load CSV data
+                const csvData = await loadCSVData();
+                
+                // Get user deposits
+                const depositsResponse = await fetch('/api/deposits', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!depositsResponse.ok) {
+                    console.log('⚠️ Failed to load deposits, using demo data');
+                    return generateDemoData(period);
+                }
+                
+                const depositsData = await depositsResponse.json();
+                const userDeposits = depositsData.deposits || [];
+                
+                console.log(`📊 Found ${userDeposits.length} user deposits`);
+                console.log(`📊 Loaded ${Object.keys(csvData).length} trading days from CSV`);
+                
+                // Calculate date range based on period
+                const now = new Date();
+                let startDate = new Date();
+                
+                switch(period) {
+                    case '1M':
+                        startDate.setMonth(startDate.getMonth() - 1);
+                        break;
+                    case '3M':
+                        startDate.setMonth(startDate.getMonth() - 3);
+                        break;
+                    case '12M':
+                        startDate.setFullYear(startDate.getFullYear() - 1);
+                        break;
+                    case 'ALL':
+                        // Start from earliest deposit or 3 years ago, whichever is later
+                        if (userDeposits.length > 0) {
+                            const earliestDeposit = new Date(Math.min(...userDeposits.map(d => new Date(d.deposit_date))));
+                            startDate = earliestDeposit;
+                        } else {
+                            startDate.setFullYear(startDate.getFullYear() - 3);
+                        }
+                        break;
+                }
+                
+                // Generate equity curve
+                return generateUserEquityCurve(userDeposits, csvData, startDate, now);
+                
+            } catch (error) {
+                console.error('💥 Failed to load real equity data:', error);
+                console.log('⚠️ Falling back to demo data');
+                return generateDemoData(period);
+            }
+        }
+        
+        // Load CSV data from server
+        async function loadCSVData() {
+            try {
+                const response = await fetch('/data/daily_returns_simple.csv');
+                
+                if (!response.ok) {
+                    throw new Error('CSV file not accessible');
+                }
+                
+                const csvContent = await response.text();
+                const lines = csvContent.split('\n');
+                const csvData = {};
+                
+                // Skip header row, parse date and daily return
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    
+                    const values = line.split(',');
+                    if (values.length >= 2) {
+                        const date = values[0].trim();
+                        const dailyReturn = parseFloat(values[1].trim());
+                        
+                        if (!isNaN(dailyReturn)) {
+                            csvData[date] = dailyReturn / 100; // Convert percentage to decimal
+                        }
+                    }
+                }
+                
+                console.log(`📊 Loaded ${Object.keys(csvData).length} trading days from CSV`);
+                return csvData;
+                
+            } catch (error) {
+                console.error('💥 Failed to load CSV data:', error);
+                return {};
+            }
+        }
+        
+        // Generate user's equity curve from deposits + CSV returns
+        function generateUserEquityCurve(deposits, csvData, startDate, endDate) {
+            console.log('📈 Generating user equity curve from real data');
+            
+            const equityData = [];
+            const sortedDeposits = deposits.sort((a, b) => new Date(a.deposit_date) - new Date(b.deposit_date));
+            
+            // Track running balance
+            let runningBalance = 0;
+            let depositIndex = 0;
+            
+            // Process each day
+            for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
+                const dateStr = date.toISOString().split('T')[0];
+                
+                // Add any deposits for this date
+                while (depositIndex < sortedDeposits.length) {
+                    const depositDate = new Date(sortedDeposits[depositIndex].deposit_date);
+                    const depositDateStr = depositDate.toISOString().split('T')[0];
+                    
+                    if (depositDateStr === dateStr) {
+                        const depositAmount = parseFloat(sortedDeposits[depositIndex].amount);
+                        runningBalance += depositAmount;
+                        console.log(`💵 ${dateStr}: Added deposit $${depositAmount.toLocaleString()}, balance: $${runningBalance.toLocaleString()}`);
+                        depositIndex++;
+                    } else if (depositDateStr > dateStr) {
+                        break; // Future deposits
+                    } else {
+                        depositIndex++; // Skip past deposits (shouldn't happen with sorted array)
+                    }
+                }
+                
+                // Skip if no balance yet
+                if (runningBalance === 0) continue;
+                
+                // Apply daily return from CSV
+                const dailyReturn = csvData[dateStr] || 0;
+                
+                if (dailyReturn !== 0) {
+                    const dailyPnL = runningBalance * dailyReturn;
+                    runningBalance += dailyPnL;
+                    
+                    if (Math.abs(dailyReturn) > 0.001) { // Only log significant moves
+                        console.log(`📈 ${dateStr}: ${(dailyReturn * 100).toFixed(3)}% → $${runningBalance.toLocaleString()}`);
+                    }
+                }
+                
+                // Add data point (include weekends for smooth chart)
+                equityData.push({
+                    date: dateStr,
+                    value: Math.round(runningBalance)
+                });
+            }
+            
+            console.log(`✅ Generated ${equityData.length} equity data points`);
+            console.log(`💰 Final balance: $${runningBalance.toLocaleString()}`);
+            
+            return equityData;
+        }
+        
+        // Fallback demo data (same as before)
+        function generateDemoData(period) {
+            console.log('📊 Using demo data for period:', period);
+            
             const now = new Date();
             let dataPoints;
             let startDate = new Date();
@@ -909,11 +1081,11 @@
                 });
             }
             
-            console.log(`Generated ${data.length} data points for ${period}`);
+            console.log(`Generated ${data.length} demo data points for ${period}`);
             return data;
         }
 
-       // Update Chart Period - FIXED VERSION
+       // Update Chart Period
         function updateChartPeriod(period, element) {
             console.log(`Updating chart to period: ${period}`);
             
@@ -942,8 +1114,8 @@
             }, 100);
         }
 
-        // Create Equity Chart - FIXED VERSION
-        function createEquityChart() {
+        // Create Equity Chart
+        async function createEquityChart() {
             console.log('createEquityChart function called for period:', currentPeriod);
             
             const ctx = document.getElementById('equityChart');
@@ -954,7 +1126,7 @@
             
             console.log('Chart canvas found, creating chart...');
             
-            // FIXED: Properly check if chart exists before destroying
+            // Properly check if chart exists before destroying
             if (window.equityChart && typeof window.equityChart.destroy === 'function') {
                 console.log('Destroying existing chart');
                 window.equityChart.destroy();
@@ -968,7 +1140,7 @@
             ctx.style.width = '100%';
             ctx.style.height = '400px';
             
-            const data = generateEquityData(currentPeriod);
+            const data = await generateEquityData(currentPeriod);
             const isDark = currentTheme === 'dark';
             
             window.equityChart = new Chart(ctx, {
@@ -989,7 +1161,7 @@
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false, // KEY FIX for full area
+                    maintainAspectRatio: false,
                     plugins: {
                         legend: {
                             display: false
@@ -1043,7 +1215,7 @@
             console.log('Chart created successfully');
         }
 
-        // FIXED: Update TradingView widgets theme
+        // Update TradingView widgets theme
         function updateTradingViewTheme() {
             const colorTheme = currentTheme === 'dark' ? 'dark' : 'light';
             
@@ -1102,6 +1274,7 @@
                 maximumFractionDigits: 0
             }).format(amount);
         }
+        
         // Load dashboard data
         async function loadDashboard() {
             console.log('📊 Loading dashboard with REAL data...');
@@ -1203,90 +1376,6 @@
                 // Use demo data on any error
             }
         }
-                
-                console.log('Using user data:', userData);
-
-                // Update user info in sidebar and top bar
-                const firstName = userData.firstName || 'Admin';
-                const lastName = userData.lastName || 'User';
-                const email = userData.email || 'admin@aequitascap.com';
-                
-                // Update elements safely
-                const userNameEl = document.getElementById('userName');
-                const userEmailEl = document.getElementById('userEmail'); 
-                const topUserNameEl = document.getElementById('topUserName');
-                const userAvatarEl = document.getElementById('userAvatar');
-                
-                if (userNameEl) userNameEl.textContent = firstName + ' ' + lastName;
-                if (userEmailEl) userEmailEl.textContent = email;
-                if (topUserNameEl) topUserNameEl.textContent = firstName;
-                if (userAvatarEl) userAvatarEl.textContent = firstName.charAt(0).toUpperCase();
-
-                // Calculate account metrics
-                const startingBalance = 1000000; // $1M Demo starting balance
-                const currentBalance = userData.accountValue || 2850000;
-                const profit = currentBalance - startingBalance;
-                const profitPercent = ((profit / startingBalance) * 100);
-
-                console.log('Account metrics:', {
-                    startingBalance,
-                    currentBalance,
-                    profit,
-                    profitPercent
-                });
-
-                // Update account stats
-                const accountBalanceEl = document.getElementById('accountBalance');
-                const accountProfitEl = document.getElementById('accountProfit');
-                const startingBalanceEl = document.getElementById('startingBalance');
-                
-                if (accountBalanceEl) accountBalanceEl.textContent = formatCurrency(currentBalance);
-                if (accountProfitEl) accountProfitEl.textContent = formatCurrency(profit);
-                if (startingBalanceEl) startingBalanceEl.textContent = formatCurrency(startingBalance);
-
-                // Update change indicators
-                const balanceChange = document.getElementById('balanceChange');
-                const profitChange = document.getElementById('profitChange');
-                
-                // Simulate daily change (slight positive bias for demo)
-                const dailyChange = (Math.random() - 0.3) * 2.5;
-                
-                if (balanceChange) {
-                    if (dailyChange >= 0) {
-                        balanceChange.innerHTML = `<span class="icon icon-trending-up"></span><span>+${dailyChange.toFixed(2)}%</span>`;
-                        balanceChange.className = 'stat-change stat-positive';
-                    } else {
-                        balanceChange.innerHTML = `<span class="icon icon-trending-up" style="transform: rotate(180deg);"></span><span>${dailyChange.toFixed(2)}%</span>`;
-                        balanceChange.className = 'stat-change stat-negative';
-                    }
-                }
-                
-                if (profitChange) {
-                    if (profit >= 0) {
-                        profitChange.innerHTML = `<span class="icon icon-trending-up"></span><span>+${profitPercent.toFixed(1)}%</span>`;
-                        profitChange.className = 'stat-change stat-positive';
-                    } else {
-                        profitChange.innerHTML = `<span class="icon icon-trending-up" style="transform: rotate(180deg);"></span><span>${profitPercent.toFixed(1)}%</span>`;
-                        profitChange.className = 'stat-change stat-negative';
-                    }
-                }
-
-                console.log('Dashboard data loaded successfully');
-
-            } catch (error) {
-                console.error('Dashboard load error:', error);
-                // Set basic demo data on error
-                const userNameEl = document.getElementById('userName');
-                const userEmailEl = document.getElementById('userEmail');
-                const topUserNameEl = document.getElementById('topUserName');
-                const userAvatarEl = document.getElementById('userAvatar');
-                
-                if (userNameEl) userNameEl.textContent = 'Admin User';
-                if (userEmailEl) userEmailEl.textContent = 'admin@aequitascap.com';
-                if (topUserNameEl) topUserNameEl.textContent = 'Admin';
-                if (userAvatarEl) userAvatarEl.textContent = 'A';
-            }
-        }
 
         // Initialize TradingView Widgets
         function initializeTradingViewWidgets() {
@@ -1365,20 +1454,34 @@
             }, 5000);
         }
 
-// Initialize dashboard
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, initializing dashboard...');
-    
-    // CHECK: Redirect pending users to setup
-    const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
-    if (userData.role === 'pending' && userData.setupStatus !== 'approved') {
-        console.log('🔄 Pending user detected, redirecting to setup...');
-        window.location.href = 'setup.html';
-        return;
-    }
-    
-    // Load saved theme
-    const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
+        // Add CSS for notification animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInRight {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOutRight {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing dashboard...');
+            
+            // CHECK: Redirect pending users to setup
+            const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
+            if (userData.role === 'pending' && userData.setupStatus !== 'approved') {
+                console.log('🔄 Pending user detected, redirecting to setup...');
+                window.location.href = 'setup.html';
+                return;
+            }
+            
+            // Load saved theme
+            const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
             console.log('Saved theme:', savedTheme);
             
             if (savedTheme === 'dark') {
@@ -1397,7 +1500,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Initialize TradingView widgets
             initializeTradingViewWidgets();
 
-            // Create chart after everything is loaded - FIXED TIMING
+            // Create chart after everything is loaded
             setTimeout(() => {
                 console.log('Creating equity chart...');
                 createEquityChart();
