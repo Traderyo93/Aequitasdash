@@ -1,4 +1,4 @@
-// api/admin-stats.js - FIXED VERSION WITH PROPER CLIENT FILTERING
+// api/admin-stats.js - COMPLETE FIXED VERSION WITH PROPER SEPARATION
 const { sql } = require('@vercel/postgres');
 const jwt = require('jsonwebtoken');
 
@@ -50,55 +50,34 @@ module.exports = async function handler(req, res) {
 
     console.log('📊 Admin stats request from:', decoded.email);
     
-    // Add debugging for database schema
-    try {
-      const columnsCheck = await sql`
-        SELECT column_name 
-        FROM information_schema.columns 
-        WHERE table_name = 'users'
-      `;
-      console.log('📊 Available user columns:', columnsCheck.rows.map(r => r.column_name));
-    } catch (schemaError) {
-      console.log('📊 Could not check schema:', schemaError.message);
-    }
-    
-    // 1. TOTAL APPROVED CLIENTS - Based on role, not setup_status
+    // 1. TOTAL APPROVED CLIENTS - ONLY role = 'client' AND status = 'active'
     let totalClients = 0;
     try {
       const totalClientsResult = await sql`
         SELECT COUNT(*) as count
         FROM users 
-        WHERE role = 'client'
+        WHERE role = 'client' AND status = 'active'
       `;
       totalClients = parseInt(totalClientsResult.rows[0].count) || 0;
+      console.log('📊 Total active clients:', totalClients);
     } catch (clientCountError) {
-      console.log('📊 Using fallback client count logic');
-      // Fallback: count non-admin, non-pending users
-      const fallbackResult = await sql`
-        SELECT COUNT(*) as count
-        FROM users 
-        WHERE role NOT IN ('admin', 'pending', 'deleted')
-      `;
-      totalClients = parseInt(fallbackResult.rows[0].count) || 0;
+      console.log('📊 Client count error:', clientCountError.message);
+      totalClients = 0;
     }
     
-    // 2. TOTAL CLIENT BALANCES - All clients
+    // 2. TOTAL CLIENT BALANCES - Only active clients
     let totalClientBalances = 0;
     try {
       const totalBalancesResult = await sql`
         SELECT COALESCE(SUM(account_value), 0) as total
         FROM users 
-        WHERE role = 'client'
+        WHERE role = 'client' AND status = 'active'
       `;
       totalClientBalances = parseFloat(totalBalancesResult.rows[0].total || 0);
+      console.log('📊 Total client balances:', totalClientBalances);
     } catch (balanceError) {
-      console.log('📊 Using fallback balance calculation');
-      const fallbackBalanceResult = await sql`
-        SELECT COALESCE(SUM(account_value), 0) as total
-        FROM users 
-        WHERE role NOT IN ('admin', 'pending', 'deleted')
-      `;
-      totalClientBalances = parseFloat(fallbackBalanceResult.rows[0].total || 0);
+      console.log('📊 Balance calculation error:', balanceError.message);
+      totalClientBalances = 0;
     }
     
     // 3. ACTIVE DEPOSITS THIS MONTH
@@ -115,25 +94,26 @@ module.exports = async function handler(req, res) {
         AND EXTRACT(YEAR FROM created_at) = ${currentYear}
       `;
       activeDepositsThisMonth = parseFloat(activeDepositsResult.rows[0].total || 0);
+      console.log('📊 Deposits this month:', activeDepositsThisMonth);
     } catch (depositError) {
       console.log('📊 No deposits table yet, using 0');
       activeDepositsThisMonth = 0;
     }
     
-    // 4. PENDING REQUESTS - Count pending users + pending deposits
+    // 4. PENDING REQUESTS - ONLY role = 'pending'
     let pendingRequests = 0;
     
-    // Count pending users
+    // Count ONLY pending users (not clients with pending setup_status)
     try {
       const pendingUsersResult = await sql`
         SELECT COUNT(*) as count
         FROM users 
         WHERE role = 'pending'
-        OR setup_status IN ('setup_pending', 'documents_pending', 'review_pending')
       `;
       pendingRequests += parseInt(pendingUsersResult.rows[0].count) || 0;
+      console.log('📊 Pending users:', pendingRequests);
     } catch (pendingUserError) {
-      console.log('📊 Could not count pending users');
+      console.log('📊 Could not count pending users:', pendingUserError.message);
     }
     
     // Count pending deposits
@@ -143,37 +123,32 @@ module.exports = async function handler(req, res) {
         FROM deposits 
         WHERE status = 'pending'
       `;
-      pendingRequests += parseInt(pendingDepositsResult.rows[0].count) || 0;
+      const pendingDeposits = parseInt(pendingDepositsResult.rows[0].count) || 0;
+      pendingRequests += pendingDeposits;
+      console.log('📊 Pending deposits:', pendingDeposits);
     } catch (depositError) {
       console.log('📊 No deposits table yet for pending count');
     }
     
-    // 5. ALL CLIENTS - Show clients regardless of setup_status
+    // 5. ALL CLIENTS - ONLY show role = 'client' AND status = 'active'
     let allClientsResult;
     try {
       allClientsResult = await sql`
         SELECT 
           id, email, first_name, last_name, phone, address, 
-          account_value, starting_balance, created_at, last_login, role
+          account_value, starting_balance, created_at, last_login, 
+          role, status, setup_status
         FROM users 
-        WHERE role = 'client'
+        WHERE role = 'client' AND status = 'active'
         ORDER BY created_at DESC
       `;
-      console.log('📊 Found clients:', allClientsResult.rows.length);
+      console.log('📊 Found active clients:', allClientsResult.rows.length);
     } catch (clientQueryError) {
-      console.log('📊 Error fetching clients, using fallback');
-      // Fallback: basic columns only
-      allClientsResult = await sql`
-        SELECT 
-          id, email, first_name, last_name, created_at, role
-        FROM users 
-        WHERE role = 'client'
-        ORDER BY created_at DESC
-      `;
-      console.log('📊 Found clients with fallback query:', allClientsResult.rows.length);
+      console.log('📊 Error fetching clients:', clientQueryError.message);
+      allClientsResult = { rows: [] };
     }
     
-    // 6. ALL DEPOSITS (if table exists)
+    // 6. ALL DEPOSITS (only from active clients)
     let allDepositsResult = { rows: [] };
     try {
       allDepositsResult = await sql`
@@ -183,10 +158,10 @@ module.exports = async function handler(req, res) {
           u.first_name, u.last_name, u.email
         FROM deposits d
         LEFT JOIN users u ON d.user_id = u.id
-        WHERE u.role = 'client'  -- Only include deposits from approved clients
+        WHERE u.role = 'client' AND u.status = 'active'
         ORDER BY d.created_at DESC
       `;
-      console.log('📊 Found deposits:', allDepositsResult.rows.length);
+      console.log('📊 Found deposits from active clients:', allDepositsResult.rows.length);
     } catch (depositError) {
       console.log('📊 No deposits table yet, using empty array');
     }
@@ -213,19 +188,20 @@ module.exports = async function handler(req, res) {
       depositGrowth = 0;
     }
     
-    // 8. NEW CLIENTS THIS MONTH
+    // 8. NEW CLIENTS THIS MONTH (only active clients)
     let newClients = 0;
     try {
       const newClientsResult = await sql`
         SELECT COUNT(*) as count
         FROM users 
-        WHERE role = 'client'
+        WHERE role = 'client' AND status = 'active'
         AND EXTRACT(MONTH FROM created_at) = ${currentMonth}
         AND EXTRACT(YEAR FROM created_at) = ${currentYear}
       `;
       newClients = parseInt(newClientsResult.rows[0].count) || 0;
+      console.log('📊 New clients this month:', newClients);
     } catch (newClientError) {
-      console.log('📊 Could not count new clients');
+      console.log('📊 Could not count new clients:', newClientError.message);
     }
     
     // Format deposits for frontend
@@ -245,7 +221,7 @@ module.exports = async function handler(req, res) {
       userId: deposit.user_id
     }));
 
-    // Format APPROVED clients only for frontend
+    // Format ONLY ACTIVE CLIENTS for frontend
     const formattedClients = allClientsResult.rows.map(client => {
       // Safe date formatting
       const formatDate = (dateValue) => {
@@ -262,7 +238,7 @@ module.exports = async function handler(req, res) {
         email: client.email,
         phone: client.phone || 'Not provided',
         address: client.address || 'Not provided',
-        status: 'active', // All clients in this list are approved/active
+        status: 'active', // All clients in this list are active
         joinDate: formatDate(client.created_at),
         totalDeposits: 0, // Will be calculated from deposits
         accountValue: parseFloat(client.account_value || 0),
@@ -271,7 +247,7 @@ module.exports = async function handler(req, res) {
       };
     });
 
-    // Calculate total deposits per client (only approved clients)
+    // Calculate total deposits per client
     formattedClients.forEach(client => {
       const clientDeposits = formattedDeposits.filter(d => d.userId === client.id);
       client.totalDeposits = clientDeposits.reduce((sum, d) => sum + d.amount, 0);
@@ -286,16 +262,20 @@ module.exports = async function handler(req, res) {
       newClients
     };
     
-    console.log('📊 Admin stats calculated:', stats);
-    console.log('👥 Approved clients found:', formattedClients.length);
-    console.log('💰 Deposits found:', formattedDeposits.length);
-    console.log('⏳ Pending requests:', pendingRequests);
+    console.log('📊 Final admin stats:', stats);
+    console.log('👥 Active clients returned:', formattedClients.length);
+    console.log('💰 Deposits returned:', formattedDeposits.length);
+    console.log('⏳ Total pending requests:', pendingRequests);
+    
+    // Verify separation
+    const clientEmails = formattedClients.map(c => c.email);
+    console.log('📊 Client emails in All Clients tab:', clientEmails);
     
     return res.status(200).json({
       success: true,
       stats,
-      clients: formattedClients, // Only approved clients
-      deposits: formattedDeposits // Only deposits from approved clients
+      clients: formattedClients,     // ONLY role='client' AND status='active'
+      deposits: formattedDeposits    // ONLY deposits from active clients
     });
     
   } catch (error) {
@@ -303,7 +283,6 @@ module.exports = async function handler(req, res) {
     console.error('💥 Error details:', error.message);
     console.error('💥 Error stack:', error.stack);
     
-    // Return detailed error for debugging
     return res.status(500).json({
       success: false,
       error: 'Failed to fetch admin statistics',
