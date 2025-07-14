@@ -1103,25 +1103,106 @@
             }).format(amount);
         }
         // Load dashboard data
-        function loadDashboard() {
-            console.log('Loading dashboard data...');
+        async function loadDashboard() {
+            console.log('📊 Loading dashboard with REAL data...');
             
             try {
-                // Get user data from localStorage or use demo data
-                let userData;
-                const userDataString = localStorage.getItem('aequitas_user_data');
+                const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
                 
-                if (userDataString) {
-                    userData = JSON.parse(userDataString);
-                } else {
-                    // Use demo data
-                    userData = {
-                        firstName: 'Admin',
-                        lastName: 'User', 
-                        email: 'admin@aequitascap.com',
-                        accountValue: 2850000
-                    };
+                // Update user info
+                const firstName = userData.firstName || 'User';
+                const lastName = userData.lastName || '';
+                const email = userData.email || 'user@example.com';
+                
+                // Update UI elements safely
+                const elements = {
+                    userName: document.getElementById('userName'),
+                    userEmail: document.getElementById('userEmail'),
+                    topUserName: document.getElementById('topUserName'),
+                    userAvatar: document.getElementById('userAvatar')
+                };
+                
+                if (elements.userName) elements.userName.textContent = firstName + ' ' + lastName;
+                if (elements.userEmail) elements.userEmail.textContent = email;
+                if (elements.topUserName) elements.topUserName.textContent = firstName;
+                if (elements.userAvatar) elements.userAvatar.textContent = firstName.charAt(0).toUpperCase();
+                
+                // Get REAL account data from database
+                const authToken = localStorage.getItem('aequitas_auth_token');
+                if (authToken) {
+                    try {
+                        // Try to get user's real data from admin-stats API
+                        const response = await fetch('/api/admin-stats', {
+                            headers: { 'Authorization': `Bearer ${authToken}` }
+                        });
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            
+                            if (data.success && data.clients) {
+                                // Find current user in the clients data
+                                const currentUser = data.clients.find(c => c.email === email);
+                                
+                                if (currentUser) {
+                                    console.log('✅ Real user data found:', currentUser);
+                                    
+                                    const accountValue = parseFloat(currentUser.accountValue || 0);
+                                    const totalDeposits = parseFloat(currentUser.totalDeposits || 0);
+                                    const profit = accountValue - totalDeposits;
+                                    const profitPercent = totalDeposits > 0 ? ((profit / totalDeposits) * 100) : 0;
+                                    
+                                    // Update dashboard with REAL data
+                                    const accountBalanceEl = document.getElementById('accountBalance');
+                                    const accountProfitEl = document.getElementById('accountProfit');
+                                    const startingBalanceEl = document.getElementById('startingBalance');
+                                    
+                                    if (accountBalanceEl) accountBalanceEl.textContent = formatCurrency(accountValue);
+                                    if (accountProfitEl) accountProfitEl.textContent = formatCurrency(profit);
+                                    if (startingBalanceEl) startingBalanceEl.textContent = formatCurrency(totalDeposits);
+                                    
+                                    // Update profit percentage
+                                    const profitChange = document.getElementById('profitChange');
+                                    if (profitChange) {
+                                        if (profitPercent >= 0) {
+                                            profitChange.innerHTML = `<span class="icon icon-trending-up"></span><span>+${profitPercent.toFixed(1)}%</span>`;
+                                            profitChange.className = 'stat-change stat-positive';
+                                        } else {
+                                            profitChange.innerHTML = `<span class="icon icon-trending-up" style="transform: rotate(180deg);"></span><span>${profitPercent.toFixed(1)}%</span>`;
+                                            profitChange.className = 'stat-change stat-negative';
+                                        }
+                                    }
+                                    
+                                    console.log('✅ Dashboard updated with REAL data:', {
+                                        balance: accountValue.toLocaleString(),
+                                        deposits: totalDeposits.toLocaleString(),
+                                        profit: profit.toLocaleString(),
+                                        profitPercent: profitPercent.toFixed(1) + '%'
+                                    });
+                                    
+                                    return; // Exit early with real data
+                                }
+                            }
+                        }
+                    } catch (apiError) {
+                        console.log('⚠️ API error, using fallback data:', apiError.message);
+                    }
                 }
+                
+                // Fallback to demo data
+                console.log('📊 Using demo data as fallback');
+                const accountBalanceEl = document.getElementById('accountBalance');
+                const accountProfitEl = document.getElementById('accountProfit');
+                const startingBalanceEl = document.getElementById('startingBalance');
+                
+                if (accountBalanceEl) accountBalanceEl.textContent = '$2,850,000';
+                if (accountProfitEl) accountProfitEl.textContent = '$1,850,000';
+                if (startingBalanceEl) startingBalanceEl.textContent = '$1,000,000';
+                
+            } catch (error) {
+                console.error('💥 Dashboard load error:', error);
+                // Use demo data on any error
+            }
+        }
                 
                 console.log('Using user data:', userData);
 
