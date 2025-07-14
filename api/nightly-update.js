@@ -5,7 +5,7 @@ const path = require('path');
 module.exports = async function handler(req, res) {
     res.setHeader('Content-Type', 'application/json');
     
-    if (req.method !== 'POST') {
+    if (req.method !== 'POST' && req.method !== 'GET') {
         return res.status(405).json({ success: false, error: 'Method not allowed' });
     }
     
