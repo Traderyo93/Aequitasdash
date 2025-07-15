@@ -1,4 +1,4 @@
-// api/admin-stats.js - COMPLETE FIXED VERSION WITH CUMULATIVE RETURNS CALCULATION
+// api/admin-stats.js - COMPLETE FIXED VERSION - SHOWS ALL DEPOSITS INCLUDING PENDING
 const { sql } = require('@vercel/postgres');
 const jwt = require('jsonwebtoken');
 
@@ -252,20 +252,20 @@ module.exports = async function handler(req, res) {
       allClientsResult = { rows: [] };
     }
     
-    // 5. ALL DEPOSITS (only from active clients)
+    // 5. ALL DEPOSITS - FIXED: Show ALL deposits regardless of user role/status
     let allDepositsResult = { rows: [] };
     try {
       allDepositsResult = await sql`
         SELECT 
           d.id, d.user_id, d.reference, d.amount, d.purpose, d.status, 
           d.created_at, d.approved_at, d.approved_by, d.deposit_date,
+          d.client_name, d.client_email,
           u.first_name, u.last_name, u.email
         FROM deposits d
         LEFT JOIN users u ON d.user_id = u.id
-        WHERE u.role = 'client' AND u.status = 'active'
         ORDER BY d.created_at DESC
       `;
-      console.log('📊 Found deposits from active clients:', allDepositsResult.rows.length);
+      console.log('📊 Found ALL deposits:', allDepositsResult.rows.length);
     } catch (depositError) {
       console.log('📊 No deposits table yet, using empty array');
     }
@@ -308,14 +308,15 @@ module.exports = async function handler(req, res) {
       console.log('📊 Could not count new clients:', newClientError.message);
     }
     
-    // Format deposits for frontend
+    // Format ALL deposits for frontend (including pending ones)
     const formattedDeposits = allDepositsResult.rows.map(deposit => ({
       id: deposit.id,
       reference: deposit.reference,
-      clientName: deposit.first_name && deposit.last_name 
-        ? `${deposit.first_name} ${deposit.last_name}` 
-        : deposit.email || 'Unknown Client',
-      clientEmail: deposit.email,
+      clientName: deposit.client_name || 
+                 (deposit.first_name && deposit.last_name 
+                   ? `${deposit.first_name} ${deposit.last_name}` 
+                   : deposit.email || 'Unknown Client'),
+      clientEmail: deposit.client_email || deposit.email,
       amount: parseFloat(deposit.amount || 0),
       purpose: deposit.purpose,
       status: deposit.status,
@@ -336,9 +337,9 @@ module.exports = async function handler(req, res) {
         return 'Unknown';
       };
 
-      // Get client's deposits for performance calculation
+      // Get client's COMPLETED deposits for performance calculation
       const clientDeposits = formattedDeposits
-        .filter(d => d.userId === client.id && d.status !== 'rejected')
+        .filter(d => d.userId === client.id && d.status === 'completed')
         .map(d => ({
           amount: d.amount,
           deposit_date: d.deposit_date || d.date,
@@ -389,19 +390,19 @@ module.exports = async function handler(req, res) {
     
     console.log('📊 Final admin stats:', stats);
     console.log('👥 Active clients returned:', formattedClients.length);
-    console.log('💰 Deposits returned:', formattedDeposits.length);
+    console.log('💰 ALL deposits returned:', formattedDeposits.length);
     console.log('⏳ Total pending requests:', pendingRequests);
     console.log('💵 Total client balances (REAL):', totalClientBalances.toLocaleString());
     
-    // Verify separation
-    const clientEmails = formattedClients.map(c => c.email);
-    console.log('📊 Client emails in All Clients tab:', clientEmails);
+    // Debug: Show pending deposits
+    const pendingDeposits = formattedDeposits.filter(d => d.status === 'pending');
+    console.log('⏳ Pending deposits being returned:', pendingDeposits.length);
     
     return res.status(200).json({
       success: true,
       stats,
       clients: formattedClients,     // ONLY role='client' AND status='active' with REAL values
-      deposits: formattedDeposits    // ONLY deposits from active clients
+      deposits: formattedDeposits    // ALL deposits including pending ones
     });
     
   } catch (error) {
