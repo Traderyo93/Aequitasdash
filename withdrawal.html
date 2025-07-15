@@ -816,6 +816,20 @@
             from { transform: translateX(0); opacity: 1; }
             to { transform: translateX(100%); opacity: 0; }
         }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -1076,7 +1090,7 @@
             winter: { start: { month: 12, day: 24 }, end: { month: 1, day: 7 } }   // Dec 24 - Jan 7
         };
 
-        // Universal Navigation System - Same as support.html
+        // Universal Navigation System
         function initializeNavigation() {
             // Get current page name
             const currentPage = window.location.pathname.split('/').pop() || 'withdrawal.html';
@@ -1251,49 +1265,189 @@
             `;
         }
 
-        // Load account data from API
+        // ===== REAL CSV DATA FUNCTIONS - SAME AS DASHBOARD =====
+        
+        // Load CSV trading data from server
+        async function loadCSVData() {
+            try {
+                const response = await fetch('/data/daily_returns_simple.csv');
+                if (!response.ok) throw new Error('CSV file not accessible');
+                
+                const csvContent = await response.text();
+                const lines = csvContent.split('\n');
+                const csvData = {};
+                
+                // Skip header row, parse date and CUMULATIVE return
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    
+                    const values = line.split(',');
+                    if (values.length >= 3) { // Now we need the 3rd column
+                        const date = values[0].trim();
+                        const cumulativeReturn = parseFloat(values[2].trim()); // Column 3: Cumulative_Return_Percent
+                        
+                        if (!isNaN(cumulativeReturn)) {
+                            csvData[date] = cumulativeReturn; // Store as percentage, not decimal
+                        }
+                    }
+                }
+                
+                console.log(`📊 Loaded ${Object.keys(csvData).length} trading days from CSV (cumulative returns)`);
+                return csvData;
+                
+            } catch (error) {
+                console.error('💥 Failed to load CSV data:', error);
+                return {};
+            }
+        }
+
+        // Calculate real dashboard performance using deposits and CSV returns
+        function calculateDashboardPerformance(deposits, csvData) {
+            console.log('🧮 Calculating performance with CUMULATIVE returns logic');
+            
+            const endDate = new Date();
+            let totalDeposits = 0;
+            let finalBalance = 0;
+            
+            // Sort deposits chronologically
+            const sortedDeposits = deposits.sort((a, b) => {
+                const dateA = new Date(a.deposit_date || a.date);
+                const dateB = new Date(b.deposit_date || b.date);
+                return dateA - dateB;
+            });
+            
+            // Process each deposit separately
+            for (const deposit of sortedDeposits) {
+                const depositAmount = parseFloat(deposit.amount);
+                const depositDate = new Date(deposit.deposit_date || deposit.date);
+                const depositDateStr = depositDate.toISOString().split('T')[0];
+                
+                totalDeposits += depositAmount;
+                
+                // Get cumulative return at deposit date (baseline)
+                const startCumulative = csvData[depositDateStr];
+                if (!startCumulative) {
+                    console.log(`⚠️ No CSV data for deposit date ${depositDateStr}, using deposit amount as-is`);
+                    finalBalance += depositAmount;
+                    continue;
+                }
+                
+                // Get cumulative return at end date
+                const endDateStr = endDate.toISOString().split('T')[0];
+                let endCumulative = csvData[endDateStr];
+                
+                // If no data for exact end date, find the latest available date
+                if (!endCumulative) {
+                    const availableDates = Object.keys(csvData).sort().reverse();
+                    const latestDate = availableDates.find(date => date <= endDateStr);
+                    if (latestDate) {
+                        endCumulative = csvData[latestDate];
+                        console.log(`📅 Using latest available date ${latestDate} for end calculation`);
+                    } else {
+                        endCumulative = startCumulative; // No growth if no data
+                    }
+                }
+                
+                // Calculate performance for this deposit
+                const performanceMultiplier = endCumulative / startCumulative;
+                const currentDepositValue = depositAmount * performanceMultiplier;
+                
+                console.log(`💰 Deposit ${depositAmount.toLocaleString()} on ${depositDateStr}:`);
+                console.log(`   📊 Cumulative: ${startCumulative.toFixed(2)}% → ${endCumulative.toFixed(2)}%`);
+                console.log(`   📈 Multiplier: ${performanceMultiplier.toFixed(4)}x`);
+                console.log(`   💵 Value: ${currentDepositValue.toLocaleString()}`);
+                
+                finalBalance += currentDepositValue;
+            }
+            
+            return {
+                totalDeposits,
+                currentBalance: finalBalance
+            };
+        }
+
+        // FIXED - Load account data with REAL CSV calculation
         async function loadAccountData() {
             try {
-                console.log('📊 Loading account data...');
+                console.log('📊 Loading REAL account data with CSV + deposits calculation...');
                 
-                const response = await fetch('/api/profile', {
+                const authToken = localStorage.getItem('aequitas_auth_token');
+                if (!authToken) {
+                    console.log('⚠️ No auth token found, using fallback data');
+                    loadFallbackAccountData();
+                    return;
+                }
+                
+                // Load CSV trading data
+                const csvData = await loadCSVData();
+                
+                // Get user deposits from API
+                const depositsResponse = await fetch('/api/deposits', {
                     method: 'GET',
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('aequitas_auth_token')}`,
+                        'Authorization': `Bearer ${authToken}`,
                         'Content-Type': 'application/json'
                     }
                 });
                 
-                if (response.ok) {
-                    const data = await response.json();
-                    const user = data.user;
-                    
-                    // Update account summary
-                    updateAccountSummary({
-                        accountValue: user.accountValue || 0,
-                        totalDeposits: data.stats?.totalDeposits || 0,
-                        totalProfit: (user.accountValue || 0) - (data.stats?.totalDeposits || 0)
-                    });
-                    
-                    console.log('✅ Account data loaded from API');
-                } else {
-                    throw new Error('Failed to load from API');
+                if (!depositsResponse.ok) {
+                    console.log('⚠️ Failed to load deposits, using fallback data');
+                    loadFallbackAccountData();
+                    return;
                 }
-            } catch (error) {
-                console.error('Failed to load account data from API:', error);
                 
-                // Fallback to user data
-                const accountValue = userData.accountValue || 2850000;
-                const totalDeposits = 1000000;
+                const depositsData = await depositsResponse.json();
+                const userDeposits = depositsData.deposits || [];
                 
+                console.log(`📊 Found ${userDeposits.length} user deposits`);
+                console.log(`📊 Loaded ${Object.keys(csvData).length} trading days from CSV`);
+                
+                if (userDeposits.length === 0) {
+                    console.log('⚠️ No deposits found, using fallback data');
+                    loadFallbackAccountData();
+                    return;
+                }
+                
+                // Calculate real performance using same logic as dashboard
+                const performanceResult = calculateDashboardPerformance(userDeposits, csvData);
+                
+                const accountValue = performanceResult.currentBalance;
+                const totalDeposits = performanceResult.totalDeposits;
+                const profit = accountValue - totalDeposits;
+                
+                // Update account summary with REAL calculated values
                 updateAccountSummary({
                     accountValue: accountValue,
                     totalDeposits: totalDeposits,
-                    totalProfit: accountValue - totalDeposits
+                    totalProfit: profit
                 });
                 
-                console.log('✅ Using fallback account data');
+                console.log('✅ Real account data loaded:', {
+                    balance: accountValue.toLocaleString(),
+                    deposits: totalDeposits.toLocaleString(),
+                    profit: profit.toLocaleString()
+                });
+                
+            } catch (error) {
+                console.error('💥 Failed to load real account data:', error);
+                loadFallbackAccountData();
             }
+        }
+
+        // Fallback account data when real data unavailable
+        function loadFallbackAccountData() {
+            console.log('📊 Using fallback account data');
+            
+            const accountValue = userData.accountValue || 2850000;
+            const totalDeposits = 1000000;
+            const profit = accountValue - totalDeposits;
+            
+            updateAccountSummary({
+                accountValue: accountValue,
+                totalDeposits: totalDeposits,
+                totalProfit: profit
+            });
         }
 
         // Update account summary
@@ -1622,7 +1776,7 @@
             // Load user data and initialize page
             loadUserData().then(() => {
                 updateWithdrawalStatus();
-                loadAccountData();
+                loadAccountData(); // Now uses REAL CSV + deposits calculation
                 loadWithdrawalHistory();
                 
                 // Show admin section if user is admin
@@ -1631,7 +1785,7 @@
                     if (adminSection) adminSection.style.display = 'block';
                 }
                 
-                console.log('✅ Withdrawal page initialized');
+                console.log('✅ Withdrawal page initialized with REAL data');
             });
         }
 
