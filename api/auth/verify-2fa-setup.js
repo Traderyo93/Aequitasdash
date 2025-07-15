@@ -1,8 +1,9 @@
+// api/auth/verify-2fa-setup.js - Production ready
 const { sql } = require('@vercel/postgres');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
-// TOTP verification function (same as above)
+// Base32 decode for TOTP verification
 function base32Decode(encoded) {
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
     let bits = '';
@@ -21,6 +22,7 @@ function base32Decode(encoded) {
     return Buffer.from(bytes);
 }
 
+// Generate TOTP code
 function generateTOTP(secret, window = 0) {
     const epoch = Math.round(new Date().getTime() / 1000.0);
     const time = Math.floor(epoch / 30) + window;
@@ -40,6 +42,7 @@ function generateTOTP(secret, window = 0) {
     return code.toString().padStart(6, '0');
 }
 
+// Verify TOTP token with drift tolerance
 function verifyTOTP(token, secret) {
     // Check current window and ±1 window for clock drift tolerance
     for (let window = -1; window <= 1; window++) {
@@ -50,6 +53,7 @@ function verifyTOTP(token, secret) {
     return false;
 }
 
+// Generate backup codes
 function generateBackupCodes() {
     const codes = [];
     for (let i = 0; i < 10; i++) {
@@ -59,6 +63,7 @@ function generateBackupCodes() {
     return codes;
 }
 
+// Hash backup codes for secure storage
 function hashBackupCodes(codes) {
     return codes.map(code => {
         return {
@@ -68,7 +73,17 @@ function hashBackupCodes(codes) {
     });
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
+    // Handle CORS
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Content-Type', 'application/json');
+
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
@@ -81,7 +96,13 @@ export default async function handler(req, res) {
         }
 
         const token = authHeader.split(' ')[1];
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        let user;
+        
+        try {
+            user = jwt.verify(token, process.env.JWT_SECRET || 'aequitas-secret-key-2025');
+        } catch (err) {
+            return res.status(401).json({ error: 'Invalid token' });
+        }
 
         const { token: userToken, secret } = req.body;
 
@@ -94,35 +115,47 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'Invalid verification code' });
         }
 
+        console.log(`✅ TOTP verified for user ${user.userId || user.id}`);
+
         // Generate backup codes
         const backupCodes = generateBackupCodes();
         const hashedBackupCodes = hashBackupCodes(backupCodes);
 
-        // Move temp secret to permanent and store backup codes
-        await sql`
-            UPDATE users 
-            SET 
-                two_factor_secret = ${secret},
-                two_factor_temp_secret = NULL,
-                two_factor_enabled = true,
-                backup_codes = ${JSON.stringify(hashedBackupCodes)}
-            WHERE id = ${decoded.userId}
-        `;
+        // Store everything in database
+        const userId = user.userId || user.id;
+        
+        try {
+            await sql`
+                UPDATE users 
+                SET 
+                    two_factor_secret = ${secret},
+                    two_factor_temp_secret = NULL,
+                    two_factor_enabled = true,
+                    backup_codes = ${JSON.stringify(hashedBackupCodes)}
+                WHERE id = ${userId}
+                RETURNING id
+            `;
+            
+            console.log(`✅ 2FA setup completed for user ${userId}`);
+            
+        } catch (dbError) {
+            console.error('💥 Database error:', dbError);
+            return res.status(500).json({ 
+                error: 'Failed to save 2FA setup',
+                details: process.env.NODE_ENV === 'development' ? dbError.message : 'Database error'
+            });
+        }
 
-        console.log(`✅ 2FA setup verified for user ${decoded.userId}`);
-
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
             backupCodes: backupCodes
         });
 
     } catch (error) {
         console.error('💥 2FA verification error:', error);
-        
-        if (error.name === 'JsonWebTokenError') {
-            return res.status(401).json({ error: 'Invalid token' });
-        }
-        
-        res.status(500).json({ error: 'Failed to verify 2FA setup' });
+        return res.status(500).json({ 
+            error: 'Failed to verify 2FA setup',
+            message: error.message 
+        });
     }
-}
+};
