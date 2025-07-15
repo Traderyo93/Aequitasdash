@@ -4561,7 +4561,72 @@ For questions, contact: admin@aequitascap.com`;
         console.log('  - addClientDeposit(clientId) - Enhanced with trading');
         console.log('  - viewClientPerformance(clientId) - View trading performance');
         console.log('  - testTradingIntegration() - Test the integration');
+// === ADMIN DEBUG CONSOLE COMMANDS ===
 
+window.debugDeposits = function() {
+    console.log('🔍 === DEPOSIT DEBUG ===');
+    console.log('📊 Current deposits array:', deposits);
+    console.log('📊 Deposits count:', deposits.length);
+    console.log('🎯 Current tab:', currentTab);
+    console.log('🎯 Is deposits tab active?', document.getElementById('deposits-tab').classList.contains('active'));
+    
+    if (deposits.length > 0) {
+        console.log('📋 Deposits details:');
+        deposits.forEach((d, i) => {
+            console.log(`  ${i+1}. ${d.reference}: $${d.amount} (${d.status}) - ${d.clientName}`);
+        });
+    }
+};
+
+window.checkAPIs = async function() {
+    console.log('🔍 === API CHECK ===');
+    
+    // Check admin-stats
+    try {
+        const statsResponse = await fetch('/api/admin-stats', {
+            headers: { 'Authorization': `Bearer ${getAuthToken()}` }
+        });
+        const statsData = await statsResponse.json();
+        console.log('📊 Admin-stats API:', statsData.success ? '✅ OK' : '❌ FAILED');
+        console.log('📊 Admin-stats deposits:', statsData.deposits?.length || 0);
+    } catch (e) {
+        console.log('📊 Admin-stats API: ❌ ERROR', e.message);
+    }
+    
+    // Check deposits API
+    try {
+        const depositsResponse = await fetch('/api/deposits', {
+            headers: { 'Authorization': `Bearer ${getAuthToken()}` }
+        });
+        const depositsData = await depositsResponse.json();
+        console.log('💰 Deposits API:', depositsData.success ? '✅ OK' : '❌ FAILED');
+        console.log('💰 Deposits API deposits:', depositsData.deposits?.length || 0);
+        
+        if (depositsData.deposits?.length > 0) {
+            console.log('💰 Raw deposits from API:');
+            depositsData.deposits.forEach((d, i) => {
+                console.log(`  ${i+1}. ${d.reference || d.id}: $${d.amount} (${d.status}) - ${d.first_name} ${d.last_name}`);
+            });
+        }
+    } catch (e) {
+        console.log('💰 Deposits API: ❌ ERROR', e.message);
+    }
+};
+
+window.forceRefresh = async function() {
+    console.log('🔄 === FORCE REFRESH ===');
+    await fetchAdminStats();
+    console.log('🔄 After refresh - deposits count:', deposits.length);
+    switchTab('deposits');
+    console.log('🔄 Switched to deposits tab');
+};
+
+window.showTable = function() {
+    console.log('🎨 === TABLE DEBUG ===');
+    const tbody = document.getElementById('depositsTableBody');
+    console.log('🎨 Table HTML length:', tbody.innerHTML.length);
+    console.log('🎨 Table HTML preview:', tbody.innerHTML.substring(0, 500));
+};
     </script>
 </body>
 </html>
