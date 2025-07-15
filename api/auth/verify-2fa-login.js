@@ -1,8 +1,9 @@
+// api/auth/verify-2fa-login.js - Fixed for Vercel
 const { sql } = require('@vercel/postgres');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
-// TOTP functions (same as above)
+// TOTP functions
 function base32Decode(encoded) {
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
     let bits = '';
@@ -60,7 +61,17 @@ function verifyBackupCode(inputCode, backupCodes) {
     return -1; // No match found
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
+    // Handle CORS
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Content-Type', 'application/json');
+
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
@@ -74,7 +85,7 @@ export default async function handler(req, res) {
 
         // Get user from database
         const userResult = await sql`
-            SELECT id, email, password_hash, role, two_factor_secret, backup_codes, two_factor_enabled
+            SELECT id, email, password_hash, role, two_factor_secret, backup_codes, two_factor_enabled, first_name, last_name, account_value, starting_balance, setup_status, setup_step
             FROM users 
             WHERE email = ${email}
         `;
@@ -123,31 +134,49 @@ export default async function handler(req, res) {
             `;
         }
 
+        // Update last login
+        await sql`
+            UPDATE users 
+            SET last_login = NOW() 
+            WHERE id = ${user.id}
+        `;
+
         // Generate new JWT token for successful login
         const jwtToken = jwt.sign(
             { 
                 userId: user.id, 
+                id: user.id,
                 email: user.email, 
                 role: user.role 
             },
-            process.env.JWT_SECRET,
+            process.env.JWT_SECRET || 'aequitas-secret-key-2025',
             { expiresIn: '24h' }
         );
 
         console.log(`✅ 2FA login successful for user ${user.email} (${isBackupCode ? 'backup code' : 'TOTP'})`);
 
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
             token: jwtToken,
             user: {
                 id: user.id,
                 email: user.email,
-                role: user.role
+                role: user.role,
+                firstName: user.first_name,
+                lastName: user.last_name,
+                accountValue: parseFloat(user.account_value || 0),
+                startingBalance: parseFloat(user.starting_balance || 0),
+                setupStatus: user.setup_status,
+                setupStep: user.setup_step,
+                setupRequired: user.setup_status !== 'approved'
             }
         });
 
     } catch (error) {
         console.error('💥 2FA login verification error:', error);
-        res.status(500).json({ error: 'Failed to verify 2FA login' });
+        return res.status(500).json({ 
+            error: 'Failed to verify 2FA login',
+            details: process.env.NODE_ENV === 'development' ? error.message : 'Server error'
+        });
     }
-}
+};
