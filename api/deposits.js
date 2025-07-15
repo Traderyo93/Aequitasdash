@@ -1,4 +1,4 @@
-// api/deposits.js - FINAL FIXED VERSION - USE THIS ONE
+// api/deposits.js - COMPLETE FIXED VERSION
 const { sql } = require('@vercel/postgres');
 const jwt = require('jsonwebtoken');
 
@@ -61,17 +61,17 @@ module.exports = async function handler(req, res) {
     }
     
     if (req.method === 'POST') {
-      console.log('💰 POST deposit request - SIMPLE DEPOSIT + CSV PERFORMANCE');
+      console.log('💰 POST deposit request');
       console.log('📋 Request body:', req.body);
       console.log('👤 User making request:', { id: user.id, role: user.role });
       
       const { userId, amount, depositDate, purpose } = req.body;
       
-      // Validation
-      if (!amount || !depositDate) {
+      // Basic validation - amount is always required
+      if (!amount) {
         return res.status(400).json({ 
           success: false, 
-          error: 'Missing required fields: amount, depositDate' 
+          error: 'Amount is required' 
         });
       }
       
@@ -82,37 +82,29 @@ module.exports = async function handler(req, res) {
         });
       }
       
-      // Determine target user
-      let targetUserId;
-      if (user.role === 'admin' && userId) {
-        // Admin adding deposit for specific client
-        targetUserId = userId;
-        console.log('🔑 Admin adding deposit for client:', targetUserId);
+      // ===== DETERMINE FLOW: CLIENT REQUEST vs ADMIN DEPOSIT =====
+      
+      if (user.role === 'admin' && userId && depositDate) {
+        // ADMIN FLOW: Adding completed deposit for client after money received
+        console.log('🔧 ADMIN FLOW: Adding completed deposit for client');
+        
+        // Admin deposits require depositDate
+        if (!depositDate) {
+          return res.status(400).json({ 
+            success: false, 
+            error: 'depositDate is required for admin deposits' 
+          });
+        }
+        
+        return await addCompletedDeposit(userId, amount, depositDate, purpose, user.id, res);
+        
       } else {
-        // Regular user adding deposit for themselves
-        targetUserId = user.id;
-        console.log('👤 User adding deposit for themselves:', targetUserId);
+        // CLIENT FLOW: Submitting deposit request (pending approval)
+        console.log('📋 CLIENT FLOW: Creating pending deposit request');
+        
+        // Client requests don't need depositDate
+        return await createDepositRequest(user.id, amount, purpose, res);
       }
-      
-      // Check if target user exists
-      const userCheck = await sql`
-        SELECT id, first_name, last_name, email, account_value, total_deposits
-        FROM users 
-        WHERE id = ${targetUserId}
-      `;
-      
-      if (userCheck.rows.length === 0) {
-        return res.status(404).json({ 
-          success: false, 
-          error: 'Target user not found' 
-        });
-      }
-      
-      const targetUser = userCheck.rows[0];
-      console.log('👤 Target user found:', targetUser.email);
-      
-      // ===== ADD DEPOSIT + CALCULATE PERFORMANCE FROM CSV =====
-      return await addDepositWithPerformance(targetUserId, amount, depositDate, purpose, user.id, targetUser, res);
     }
     
     if (req.method === 'PUT') {
@@ -174,6 +166,101 @@ module.exports = async function handler(req, res) {
   }
 };
 
+// ===== CLIENT FLOW: Create pending deposit request =====
+async function createDepositRequest(userId, amount, purpose, res) {
+  try {
+    console.log('📋 Creating PENDING deposit request for user:', userId);
+    
+    // Get user info
+    const userCheck = await sql`
+      SELECT id, first_name, last_name, email
+      FROM users 
+      WHERE id = ${userId}
+    `;
+    
+    if (userCheck.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'User not found' 
+      });
+    }
+    
+    const user = userCheck.rows[0];
+    const reference = 'ACP' + Date.now().toString().slice(-6);
+    
+    // Create PENDING deposit request
+    const depositResult = await sql`
+      INSERT INTO deposits (
+        id, user_id, reference, amount, purpose,
+        status, created_at, client_name, client_email
+      ) VALUES (
+        gen_random_uuid(), ${userId}, ${reference}, ${parseFloat(amount)}, ${purpose || 'additional'},
+        'pending', NOW(), 
+        ${user.first_name + ' ' + user.last_name},
+        ${user.email}
+      )
+      RETURNING *
+    `;
+    
+    console.log('✅ Pending deposit request created:', reference);
+    
+    return res.status(200).json({
+      success: true,
+      message: 'Deposit request submitted successfully! Please upload required documents.',
+      deposit: depositResult.rows[0],
+      reference: reference,
+      nextSteps: [
+        'Download and complete the required forms',
+        'Upload completed documents',
+        'Wait for admin approval',
+        'Transfer funds after approval'
+      ]
+    });
+    
+  } catch (error) {
+    console.error('💥 Failed to create deposit request:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to create deposit request',
+      details: error.message
+    });
+  }
+}
+
+// ===== ADMIN FLOW: Add completed deposit =====
+async function addCompletedDeposit(targetUserId, amount, depositDate, purpose, adminId, res) {
+  try {
+    console.log('🔧 Admin adding COMPLETED deposit for user:', targetUserId);
+    
+    // Get user info
+    const userCheck = await sql`
+      SELECT id, first_name, last_name, email, account_value, total_deposits
+      FROM users 
+      WHERE id = ${targetUserId}
+    `;
+    
+    if (userCheck.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Target user not found' 
+      });
+    }
+    
+    const targetUser = userCheck.rows[0];
+    
+    // ===== ADD DEPOSIT + CALCULATE PERFORMANCE FROM CSV =====
+    return await addDepositWithPerformance(targetUserId, amount, depositDate, purpose, adminId, targetUser, res);
+    
+  } catch (error) {
+    console.error('💥 Failed to add completed deposit:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to add deposit',
+      details: error.message
+    });
+  }
+}
+
 // ===== ADD DEPOSIT + CALCULATE PERFORMANCE FROM CSV =====
 async function addDepositWithPerformance(targetUserId, amount, depositDate, purpose, addedBy, targetUser, res) {
   try {
@@ -188,7 +275,7 @@ async function addDepositWithPerformance(targetUserId, amount, depositDate, purp
         status, deposit_date, created_at, client_name, 
         client_email, added_by
       ) VALUES (
-        gen_random_uuid(), ${targetUserId}, ${reference}, ${parseFloat(amount)}, 'additional',
+        gen_random_uuid(), ${targetUserId}, ${reference}, ${parseFloat(amount)}, ${purpose || 'additional'},
         'completed', ${depositDate}::date, NOW(), 
         ${targetUser.first_name + ' ' + targetUser.last_name},
         ${targetUser.email}, ${addedBy}
