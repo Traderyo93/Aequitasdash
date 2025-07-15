@@ -983,10 +983,6 @@
                             <span class="icon icon-download"></span>
                             Deposit Request Form
                         </button>
-                        <button type="button" class="btn btn-outline" onclick="copyBankReference()">
-                            <span class="icon icon-copy"></span>
-                            Copy Bank Reference
-                        </button>
                     </div>
                 </div>
 
@@ -1193,7 +1189,9 @@
         function loadUploadedFiles() {
             const key = getUserStorageKey('uploaded_files');
             const files = localStorage.getItem(key);
-            return files ? JSON.parse(files) : [];
+            const parsed = files ? JSON.parse(files) : [];
+            // Ensure it's always an array
+            return Array.isArray(parsed) ? parsed : [];
         }
 
         function saveUserDeposits(deposits) {
@@ -1285,6 +1283,11 @@
             
             if (files.length === 0) return;
 
+            // Ensure uploadedFiles is always an array
+            if (!Array.isArray(uploadedFiles)) {
+                uploadedFiles = [];
+            }
+
             const amount = document.getElementById('depositAmount').value;
             const purpose = document.getElementById('depositPurpose').value;
             
@@ -1318,7 +1321,7 @@
                 }
                 
                 try {
-                    showNotification('Uploading file...', 'info');
+                    showNotification('Processing file...', 'info');
                     
                     // Convert file to base64
                     const fileData = await new Promise((resolve) => {
@@ -1329,7 +1332,7 @@
                     
                     // Store file locally until deposit is submitted
                     const fileObj = {
-                        id: 'temp_' + Date.now(),
+                        id: 'temp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
                         name: file.name,
                         size: formatFileSize(file.size),
                         uploadDate: new Date().toISOString(),
@@ -1359,6 +1362,11 @@
         // Render uploaded files
         function renderUploadedFiles() {
             const container = document.getElementById('uploadedForms');
+            
+            // Ensure uploadedFiles is always an array
+            if (!Array.isArray(uploadedFiles)) {
+                uploadedFiles = [];
+            }
             
             if (uploadedFiles.length === 0) {
                 container.innerHTML = '';
@@ -1680,12 +1688,19 @@
             uploadedFiles = loadUploadedFiles();
             depositHistory = loadUserDeposits();
             
+            // Ensure uploadedFiles is always an array
+            if (!Array.isArray(uploadedFiles)) {
+                uploadedFiles = [];
+                saveUploadedFiles(uploadedFiles);
+            }
+            
             renderUploadedFiles();
             updateSubmitButton();
             updateProgressSteps();
             updateDepositTimeline();
             
             console.log(`📂 Loaded data for user: ${getCurrentUserId()}`);
+            console.log(`📋 Uploaded files:`, uploadedFiles);
         }
 
         // Input event handlers
