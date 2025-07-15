@@ -2736,6 +2736,30 @@
             showNotification('Downloading withdrawal form...', 'success');
         }
 
+        // Add this function anywhere in your admin.html <script> section
+        async function loadDepositDocuments(depositId) {
+            try {
+                console.log(`📋 Loading documents for deposit: ${depositId}`);
+                
+                const response = await fetch(`/api/deposit-documents?depositId=${depositId}`, {
+                    headers: { 'Authorization': `Bearer ${getAuthToken()}` }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    console.log(`✅ Found ${data.documents.length} documents`);
+                    return data.documents;
+                } else {
+                    console.error('Failed to load documents:', data.error);
+                    return [];
+                }
+            } catch (error) {
+                console.error('Error loading documents:', error);
+                return [];
+            }
+        }
+                
         // Approve withdrawal
         async function approveWithdrawal() {
             if (!viewingWithdrawalId) return;
@@ -3945,7 +3969,8 @@
         }
 
         // View deposit details
-        function viewDeposit(depositId) {
+        // View deposit details
+        async function viewDeposit(depositId) {
             const deposit = deposits.find(d => d.id === depositId);
             if (!deposit) {
                 console.error('Deposit not found:', depositId);
@@ -3955,6 +3980,44 @@
             
             console.log('👁️ Admin viewing deposit:', deposit);
             viewingDepositId = depositId;
+            
+            // Load documents for this deposit
+            const documents = await loadDepositDocuments(depositId);
+            
+            // Build documents HTML
+            let documentsHTML = '';
+            if (documents.length > 0) {
+                documentsHTML = `
+                    <div class="modal-form-group full-width">
+                        <label>Uploaded Documents (${documents.length})</label>
+                        <div style="margin-top: 8px;">
+                            ${documents.map(doc => `
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 8px;">
+                                    <div>
+                                        <div style="font-weight: 500; color: var(--text-primary);">${doc.fileName}</div>
+                                        <div style="font-size: 12px; color: var(--text-secondary);">
+                                            ${doc.fileSize ? formatFileSize(doc.fileSize) : 'Unknown size'} • Uploaded ${new Date(doc.uploadedAt).toLocaleDateString()}
+                                        </div>
+                                    </div>
+                                    <a href="${doc.fileUrl}" target="_blank" class="btn btn-sm btn-outline">
+                                        <span class="icon icon-download"></span>
+                                        Download
+                                    </a>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } else {
+                documentsHTML = `
+                    <div class="modal-form-group full-width">
+                        <label>Documents</label>
+                        <div style="color: var(--text-secondary); font-style: italic; margin-top: 8px;">
+                            No documents uploaded yet
+                        </div>
+                    </div>
+                `;
+            }
             
             document.getElementById('depositDetailsBody').innerHTML = `
                 <div class="modal-form-grid">
@@ -3995,6 +4058,7 @@
                             Client must include this reference in their bank transfer
                         </div>
                     </div>
+                    ${documentsHTML}
                 </div>
             `;
             
@@ -4839,6 +4903,15 @@ window.fullDepositDebug = async function() {
     console.log('   3. If pending deposits exist but not showing, check admin-stats.js filtering');
     console.log('   4. Run simulateMihkelDeposit() to test the flow');
 };
+
+    function formatFileSize(bytes) {
+        if (!bytes) return 'Unknown';
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
         
     </script>
 </body>
