@@ -937,8 +937,8 @@
                             <div class="stat-label">Total Deposits</div>
                         </div>
                         <div class="stat-item">
-                            <div class="stat-value" id="totalWithdrawals">$0</div>
-                            <div class="stat-label">Total Withdrawals</div>
+                            <div class="stat-value" id="totalProfit">$0</div>
+                            <div class="stat-label">Account Profit</div>
                         </div>
                     </div>
                 </div>
@@ -1352,7 +1352,199 @@
             }
         });
 
-        // FIXED - Load User Data from API
+        // ===== REAL CSV DATA FUNCTIONS - SAME AS DASHBOARD =====
+        
+        // Load CSV trading data from server
+        async function loadCSVData() {
+            try {
+                const response = await fetch('/data/daily_returns_simple.csv');
+                if (!response.ok) throw new Error('CSV file not accessible');
+                
+                const csvContent = await response.text();
+                const lines = csvContent.split('\n');
+                const csvData = {};
+                
+                // Skip header row, parse date and CUMULATIVE return
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    
+                    const values = line.split(',');
+                    if (values.length >= 3) { // Now we need the 3rd column
+                        const date = values[0].trim();
+                        const cumulativeReturn = parseFloat(values[2].trim()); // Column 3: Cumulative_Return_Percent
+                        
+                        if (!isNaN(cumulativeReturn)) {
+                            csvData[date] = cumulativeReturn; // Store as percentage, not decimal
+                        }
+                    }
+                }
+                
+                console.log(`📊 Loaded ${Object.keys(csvData).length} trading days from CSV (cumulative returns)`);
+                return csvData;
+                
+            } catch (error) {
+                console.error('💥 Failed to load CSV data:', error);
+                return {};
+            }
+        }
+
+        // Calculate real dashboard performance using deposits and CSV returns
+        function calculateDashboardPerformance(deposits, csvData) {
+            console.log('🧮 Calculating performance with CUMULATIVE returns logic');
+            
+            const endDate = new Date();
+            let totalDeposits = 0;
+            let finalBalance = 0;
+            
+            // Sort deposits chronologically
+            const sortedDeposits = deposits.sort((a, b) => {
+                const dateA = new Date(a.deposit_date || a.date);
+                const dateB = new Date(b.deposit_date || b.date);
+                return dateA - dateB;
+            });
+            
+            // Process each deposit separately
+            for (const deposit of sortedDeposits) {
+                const depositAmount = parseFloat(deposit.amount);
+                const depositDate = new Date(deposit.deposit_date || deposit.date);
+                const depositDateStr = depositDate.toISOString().split('T')[0];
+                
+                totalDeposits += depositAmount;
+                
+                // Get cumulative return at deposit date (baseline)
+                const startCumulative = csvData[depositDateStr];
+                if (!startCumulative) {
+                    console.log(`⚠️ No CSV data for deposit date ${depositDateStr}, using deposit amount as-is`);
+                    finalBalance += depositAmount;
+                    continue;
+                }
+                
+                // Get cumulative return at end date
+                const endDateStr = endDate.toISOString().split('T')[0];
+                let endCumulative = csvData[endDateStr];
+                
+                // If no data for exact end date, find the latest available date
+                if (!endCumulative) {
+                    const availableDates = Object.keys(csvData).sort().reverse();
+                    const latestDate = availableDates.find(date => date <= endDateStr);
+                    if (latestDate) {
+                        endCumulative = csvData[latestDate];
+                        console.log(`📅 Using latest available date ${latestDate} for end calculation`);
+                    } else {
+                        endCumulative = startCumulative; // No growth if no data
+                    }
+                }
+                
+                // Calculate performance for this deposit
+                const performanceMultiplier = endCumulative / startCumulative;
+                const currentDepositValue = depositAmount * performanceMultiplier;
+                
+                console.log(`💰 Deposit $${depositAmount.toLocaleString()} on ${depositDateStr}:`);
+                console.log(`   📊 Cumulative: ${startCumulative.toFixed(2)}% → ${endCumulative.toFixed(2)}%`);
+                console.log(`   📈 Multiplier: ${performanceMultiplier.toFixed(4)}x`);
+                console.log(`   💵 Value: $${currentDepositValue.toLocaleString()}`);
+                
+                finalBalance += currentDepositValue;
+            }
+            
+            return {
+                totalDeposits,
+                currentBalance: finalBalance
+            };
+        }
+
+        // FIXED - Load Account Stats with REAL CSV calculation
+        async function loadAccountStats() {
+            try {
+                console.log('📊 Loading REAL account stats with CSV + deposits calculation...');
+                
+                const authToken = localStorage.getItem('aequitas_auth_token');
+                if (!authToken) {
+                    console.log('⚠️ No auth token found, using fallback data');
+                    loadFallbackAccountStats();
+                    return;
+                }
+                
+                // Load CSV trading data
+                const csvData = await loadCSVData();
+                
+                // Get user deposits from API
+                const depositsResponse = await fetch('/api/deposits', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!depositsResponse.ok) {
+                    console.log('⚠️ Failed to load deposits, using fallback data');
+                    loadFallbackAccountStats();
+                    return;
+                }
+                
+                const depositsData = await depositsResponse.json();
+                const userDeposits = depositsData.deposits || [];
+                
+                console.log(`📊 Found ${userDeposits.length} user deposits`);
+                console.log(`📊 Loaded ${Object.keys(csvData).length} trading days from CSV`);
+                
+                if (userDeposits.length === 0) {
+                    console.log('⚠️ No deposits found, using fallback data');
+                    loadFallbackAccountStats();
+                    return;
+                }
+                
+                // Calculate real performance using same logic as dashboard
+                const performanceResult = calculateDashboardPerformance(userDeposits, csvData);
+                
+                const accountValue = performanceResult.currentBalance;
+                const totalDeposits = performanceResult.totalDeposits;
+                const profit = accountValue - totalDeposits;
+                
+                // Update account stats with REAL calculated values
+                document.getElementById('accountBalance').textContent = formatCurrency(accountValue);
+                document.getElementById('totalDeposits').textContent = formatCurrency(totalDeposits);
+                document.getElementById('totalProfit').textContent = formatCurrency(profit);
+                
+                // Calculate member since from first deposit
+                const earliestDeposit = userDeposits.reduce((earliest, deposit) => {
+                    const depositDate = new Date(deposit.deposit_date || deposit.date);
+                    return depositDate < earliest ? depositDate : earliest;
+                }, new Date());
+                
+                document.getElementById('memberSince').textContent = earliestDeposit.getFullYear();
+                
+                console.log('✅ Real account stats loaded:', {
+                    balance: accountValue.toLocaleString(),
+                    deposits: totalDeposits.toLocaleString(),
+                    profit: profit.toLocaleString(),
+                    memberSince: earliestDeposit.getFullYear()
+                });
+                
+            } catch (error) {
+                console.error('💥 Failed to load real account stats:', error);
+                loadFallbackAccountStats();
+            }
+        }
+
+        // Fallback account stats when real data unavailable
+        function loadFallbackAccountStats() {
+            console.log('📊 Using fallback account stats');
+            
+            const accountValue = userData.accountValue || 2850000;
+            const totalDeposits = 1000000;
+            const profit = accountValue - totalDeposits;
+            const joinDate = userData.created_at || userData.joinDate || '2024-01-01';
+            
+            document.getElementById('accountBalance').textContent = formatCurrency(accountValue);
+            document.getElementById('totalDeposits').textContent = formatCurrency(totalDeposits);
+            document.getElementById('totalProfit').textContent = formatCurrency(profit);
+            document.getElementById('memberSince').textContent = new Date(joinDate).getFullYear();
+        }
+
+        // Load user data from API
         async function loadUserData() {
             try {
                 console.log('📋 Loading user profile from API...');
@@ -1369,23 +1561,20 @@
                     const data = await response.json();
                     console.log('✅ Profile data loaded:', data);
                     
-                    // Check debug info
-                    if (data.debug) {
-                        console.log('📊 Debug info:', data.debug);
-                        console.log('📄 Documents found:', data.debug.documentsFound);
-                    }
-                    
                     userData = data.user;
                     timelineData = data.timeline || [];
                     
                     // Update local storage with fresh data
                     localStorage.setItem('aequitas_user_data', JSON.stringify(userData));
                     
-                    // Update form fields
+                    // Update form fields and UI
                     populateFormFields();
                     updateUserDisplay();
-                    loadAccountStats(data.stats);
                     renderTimeline();
+                    
+                    // Load REAL account stats with CSV calculation
+                    await loadAccountStats();
+                    
                 } else {
                     const errorText = await response.text();
                     throw new Error(`API responded with ${response.status}: ${errorText}`);
@@ -1420,14 +1609,14 @@
                 
                 populateFormFields();
                 updateUserDisplay();
-                loadAccountStats(); // Call without apiStats to use fallback
+                loadAccountStats(); // Will use fallback data
                 loadTimeline(); // Use dummy data
                 
                 showNotification('Using cached profile data - some information may be outdated', 'warning');
             }
         }
 
-        // FIXED - Populate Form Fields with proper date handling and error checking
+        // Populate Form Fields with proper date handling and error checking
         function populateFormFields() {
             try {
                 document.getElementById('firstName').value = userData.firstName || userData.first_name || '';
@@ -1480,35 +1669,6 @@
             document.getElementById('topUserName').textContent = firstName;
         }
 
-        // Load Account Stats - FIXED
-function loadAccountStats(apiStats = null) {
-    try {
-        if (apiStats) {
-            // Use real stats from API
-            document.getElementById('accountBalance').textContent = formatCurrency(userData.accountValue || 0);
-            document.getElementById('memberSince').textContent = apiStats.memberSince;
-            document.getElementById('totalDeposits').textContent = formatCurrency(apiStats.totalDeposits);
-            document.getElementById('totalWithdrawals').textContent = formatCurrency(apiStats.totalWithdrawals);
-        } else {
-            // Fallback to basic data
-            const accountValue = userData.accountValue || 2850000;
-            const joinDate = userData.created_at || userData.joinDate || '2024-01-01';
-            
-            document.getElementById('accountBalance').textContent = formatCurrency(accountValue);
-            document.getElementById('memberSince').textContent = new Date(joinDate).getFullYear();
-            document.getElementById('totalDeposits').textContent = formatCurrency(1000000);
-            document.getElementById('totalWithdrawals').textContent = formatCurrency(0);
-        }
-    } catch (error) {
-        console.error('Error in loadAccountStats:', error);
-        // Set fallback values if there's an error
-        document.getElementById('accountBalance').textContent = '$0';
-        document.getElementById('memberSince').textContent = '2025';
-        document.getElementById('totalDeposits').textContent = '$0';
-        document.getElementById('totalWithdrawals').textContent = '$0';
-    }
-}
-
         // Load Timeline Data
         async function loadTimeline() {
             // This is now handled by loadUserData() which gets timeline from API
@@ -1539,7 +1699,7 @@ function loadAccountStats(apiStats = null) {
             renderTimeline();
         }
 
-        // FIXED - Render Timeline with proper document handling
+        // Render Timeline with proper document handling
         function renderTimeline() {
             const timeline = document.getElementById('accountTimeline');
             
