@@ -1,9 +1,8 @@
-// api/upload.js - FIXED VERSION - Ensures file_url is properly saved
+// api/upload.js - FIXED VERSION - Option 2 with separate deposit_documents table
 const { put } = require('@vercel/blob');
 const { sql } = require('@vercel/postgres');
 
 module.exports = async function handler(req, res) {
-  // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
@@ -34,7 +33,7 @@ module.exports = async function handler(req, res) {
 
     console.log(`📄 Processing upload: ${fileName}`);
     console.log(`👤 User: ${userId}`);
-    console.log(`📋 Document type: ${documentType}`);
+    console.log(`📋 Deposit ID: ${depositId}`);
     console.log(`🔧 Setup document: ${isSetupDocument}`);
 
     // Validate file type (PDF only)
@@ -79,10 +78,12 @@ module.exports = async function handler(req, res) {
     const cleanFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_');
     
     let blobPath;
-    if (isSetupDocument) {
+    if (isSetupDocument && documentType) {
       blobPath = `setup/${userId}/${documentType}/${timestamp}_${cleanFileName}`;
-    } else {
+    } else if (depositId) {
       blobPath = `deposits/${depositId}/${timestamp}_${cleanFileName}`;
+    } else {
+      blobPath = `uploads/${userId}/${timestamp}_${cleanFileName}`;
     }
     
     console.log(`☁️ Uploading to Vercel Blob: ${blobPath}`);
@@ -96,46 +97,40 @@ module.exports = async function handler(req, res) {
     
     console.log(`✅ Blob uploaded successfully: ${blob.url}`);
     
-    // CRITICAL: Save to database with REAL file_url
+    // Save to database
     let databaseSaved = false;
-    let databaseError = null;
+    let insertResult;
     
     try {
-      console.log(`💾 Saving to database with URL: ${blob.url}`);
-      
-      // Ensure user_documents table exists
-      await sql`
-        CREATE TABLE IF NOT EXISTS user_documents (
-          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          user_id UUID NOT NULL,
-          document_type VARCHAR(50) NOT NULL,
-          file_name VARCHAR(255) NOT NULL,
-          file_url TEXT NOT NULL,
-          blob_path TEXT,
-          file_size INTEGER,
-          uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-        )
-      `;
-      
-      // Create unique constraint if not exists
-      try {
-        await sql`
-          ALTER TABLE user_documents 
-          ADD CONSTRAINT unique_user_document_type 
-          UNIQUE(user_id, document_type)
-        `;
-      } catch (constraintError) {
-        // Constraint may already exist, ignore
-        console.log('Unique constraint already exists or failed to add');
-      }
-      
       if (isSetupDocument && documentType) {
+        // SETUP DOCUMENT - Save to user_documents
         console.log(`📝 Inserting setup document: ${documentType} for user ${userId}`);
-        console.log(`📝 With file_url: ${blob.url}`);
         
-        // CRITICAL: Ensure file_url is properly saved
-        const insertResult = await sql`
+        await sql`
+          CREATE TABLE IF NOT EXISTS user_documents (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            user_id UUID NOT NULL,
+            document_type VARCHAR(50) NOT NULL,
+            file_name VARCHAR(255) NOT NULL,
+            file_url TEXT NOT NULL,
+            blob_path TEXT,
+            file_size INTEGER,
+            uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+          )
+        `;
+        
+        try {
+          await sql`
+            ALTER TABLE user_documents 
+            ADD CONSTRAINT unique_user_document_type 
+            UNIQUE(user_id, document_type)
+          `;
+        } catch (constraintError) {
+          // Constraint may already exist
+        }
+        
+        insertResult = await sql`
           INSERT INTO user_documents (user_id, document_type, file_name, file_url, blob_path, file_size)
           VALUES (${userId}, ${documentType}, ${fileName}, ${blob.url}, ${blobPath}, ${buffer.length})
           ON CONFLICT (user_id, document_type) 
@@ -148,28 +143,52 @@ module.exports = async function handler(req, res) {
           RETURNING id, file_url
         `;
         
-        console.log(`✅ Document saved to user_documents table:`, insertResult.rows[0]);
+        console.log(`✅ Setup document saved to user_documents table:`, insertResult.rows[0]);
+        databaseSaved = true;
         
-        // Verify the URL was saved correctly
-        const verifyResult = await sql`
-          SELECT file_url FROM user_documents 
-          WHERE user_id = ${userId} AND document_type = ${documentType}
+      } else if (depositId) {
+        // DEPOSIT DOCUMENT - Save to separate deposit_documents table
+        console.log(`📝 Inserting deposit document for deposit ${depositId}`);
+        
+        // Create deposit_documents table if not exists
+        await sql`
+          CREATE TABLE IF NOT EXISTS deposit_documents (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            deposit_id VARCHAR(255) NOT NULL,
+            user_id UUID NOT NULL,
+            file_name VARCHAR(255) NOT NULL,
+            file_url TEXT NOT NULL,
+            blob_path TEXT,
+            file_size INTEGER,
+            uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+          )
         `;
         
-        console.log(`🔍 Verification - URL in DB: ${verifyResult.rows[0]?.file_url}`);
-        
-        if (verifyResult.rows[0]?.file_url === blob.url) {
-          console.log(`✅ URL verified correctly saved`);
-          databaseSaved = true;
-        } else {
-          console.error(`❌ URL mismatch! Expected: ${blob.url}, Got: ${verifyResult.rows[0]?.file_url}`);
-          databaseError = "URL verification failed";
+        // Get deposit reference for logging
+        let depositReference = 'Unknown';
+        try {
+          const depositInfo = await sql`
+            SELECT reference FROM deposits WHERE id = ${depositId}
+          `;
+          depositReference = depositInfo.rows[0]?.reference || 'Unknown';
+        } catch (error) {
+          console.log('Could not fetch deposit reference:', error.message);
         }
         
-      } else {
-        console.log(`📝 Inserting general upload for deposit: ${depositId}`);
+        insertResult = await sql`
+          INSERT INTO deposit_documents (deposit_id, user_id, file_name, file_url, blob_path, file_size)
+          VALUES (${depositId}, ${userId}, ${fileName}, ${blob.url}, ${blobPath}, ${buffer.length})
+          RETURNING id, file_url
+        `;
         
-        // Create uploads table if not exists
+        console.log(`✅ Deposit document saved to deposit_documents table:`, insertResult.rows[0]);
+        console.log(`📋 Linked to deposit: ${depositReference}`);
+        databaseSaved = true;
+        
+      } else {
+        // FALLBACK - Save to uploads table
+        console.log(`📝 Inserting general upload`);
+        
         await sql`
           CREATE TABLE IF NOT EXISTS uploads (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -183,26 +202,24 @@ module.exports = async function handler(req, res) {
           )
         `;
         
-        // Insert deposit document
-        const insertResult = await sql`
+        insertResult = await sql`
           INSERT INTO uploads (user_id, deposit_id, file_name, file_url, blob_path, file_size)
           VALUES (${userId}, ${depositId}, ${fileName}, ${blob.url}, ${blobPath}, ${buffer.length})
           RETURNING id, file_url
         `;
         
-        console.log(`✅ Document saved to uploads table:`, insertResult.rows[0]);
+        console.log(`✅ General upload saved to uploads table:`, insertResult.rows[0]);
         databaseSaved = true;
       }
       
     } catch (dbError) {
       console.error('💥 Database save failed:', dbError);
-      databaseError = dbError.message;
       databaseSaved = false;
     }
     
     // Create response
     const fileRecord = {
-      id: 'file_' + timestamp,
+      id: insertResult?.rows[0]?.id || 'file_' + timestamp,
       name: fileName,
       originalName: fileName,
       url: blob.url,
@@ -219,15 +236,15 @@ module.exports = async function handler(req, res) {
     
     const response = {
       success: true,
-      message: `File uploaded to Vercel Blob${databaseSaved ? ' and saved to database' : ''}`,
+      message: `File uploaded successfully${databaseSaved ? ' and saved to database' : ''}`,
       file: fileRecord,
       blobUploaded: true,
       databaseSaved: databaseSaved,
-      blobUrl: blob.url // Include the real URL for verification
+      blobUrl: blob.url
     };
     
-    if (databaseError) {
-      response.warning = `Database save failed: ${databaseError}`;
+    if (!databaseSaved) {
+      response.warning = 'Database save failed but file uploaded to Vercel Blob';
     }
     
     console.log(`🎉 Upload complete - Blob: ✅, Database: ${databaseSaved ? '✅' : '❌'}`);
