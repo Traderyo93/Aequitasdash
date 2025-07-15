@@ -977,7 +977,11 @@
                     <div style="display: flex; gap: 12px;">
                         <button type="button" class="btn btn-outline" onclick="downloadSourceOfFundsForm()">
                             <span class="icon icon-download"></span>
-                            Download Forms
+                            Source of Funds Form
+                        </button>
+                        <button type="button" class="btn btn-outline" onclick="downloadDepositRequestForm()">
+                            <span class="icon icon-download"></span>
+                            Deposit Request Form
                         </button>
                         <button type="button" class="btn btn-outline" onclick="copyBankReference()">
                             <span class="icon icon-copy"></span>
@@ -1263,7 +1267,16 @@
             link.download = 'source-of-funds-declaration.pdf';
             link.click();
             
-            showNotification('Forms downloaded! Please complete and upload them.', 'success');
+            showNotification('Source of Funds Declaration downloaded! Please complete and upload.', 'success');
+        }
+
+        function downloadDepositRequestForm() {
+            const link = document.createElement('a');
+            link.href = 'forms/deposit-request-form.pdf';
+            link.download = 'deposit-request-form.pdf';
+            link.click();
+            
+            showNotification('Deposit Request Form downloaded! Please complete and upload.', 'success');
         }
 
         // File upload handler
