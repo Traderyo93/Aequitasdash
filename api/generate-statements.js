@@ -1,4 +1,4 @@
-// api/generate-statements.js - Final Fixed Version
+// api/generate-statements.js - Complete Working Version with Logo Fix
 const { sql } = require('@vercel/postgres');
 const jwt = require('jsonwebtoken');
 
@@ -6,6 +6,25 @@ const jwt = require('jsonwebtoken');
 let csvCache = null;
 let csvCacheTime = null;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+// Convert image URL to base64 for PDF compatibility
+async function getBase64ImageFromUrl(imageUrl) {
+  try {
+    const response = await fetch(imageUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.status}`);
+    }
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const base64 = buffer.toString('base64');
+    const mimeType = response.headers.get('content-type') || 'image/png';
+    return `data:${mimeType};base64,${base64}`;
+  } catch (error) {
+    console.error('Failed to convert image to base64:', error);
+    // Return a fallback simple logo
+    return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjQwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iNDAiIGZpbGw9IiMzYjgyZjYiLz48dGV4dCB4PSI2MCIgeT0iMjUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IndoaXRlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIGZvbnQtd2VpZ2h0PSJib2xkIj5QMTE8L3RleHQ+PC9zdmc+';
+  }
+}
 
 // Load CSV data with cumulative returns
 async function loadCSVData() {
@@ -257,6 +276,11 @@ async function generateStatementHTML(client, performance, period) {
     return `5th July 2025`;
   };
 
+  // Convert logo to base64 for PDF compatibility
+  console.log('🔄 Converting logo to base64...');
+  const logoBase64 = await getBase64ImageFromUrl('https://i.postimg.cc/3NnrRJgH/p11.png');
+  console.log('✅ Logo converted to base64');
+
   // Create HTML content that matches your PDF layout exactly
   const htmlContent = `
     <!DOCTYPE html>
@@ -298,6 +322,8 @@ async function generateStatementHTML(client, performance, period) {
           width: 120px;
           height: auto;
           display: block;
+          max-width: 120px;
+          max-height: 60px;
         }
         
         .company-info {
@@ -450,7 +476,7 @@ async function generateStatementHTML(client, performance, period) {
       <div class="header">
         <div class="left-header">
           <div class="company-info">
-            <img src="https://i.postimg.cc/3NnrRJgH/p11.png" alt="P11 Logo" class="p11-logo" />
+            <img src="${logoBase64}" alt="P11 Logo" class="p11-logo" />
             <p>Small Funds Manager</p>
             <p>Viru väljak 2, 10111 Tallinn, Estonia</p>
           </div>
