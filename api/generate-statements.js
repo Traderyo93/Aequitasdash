@@ -1,4 +1,4 @@
-// api/generate-statements.js - Complete Updated File
+// api/generate-statements.js - Complete Fixed Version
 const { sql } = require('@vercel/postgres');
 const jwt = require('jsonwebtoken');
 
@@ -153,8 +153,61 @@ function calculateClientPerformance(deposits, csvData, periodStart, periodEnd) {
   };
 }
 
-// Generate PDF statement exactly like your image
-async function generateClientStatement(client, performance, period) {
+// Generate PDF using Puppeteer for Vercel with fallback
+async function generatePDFFromHTML(htmlContent) {
+  // Try to generate PDF with Puppeteer, fall back to HTML if it fails
+  try {
+    let browser;
+    
+    if (process.env.NODE_ENV === 'production') {
+      // Use puppeteer-core with @sparticuz/chromium for Vercel
+      const puppeteer = require('puppeteer-core');
+      const chromium = require('@sparticuz/chromium');
+      
+      browser = await puppeteer.launch({
+        args: [...chromium.args, '--hide-scrollbars', '--disable-web-security'],
+        defaultViewport: chromium.defaultViewport,
+        executablePath: await chromium.executablePath(),
+        headless: chromium.headless,
+        ignoreHTTPSErrors: true,
+      });
+    } else {
+      // Use regular puppeteer for local development
+      const puppeteer = require('puppeteer');
+      browser = await puppeteer.launch({ headless: 'new' });
+    }
+    
+    const page = await browser.newPage();
+    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+    
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      margin: {
+        top: '0.75in',
+        right: '0.75in',
+        bottom: '0.75in',
+        left: '0.75in',
+      },
+    });
+    
+    await browser.close();
+    return { success: true, buffer: pdfBuffer, type: 'pdf' };
+    
+  } catch (error) {
+    console.error('PDF generation failed, falling back to HTML:', error);
+    // Return HTML as fallback
+    return { 
+      success: false, 
+      buffer: Buffer.from(htmlContent, 'utf-8'), 
+      type: 'html',
+      error: error.message 
+    };
+  }
+}
+
+// Generate HTML statement content
+async function generateStatementHTML(client, performance, period) {
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-GB', {
       style: 'currency',
@@ -221,6 +274,8 @@ async function generateClientStatement(client, performance, period) {
           font-size: 16px; 
           color: #333;
           font-weight: bold;
+          display: flex;
+          align-items: center;
         }
         
         .company-info p { 
@@ -356,6 +411,9 @@ async function generateClientStatement(client, performance, period) {
           .footer {
             break-inside: avoid;
           }
+          .print-instructions {
+            display: none !important;
+          }
         }
       </style>
     </head>
@@ -448,7 +506,7 @@ async function generateClientStatement(client, performance, period) {
     </html>
   `;
 
-  return Buffer.from(htmlContent, 'utf-8');
+  return htmlContent;
 }
 
 // Get available statement periods based on client's deposit history
@@ -637,27 +695,14 @@ module.exports = async function handler(req, res) {
         const htmlWithInstructions = result.buffer.toString().replace(
           '<body>',
           `<body>
-            <div style="position: fixed; top: 10px; right: 10px; background: #f0f0f0; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 12px; z-index: 1000;">
+            <div class="print-instructions" style="position: fixed; top: 10px; right: 10px; background: #f0f0f0; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 12px; z-index: 1000;">
               <strong>To save as PDF:</strong> Press Ctrl+P (or Cmd+P), then select "Save as PDF"
               <button onclick="window.print()" style="margin-left: 10px; padding: 5px 10px;">Print/Save as PDF</button>
             </div>`
         );
         
         return res.status(200).send(htmlWithInstructions);
-      }rows, csvData, periodStart, periodEnd);
-      
-      // Generate HTML statement
-      const htmlStatement = await generateClientStatement(clientData, performance, {
-        name: periodName,
-        start: periodStart,
-        end: periodEnd
-      });
-      
-      // Return PDF content type and generate actual PDF
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="Aequitas-Statement-${statementId}.pdf"`);
-      
-      return res.status(200).send(htmlStatement);
+      }
     }
     
     return res.status(405).json({ success: false, error: 'Method not allowed' });
