@@ -407,18 +407,18 @@ module.exports = async function handler(req, res) {
       const csvData = await loadCSVData();
       const performance = calculateClientPerformance(deposits.rows, csvData, periodStart, periodEnd);
       
-      // Generate PDF
-      const pdfBuffer = await generateClientStatement(clientData, performance, {
+      // Generate HTML statement
+      const htmlStatement = await generateClientStatement(clientData, performance, {
         name: periodName,
         start: periodStart,
         end: periodEnd
       });
       
-      // Return HTML content as PDF (for now)
+      // Return HTML content that can be printed as PDF
       res.setHeader('Content-Type', 'text/html');
-      res.setHeader('Content-Disposition', `attachment; filename="Aequitas-Statement-${statementId}.html"`);
+      res.setHeader('Content-Disposition', `inline; filename="Aequitas-Statement-${statementId}.html"`);
       
-      return res.status(200).send(pdfBuffer);
+      return res.status(200).send(htmlStatement);
     }
     
     return res.status(405).json({ success: false, error: 'Method not allowed' });
