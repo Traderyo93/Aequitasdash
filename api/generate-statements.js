@@ -1,4 +1,4 @@
-// api/generate-statements.js - Clean Fixed Version
+// api/generate-statements.js - Final Fixed Version
 const { sql } = require('@vercel/postgres');
 const jwt = require('jsonwebtoken');
 
@@ -50,14 +50,15 @@ async function loadCSVData() {
 function calculateClientPerformance(deposits, csvData, periodStart, periodEnd) {
   console.log('🧮 Calculating statement performance for period:', periodStart.toISOString().split('T')[0], 'to', periodEnd.toISOString().split('T')[0]);
   
-  // Filter valid deposits up to period end
+  // Filter valid deposits up to period end - EXCLUDE bad dates
   const validDeposits = deposits.filter(deposit => {
     const depositDate = deposit.deposit_date || deposit.created_at;
     if (!depositDate || depositDate === null || depositDate === 'null' || depositDate === '') {
       return false;
     }
     const depDate = new Date(depositDate);
-    return depDate <= periodEnd; // Include all deposits up to period end
+    // EXCLUDE dates before 2020 (these are database null date bugs)
+    return depDate >= new Date(2020, 0, 1) && depDate <= periodEnd;
   });
   
   console.log(`📊 Found ${validDeposits.length} valid deposits up to period end`);
@@ -148,7 +149,8 @@ function calculateClientPerformance(deposits, csvData, periodStart, periodEnd) {
   // FIXED: Calculate proper percentage returns
   const totalGain = endBalance - startBalance - newDeposits;
   const returnPercent = (startBalance + newDeposits) > 0 ? ((totalGain / (startBalance + newDeposits)) * 100) : 0;
-  const totalReturnPercent = totalDeposits > 0 ? (((endBalance - totalDeposits) / totalDeposits) * 100) : 0;
+  // For statements, Total Return should be same as Period Return
+  const totalReturnPercent = returnPercent;
   
   console.log(`📈 Performance Summary:`);
   console.log(`   💰 Total Deposits: ${totalDeposits.toLocaleString()}`);
@@ -288,25 +290,18 @@ async function generateStatementHTML(client, performance, period) {
         
         .left-header {
           display: flex;
-          align-items: flex-start;
-          gap: 15px;
+          align-items: center;
+          gap: 0px;
         }
         
         .p11-logo { 
-          width: 32px;
-          height: 32px;
-          margin-right: 8px;
-          vertical-align: middle;
-          display: inline-block;
+          width: 120px;
+          height: auto;
+          display: block;
         }
         
-        .company-info h1 { 
-          margin: 0; 
-          font-size: 16px; 
-          color: #333;
-          font-weight: bold;
-          display: flex;
-          align-items: center;
+        .company-info {
+          text-align: center;
         }
         
         .company-info p { 
@@ -455,12 +450,9 @@ async function generateStatementHTML(client, performance, period) {
       <div class="header">
         <div class="left-header">
           <div class="company-info">
-            <h1>
-              <img src="https://i.postimg.cc/3NnrRJgH/p11.png" alt="P11 Logo" class="p11-logo" onerror="console.log('Logo failed to load'); this.style.display='none';" />
-              P11 Fund Administration
-            </h1>
-            <p>Independent Fund Administrator</p>
-            <p>Authorised and regulated by the FCA</p>
+            <img src="https://i.postimg.cc/3NnrRJgH/p11.png" alt="P11 Logo" class="p11-logo" />
+            <p>Small Funds Manager</p>
+            <p>Viru väljak 2, 10111 Tallinn, Estonia</p>
           </div>
         </div>
         <div class="right-header">
@@ -482,7 +474,7 @@ async function generateStatementHTML(client, performance, period) {
           <h3>Statement Period</h3>
           <p><strong>Period:</strong> ${period.name}</p>
           <p><strong>Issue Date:</strong> ${formatIssueDate(period.name)}</p>
-          <p><strong>Administrator:</strong> P11 Fund Administration</p>
+          <p><strong>Administrator:</strong> P11 Management</p>
         </div>
       </div>
 
@@ -526,15 +518,21 @@ async function generateStatementHTML(client, performance, period) {
       <div class="footer">
         <h4>Important Information</h4>
         
-        <p><strong>Fund Administrator:</strong> This statement has been prepared by P11 Fund Administration, an independent fund administrator authorised and regulated by the FCA. P11 provides professional oversight and ensures all statements are independently verified and audited.</p>
+        <p><strong>Fund Management:</strong> This statement has been prepared by P11 Management, a comprehensive solution provider for financial, legal, and AML/KYC consultation services tailored to small fund management. P11 specializes in providing consultancy services to clients seeking to establish alternative investment funds (AIFs).</p>
         
-        <p><strong>Trade History:</strong> A detailed audit log of all transactions is available upon request. To protect proprietary trading strategies and fund intellectual property, specific entry prices, stop-loss levels, and position sizing details are not disclosed in standard reporting. This information is maintained in our secure audit trail for regulatory compliance purposes.</p>
+        <p><strong>Services:</strong> P11 Management offers integrated expertise including fund opening and management, communication with regulators and administrators, bank and broker account opening, client onboarding and KYC/AML processes, and sales network for capital introduction and fundraising support.</p>
         
-        <p><strong>Confidentiality:</strong> This statement contains confidential and proprietary information. It is intended solely for the named account holder and should not be distributed to third parties without prior written consent from Aequitas Capital Partners.</p>
+        <p><strong>Investment Opportunities:</strong> P11 Management is committed to investing in multiple sectors including capital markets (bonds, stocks and derivatives), real estate development, forestry in the Baltics, green energy and ESG investments, and blockchain and fintech.</p>
+        
+        <p><strong>Regulatory Compliance:</strong> According to Investment Funds Act § 455 (8), the Financial Supervision Authority exercises supervision over small fund managers which have registered their activities, only over compliance with the registration obligation and submission of information.</p>
+        
+        <p><strong>Investment Strategy:</strong> P11 Management leverages profound knowledge of alternative investment strategies and upholds a commitment to excellence, transparency, and client satisfaction. Through personalized investment solutions tailored to specific objectives and preferences, we foster sustainable growth and deliver compelling financial outcomes.</p>
+        
+        <p><strong>Contact Information:</strong> P11 Management is located at Viru väljak 2, 10111 Tallinn, Estonia. For inquiries, please contact us at +371 26439944 or board@p11management.eu. Our team combines financial acumen, legal insight, and AML/KYC proficiency to deliver personalized solutions.</p>
         
         <p><strong>Performance Disclaimer:</strong> Past performance is not indicative of future results. Investment values can go down as well as up. Please refer to the fund's offering documents for complete risk disclosures.</p>
         
-        <p style="margin-top: 15px; font-size: 8px; color: #9ca3af;">Generated on ${formatDate(new Date())} | P11 Fund Administration | Aequitas Capital Partners</p>
+        <p style="margin-top: 15px; font-size: 8px; color: #9ca3af;">Generated on ${formatDate(new Date())} | P11 Management | Aequitas Capital Partners</p>
       </div>
     </body>
     </html>
