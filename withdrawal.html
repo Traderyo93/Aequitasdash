@@ -787,25 +787,6 @@
             }
         }
 
-        /* Dev Toggle */
-        .dev-toggle {
-            position: fixed;
-            top: 80px;
-            right: 20px;
-            z-index: 1001;
-            background: var(--accent);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .dev-toggle:hover {
-            background: var(--accent-hover);
-        }
-
         /* Animations */
         @keyframes slideInRight {
             from { transform: translateX(100%); opacity: 0; }
@@ -833,11 +814,6 @@
     </style>
 </head>
 <body>
-    <!-- Dev Toggle (remove in production) -->
-    <div class="dev-toggle" onclick="toggleDevMode()" id="devToggle">
-        DEV: Toggle State
-    </div>
-
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -1082,7 +1058,6 @@
         let currentTheme = 'light';
         let userData = {};
         let withdrawalData = {};
-        let devMode = false; // For development - toggle between locked/unlocked states
 
         // Withdrawal windows configuration
         const WITHDRAWAL_WINDOWS = {
@@ -1137,13 +1112,6 @@
             localStorage.setItem('aequitas_theme', currentTheme);
         }
 
-        // Dev Mode Toggle (remove in production)
-        function toggleDevMode() {
-            devMode = !devMode;
-            updateWithdrawalStatus();
-            showNotification(`Dev mode: ${devMode ? 'Unlocked' : 'Locked'} state`, 'info');
-        }
-
         // Logout
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
@@ -1153,22 +1121,10 @@
             }
         }
 
-        // Check if user is in first year
-        function isFirstYear(accountCreatedDate) {
-            const created = new Date(accountCreatedDate);
-            const now = new Date();
-            const oneYearLater = new Date(created.getFullYear() + 1, created.getMonth(), created.getDate());
-            return now < oneYearLater;
-        }
-
         // Check if current date is in withdrawal window
         function isWithdrawalWindowOpen() {
-            if (devMode) return true; // For development
-            
             const now = new Date();
             const currentYear = now.getFullYear();
-            const currentMonth = now.getMonth() + 1;
-            const currentDay = now.getDate();
 
             // Summer window (June 24 - July 7)
             const summerStart = new Date(currentYear, 5, 24); // June 24
@@ -1200,56 +1156,203 @@
             }
         }
 
-        // Update withdrawal status
+        // Calculate eligible deposits and profit for withdrawal
+        function calculateWithdrawalEligibility(deposits, csvData) {
+            const now = new Date();
+            const windowOpen = isWithdrawalWindowOpen();
+            
+            let eligibleDeposits = [];
+            let eligibleProfit = 0;
+            let totalEligibleAmount = 0;
+            
+            // Filter valid deposits
+            const validDeposits = deposits.filter(deposit => {
+                const depositDate = deposit.deposit_date || deposit.date;
+                return depositDate && depositDate !== null && depositDate !== 'null' && depositDate !== '';
+            });
+            
+            console.log(`📊 Analyzing ${validDeposits.length} valid deposits for withdrawal eligibility`);
+            
+            for (const deposit of validDeposits) {
+                const depositAmount = parseFloat(deposit.amount);
+                const depositDate = new Date(deposit.deposit_date || deposit.date);
+                const depositDateStr = depositDate.toISOString().split('T')[0];
+                
+                // Calculate ages
+                const oneYearAfterDeposit = new Date(depositDate);
+                oneYearAfterDeposit.setFullYear(depositDate.getFullYear() + 1);
+                
+                const sixMonthsAfterDeposit = new Date(depositDate);
+                sixMonthsAfterDeposit.setMonth(depositDate.getMonth() + 6);
+                
+                // Check if deposit is eligible (1 year + window open)
+                const depositEligible = now >= oneYearAfterDeposit && windowOpen;
+                
+                // Check if profit is eligible (6 months + window open)
+                const profitEligible = now >= sixMonthsAfterDeposit && windowOpen;
+                
+                // Calculate current value and profit for this deposit
+                const startCumulative = csvData[depositDateStr];
+                let currentValue = depositAmount;
+                let profit = 0;
+                
+                if (startCumulative) {
+                    // Get latest cumulative return
+                    const endDateStr = now.toISOString().split('T')[0];
+                    let endCumulative = csvData[endDateStr];
+                    
+                    if (!endCumulative) {
+                        const availableDates = Object.keys(csvData).sort().reverse();
+                        const latestDate = availableDates.find(date => date <= endDateStr);
+                        if (latestDate) {
+                            endCumulative = csvData[latestDate];
+                        }
+                    }
+                    
+                    if (endCumulative) {
+                        const performanceMultiplier = endCumulative / startCumulative;
+                        currentValue = depositAmount * performanceMultiplier;
+                        profit = currentValue - depositAmount;
+                    }
+                }
+                
+                const eligibilityInfo = {
+                    deposit: deposit,
+                    depositAmount: depositAmount,
+                    depositDate: depositDate,
+                    currentValue: currentValue,
+                    profit: profit,
+                    depositEligible: depositEligible,
+                    profitEligible: profitEligible,
+                    oneYearDate: oneYearAfterDeposit,
+                    sixMonthsDate: sixMonthsAfterDeposit,
+                    daysUntilDepositEligible: Math.ceil((oneYearAfterDeposit - now) / (1000 * 60 * 60 * 24)),
+                    daysUntilProfitEligible: Math.ceil((sixMonthsAfterDeposit - now) / (1000 * 60 * 60 * 24))
+                };
+                
+                eligibleDeposits.push(eligibilityInfo);
+                
+                // Add to totals if eligible
+                if (depositEligible) {
+                    totalEligibleAmount += depositAmount;
+                }
+                if (profitEligible) {
+                    eligibleProfit += Math.max(0, profit);
+                }
+                
+                console.log(`💰 Deposit $${depositAmount.toLocaleString()} from ${depositDateStr}:`);
+                console.log(`   📅 Deposit eligible: ${depositEligible} (${eligibilityInfo.daysUntilDepositEligible} days)`);
+                console.log(`   📈 Profit eligible: ${profitEligible} (${eligibilityInfo.daysUntilProfitEligible} days)`);
+                console.log(`   💵 Current value: $${currentValue.toLocaleString()}, Profit: $${profit.toLocaleString()}`);
+            }
+            
+            return {
+                eligibleDeposits: eligibleDeposits,
+                totalEligibleDeposits: totalEligibleAmount,
+                totalEligibleProfit: eligibleProfit,
+                totalEligibleAmount: totalEligibleAmount + eligibleProfit
+            };
+        }
+
+        // Enhanced withdrawal status update
         function updateWithdrawalStatus() {
             const statusContent = document.getElementById('withdrawalStatusContent');
             const nextWindowContent = document.getElementById('nextWindowContent');
             const withdrawalForm = document.getElementById('withdrawalForm');
             
-            const isFirstYearUser = isFirstYear(userData.created_at || '2024-01-01');
             const windowOpen = isWithdrawalWindowOpen();
             const nextWindow = getNextWithdrawalWindow();
             
-            // Update status
-            if (isFirstYearUser && !devMode) {
-                statusContent.innerHTML = `
-                    <div class="status-badge status-first-year">
-                        <span class="icon icon-warning"></span>
-                        <span>First Year - No Withdrawals</span>
-                    </div>
-                    <p style="margin-top: 12px; color: var(--text-secondary); font-size: 14px;">
-                        Withdrawals are not permitted during your first year of trading with the fund. 
-                        You will be eligible for withdrawals after ${new Date(new Date(userData.created_at).getFullYear() + 1, new Date(userData.created_at).getMonth(), new Date(userData.created_at).getDate()).toLocaleDateString()}.
-                    </p>
-                `;
-                withdrawalForm.classList.add('locked');
-            } else if (windowOpen) {
-                statusContent.innerHTML = `
-                    <div class="status-badge status-open">
-                        <span class="icon icon-unlock"></span>
-                        <span>Window Open</span>
-                    </div>
-                    <p style="margin-top: 12px; color: var(--text-secondary); font-size: 14px;">
-                        The withdrawal window is currently open. You can submit withdrawal requests until ${getNextWithdrawalWindow().date.toLocaleDateString()}.
-                    </p>
-                `;
-                withdrawalForm.classList.remove('locked');
+            // Get withdrawal eligibility (this requires csvData and deposits to be loaded)
+            if (window.withdrawalEligibility) {
+                const eligibility = window.withdrawalEligibility;
+                const hasEligibleDeposits = eligibility.totalEligibleDeposits > 0;
+                const hasEligibleProfit = eligibility.totalEligibleProfit > 0;
+                const hasAnyEligible = hasEligibleDeposits || hasEligibleProfit;
+                
+                if (windowOpen && hasAnyEligible) {
+                    statusContent.innerHTML = `
+                        <div class="status-badge status-open">
+                            <span class="icon icon-unlock"></span>
+                            <span>Window Open - Withdrawals Available</span>
+                        </div>
+                        <div style="margin-top: 16px; padding: 16px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.3);">
+                            <div style="font-size: 14px; color: var(--success); font-weight: 600; margin-bottom: 8px;">Available for Withdrawal:</div>
+                            ${hasEligibleDeposits ? `<div style="font-size: 13px; color: var(--text-secondary);">• Eligible Deposits: <strong>${formatCurrency(eligibility.totalEligibleDeposits)}</strong></div>` : ''}
+                            ${hasEligibleProfit ? `<div style="font-size: 13px; color: var(--text-secondary);">• Eligible Profit: <strong>${formatCurrency(eligibility.totalEligibleProfit)}</strong></div>` : ''}
+                            <div style="font-size: 14px; color: var(--success); font-weight: 600; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(16, 185, 129, 0.2);">
+                                Total Available: <strong>${formatCurrency(eligibility.totalEligibleAmount)}</strong>
+                            </div>
+                        </div>
+                    `;
+                    withdrawalForm.classList.remove('locked');
+                    
+                    // Update max withdrawal amount
+                    const amountInput = document.getElementById('withdrawalAmount');
+                    if (amountInput) {
+                        amountInput.max = eligibility.totalEligibleAmount;
+                        amountInput.placeholder = `Max: ${formatCurrency(eligibility.totalEligibleAmount)}`;
+                    }
+                    
+                } else if (windowOpen && !hasAnyEligible) {
+                    statusContent.innerHTML = `
+                        <div class="status-badge status-first-year">
+                            <span class="icon icon-warning"></span>
+                            <span>Window Open - No Eligible Funds</span>
+                        </div>
+                        <div style="margin-top: 16px; padding: 16px; background: rgba(245, 158, 11, 0.1); border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.3);">
+                            <div style="font-size: 14px; color: var(--warning); font-weight: 600; margin-bottom: 8px;">Waiting Periods:</div>
+                            <div style="font-size: 13px; color: var(--text-secondary);">
+                                • Deposits: Must wait 1 year after each deposit<br>
+                                • Profit: Must wait 6 months after each deposit
+                            </div>
+                        </div>
+                    `;
+                    withdrawalForm.classList.add('locked');
+                    
+                } else {
+                    statusContent.innerHTML = `
+                        <div class="status-badge status-locked">
+                            <span class="icon icon-lock"></span>
+                            <span>Window Closed</span>
+                        </div>
+                        <p style="margin-top: 12px; color: var(--text-secondary); font-size: 14px;">
+                            Withdrawal requests can only be submitted during designated windows:
+                            <br><strong>Summer:</strong> June 24 - July 7
+                            <br><strong>Winter:</strong> December 24 - January 7
+                        </p>
+                    `;
+                    withdrawalForm.classList.add('locked');
+                }
             } else {
-                statusContent.innerHTML = `
-                    <div class="status-badge status-locked">
-                        <span class="icon icon-lock"></span>
-                        <span>Window Closed</span>
-                    </div>
-                    <p style="margin-top: 12px; color: var(--text-secondary); font-size: 14px;">
-                        Withdrawal requests can only be submitted during designated windows:
-                        <br><strong>Summer:</strong> June 24 - July 7
-                        <br><strong>Winter:</strong> December 24 - January 7
-                    </p>
-                `;
+                // Fallback when eligibility data isn't loaded yet
+                if (windowOpen) {
+                    statusContent.innerHTML = `
+                        <div class="status-badge status-open">
+                            <span class="icon icon-unlock"></span>
+                            <span>Window Open</span>
+                        </div>
+                        <p style="margin-top: 12px; color: var(--text-secondary); font-size: 14px;">
+                            Loading withdrawal eligibility...
+                        </p>
+                    `;
+                } else {
+                    statusContent.innerHTML = `
+                        <div class="status-badge status-locked">
+                            <span class="icon icon-lock"></span>
+                            <span>Window Closed</span>
+                        </div>
+                        <p style="margin-top: 12px; color: var(--text-secondary); font-size: 14px;">
+                            Withdrawal requests can only be submitted during designated windows:
+                            <br><strong>Summer:</strong> June 24 - July 7
+                            <br><strong>Winter:</strong> December 24 - January 7
+                        </p>
+                    `;
+                }
                 withdrawalForm.classList.add('locked');
             }
             
-            // Update next window
+            // Update next window (unchanged)
             nextWindowContent.innerHTML = `
                 <div style="text-align: center; padding: 20px;">
                     <div style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px;">
@@ -1303,7 +1406,6 @@
         }
 
         // Calculate real dashboard performance using deposits and CSV returns
-// Calculate real dashboard performance using deposits and CSV returns
         function calculateDashboardPerformance(deposits, csvData) {
             console.log('🧮 Calculating performance with CUMULATIVE returns logic');
             
@@ -1369,10 +1471,10 @@
                 const performanceMultiplier = endCumulative / startCumulative;
                 const currentDepositValue = depositAmount * performanceMultiplier;
                 
-                console.log(`💰 Deposit $${depositAmount.toLocaleString()} on ${depositDateStr}:`);
+                console.log(`💰 Deposit ${depositAmount.toLocaleString()} on ${depositDateStr}:`);
                 console.log(`   📊 Cumulative: ${startCumulative.toFixed(2)}% → ${endCumulative.toFixed(2)}%`);
                 console.log(`   📈 Multiplier: ${performanceMultiplier.toFixed(4)}x`);
-                console.log(`   💵 Value: $${currentDepositValue.toLocaleString()}`);
+                console.log(`   💵 Value: ${currentDepositValue.toLocaleString()}`);
                 
                 finalBalance += currentDepositValue;
             }
@@ -1383,10 +1485,10 @@
             };
         }
 
-        // FIXED - Load account data with REAL CSV calculation
+        // Enhanced account data loading with withdrawal eligibility
         async function loadAccountData() {
             try {
-                console.log('📊 Loading REAL account data with CSV + deposits calculation...');
+                console.log('📊 Loading REAL account data with withdrawal eligibility...');
                 
                 const authToken = localStorage.getItem('aequitas_auth_token');
                 if (!authToken) {
@@ -1432,6 +1534,10 @@
                 const totalDeposits = performanceResult.totalDeposits;
                 const profit = accountValue - totalDeposits;
                 
+                // Calculate withdrawal eligibility
+                const withdrawalEligibility = calculateWithdrawalEligibility(userDeposits, csvData);
+                window.withdrawalEligibility = withdrawalEligibility; // Store globally
+                
                 // Update account summary with REAL calculated values
                 updateAccountSummary({
                     accountValue: accountValue,
@@ -1439,16 +1545,117 @@
                     totalProfit: profit
                 });
                 
-                console.log('✅ Real account data loaded:', {
+                // Update withdrawal status with eligibility data
+                updateWithdrawalStatus();
+                
+                // Display detailed eligibility information
+                displayWithdrawalEligibilityDetails(withdrawalEligibility);
+                
+                console.log('✅ Real account data loaded with withdrawal eligibility:', {
                     balance: accountValue.toLocaleString(),
                     deposits: totalDeposits.toLocaleString(),
-                    profit: profit.toLocaleString()
+                    profit: profit.toLocaleString(),
+                    eligibleDeposits: withdrawalEligibility.totalEligibleDeposits.toLocaleString(),
+                    eligibleProfit: withdrawalEligibility.totalEligibleProfit.toLocaleString()
                 });
                 
             } catch (error) {
                 console.error('💥 Failed to load real account data:', error);
                 loadFallbackAccountData();
             }
+        }
+
+        // Display detailed withdrawal eligibility information
+        function displayWithdrawalEligibilityDetails(eligibility) {
+            // Create or update eligibility details card
+            let eligibilityCard = document.getElementById('eligibilityDetailsCard');
+            if (!eligibilityCard) {
+                eligibilityCard = document.createElement('div');
+                eligibilityCard.id = 'eligibilityDetailsCard';
+                eligibilityCard.className = 'card';
+                
+                // Insert after account summary
+                const accountSummaryCard = document.querySelector('.account-summary').parentElement;
+                accountSummaryCard.parentNode.insertBefore(eligibilityCard, accountSummaryCard.nextSibling);
+            }
+            
+            const windowOpen = isWithdrawalWindowOpen();
+            
+            eligibilityCard.innerHTML = `
+                <div class="card-header">
+                    <span class="icon icon-calendar card-icon"></span>
+                    <h3 class="card-title">Withdrawal Eligibility Details</h3>
+                </div>
+                
+                <div style="margin-bottom: 24px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                        <div class="summary-item">
+                            <div class="summary-value">${formatCurrency(eligibility.totalEligibleDeposits)}</div>
+                            <div class="summary-label">Eligible Deposits</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-value">${formatCurrency(eligibility.totalEligibleProfit)}</div>
+                            <div class="summary-label">Eligible Profit</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-value">${formatCurrency(eligibility.totalEligibleAmount)}</div>
+                            <div class="summary-label">Total Available</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 16px;">
+                    <h4 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px;">Per-Deposit Breakdown:</h4>
+                </div>
+                
+                <div style="display: grid; gap: 16px;">
+                    ${eligibility.eligibleDeposits.map(item => `
+                        <div style="padding: 16px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <div style="font-weight: 600; color: var(--text-primary);">
+                                    ${formatCurrency(item.depositAmount)} deposited ${item.depositDate.toLocaleDateString()}
+                                </div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">
+                                    Current Value: ${formatCurrency(item.currentValue)}
+                                </div>
+                            </div>
+                            
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px;">
+                                <div style="padding: 8px 12px; background: var(--bg-primary); border-radius: 6px; border: 1px solid ${item.depositEligible ? 'rgba(16, 185, 129, 0.3)' : 'rgba(245, 158, 11, 0.3)'};">
+                                    <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Deposit Withdrawal</div>
+                                    <div style="font-weight: 600; color: ${item.depositEligible ? 'var(--success)' : 'var(--warning)'};">
+                                        ${item.depositEligible ? 
+                                            `✅ Available (${formatCurrency(item.depositAmount)})` : 
+                                            `⏳ ${item.daysUntilDepositEligible > 0 ? `${item.daysUntilDepositEligible} days` : 'Window closed'}`
+                                        }
+                                    </div>
+                                </div>
+                                
+                                <div style="padding: 8px 12px; background: var(--bg-primary); border-radius: 6px; border: 1px solid ${item.profitEligible ? 'rgba(16, 185, 129, 0.3)' : 'rgba(245, 158, 11, 0.3)'};">
+                                    <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Profit Withdrawal</div>
+                                    <div style="font-weight: 600; color: ${item.profitEligible ? 'var(--success)' : 'var(--warning)'};">
+                                        ${item.profitEligible ? 
+                                            `✅ Available (${formatCurrency(Math.max(0, item.profit))})` : 
+                                            `⏳ ${item.daysUntilProfitEligible > 0 ? `${item.daysUntilProfitEligible} days` : 'Window closed'}`
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                ${!windowOpen ? `
+                    <div style="margin-top: 16px; padding: 12px; background: rgba(245, 158, 11, 0.1); border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.3);">
+                        <div style="font-size: 14px; color: var(--warning); font-weight: 600;">
+                            ⚠️ Withdrawal window is currently closed
+                        </div>
+                        <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
+                            Even eligible funds can only be withdrawn during designated windows.
+                        </div>
+                    </div>
+                ` : ''}
+            `;
         }
 
         // Fallback account data when real data unavailable
@@ -1525,6 +1732,11 @@
                 
                 if (!amount || !reason || !accountName || !iban || !bankName) {
                     throw new Error('Please fill in all required fields');
+                }
+                
+                // Validate amount against eligible funds
+                if (window.withdrawalEligibility && amount > window.withdrawalEligibility.totalEligibleAmount) {
+                    throw new Error(`Amount exceeds available funds. Maximum: ${formatCurrency(window.withdrawalEligibility.totalEligibleAmount)}`);
                 }
                 
                 // Handle file upload if present
@@ -1792,7 +2004,7 @@
             // Load user data and initialize page
             loadUserData().then(() => {
                 updateWithdrawalStatus();
-                loadAccountData(); // Now uses REAL CSV + deposits calculation
+                loadAccountData(); // Now uses REAL CSV + deposits calculation with eligibility
                 loadWithdrawalHistory();
                 
                 // Show admin section if user is admin
@@ -1801,12 +2013,14 @@
                     if (adminSection) adminSection.style.display = 'block';
                 }
                 
-                console.log('✅ Withdrawal page initialized with REAL data');
+                console.log('✅ Withdrawal page initialized with enhanced eligibility logic');
             });
         }
 
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', initializePage);
     </script>
+</body>
+</html>
 </body>
 </html>
