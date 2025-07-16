@@ -1,4 +1,4 @@
-// api/generate-statements.js - Complete Fixed Version
+// api/generate-statements.js - Fresh Fixed Version
 const { sql } = require('@vercel/postgres');
 const jwt = require('jsonwebtoken');
 
@@ -729,7 +729,5 @@ module.exports = async function handler(req, res) {
       error: 'Failed to generate statement',
       details: error.message
     });
-  }
-};
   }
 };
