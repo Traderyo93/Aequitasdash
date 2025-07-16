@@ -796,6 +796,8 @@
                 
                 showNotification('Generating your statement...', 'info');
                 
+                console.log('Downloading statement:', statementId);
+                
                 const response = await fetch('/api/generate-statements', {
                     method: 'POST',
                     headers: {
@@ -807,19 +809,46 @@
                     })
                 });
                 
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                
                 if (response.ok) {
-                    const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = `Aequitas-Statement-${statementId}.pdf`;
-                    link.click();
-                    window.URL.revokeObjectURL(url);
+                    const contentType = response.headers.get('content-type');
+                    console.log('Content type:', contentType);
                     
-                    showNotification('Statement downloaded successfully!', 'success');
+                    if (contentType && contentType.includes('text/html')) {
+                        // If it's HTML, open in new window
+                        const htmlContent = await response.text();
+                        const newWindow = window.open('', '_blank');
+                        newWindow.document.write(htmlContent);
+                        newWindow.document.close();
+                        
+                        showNotification('Statement opened in new window. You can print it as PDF.', 'success');
+                    } else {
+                        // If it's PDF, download it
+                        const blob = await response.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = `Aequitas-Statement-${statementId}.pdf`;
+                        link.click();
+                        window.URL.revokeObjectURL(url);
+                        
+                        showNotification('Statement downloaded successfully!', 'success');
+                    }
                 } else {
-                    const error = await response.json();
-                    showNotification(error.error || 'Failed to download statement', 'error');
+                    const errorText = await response.text();
+                    console.error('Error response:', errorText);
+                    
+                    let errorMessage = 'Failed to download statement';
+                    try {
+                        const errorJson = JSON.parse(errorText);
+                        errorMessage = errorJson.error || errorMessage;
+                    } catch (e) {
+                        errorMessage = errorText || errorMessage;
+                    }
+                    
+                    showNotification(errorMessage, 'error');
                 }
             } catch (error) {
                 console.error('Download error:', error);
