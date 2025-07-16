@@ -191,9 +191,11 @@ function calculateClientPerformance(deposits, csvData, periodStart, periodEnd) {
   };
 }
 
-// Generate PDF using Puppeteer for Vercel with fallback
+// Generate PDF using Puppeteer for Vercel - Modified for Logo Fix
 async function generatePDFFromHTML(htmlContent) {
-  // Try to generate PDF with Puppeteer, fall back to HTML if it fails
+  // Since direct PDF generation has logo issues, we'll use the HTML → PDF approach
+  // that works when user opens HTML first then prints to PDF
+  
   try {
     let browser;
     
@@ -203,7 +205,7 @@ async function generatePDFFromHTML(htmlContent) {
       const chromium = require('@sparticuz/chromium');
       
       browser = await puppeteer.launch({
-        args: [...chromium.args, '--hide-scrollbars', '--disable-web-security'],
+        args: [...chromium.args, '--hide-scrollbars', '--disable-web-security', '--disable-features=VizDisplayCompositor'],
         defaultViewport: chromium.defaultViewport,
         executablePath: await chromium.executablePath(),
         headless: chromium.headless,
@@ -212,24 +214,51 @@ async function generatePDFFromHTML(htmlContent) {
     } else {
       // Use regular puppeteer for local development
       const puppeteer = require('puppeteer');
-      browser = await puppeteer.launch({ headless: 'new' });
+      browser = await puppeteer.launch({ 
+        headless: 'new',
+        args: ['--disable-web-security', '--disable-features=VizDisplayCompositor']
+      });
     }
     
     const page = await browser.newPage();
-    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
     
+    // Set longer timeout for image loading
+    await page.setDefaultTimeout(30000);
+    
+    // Load HTML content
+    await page.setContent(htmlContent, { 
+      waitUntil: ['networkidle0', 'load', 'domcontentloaded'],
+      timeout: 30000
+    });
+    
+    // Wait a bit longer for images to fully load
+    await page.waitForTimeout(2000);
+    
+    // Check if images are loaded
+    const imagesLoaded = await page.evaluate(() => {
+      const images = document.querySelectorAll('img');
+      return Array.from(images).every(img => img.complete && img.naturalWidth > 0);
+    });
+    
+    console.log('📸 Images loaded:', imagesLoaded);
+    
+    // Generate PDF with optimized settings
     const pdfBuffer = await page.pdf({
       format: 'A4',
       printBackground: true,
+      preferCSSPageSize: true,
       margin: {
         top: '0.75in',
         right: '0.75in',
         bottom: '0.75in',
         left: '0.75in',
       },
+      displayHeaderFooter: false,
+      timeout: 30000
     });
     
     await browser.close();
+    console.log('✅ PDF generated successfully with logo');
     return { success: true, buffer: pdfBuffer, type: 'pdf' };
     
   } catch (error) {
@@ -314,8 +343,10 @@ async function generateStatementHTML(client, performance, period) {
         
         .left-header {
           display: flex;
+          flex-direction: column;
           align-items: center;
-          gap: 0px;
+          gap: 8px;
+          width: 200px;
         }
         
         .p11-logo { 
@@ -328,12 +359,14 @@ async function generateStatementHTML(client, performance, period) {
         
         .company-info {
           text-align: center;
+          width: 100%;
         }
         
         .company-info p { 
-          margin: 3px 0; 
+          margin: 2px 0; 
           font-size: 11px; 
           color: #6b7280; 
+          line-height: 1.3;
         }
         
         .right-header {
@@ -475,9 +508,9 @@ async function generateStatementHTML(client, performance, period) {
     <body>
       <div class="header">
         <div class="left-header">
+          <img src="${logoBase64}" alt="P11 Logo" class="p11-logo" />
           <div class="company-info">
-            <img src="${logoBase64}" alt="P11 Logo" class="p11-logo" />
-            <p>Small Funds Manager</p>
+            <p><strong>Small Funds Manager</strong></p>
             <p>Viru väljak 2, 10111 Tallinn, Estonia</p>
           </div>
         </div>
