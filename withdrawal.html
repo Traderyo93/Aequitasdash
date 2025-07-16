@@ -1162,8 +1162,8 @@
             const windowOpen = isWithdrawalWindowOpen();
             
             let eligibleDeposits = [];
-            let eligibleProfit = 0;
-            let totalEligibleAmount = 0;
+            let totalEligibleDepositAmount = 0;
+            let totalEligibleProfit = 0;
             
             // Filter valid deposits
             const validDeposits = deposits.filter(deposit => {
@@ -1178,20 +1178,21 @@
                 const depositDate = new Date(deposit.deposit_date || deposit.date);
                 const depositDateStr = depositDate.toISOString().split('T')[0];
                 
-                // Calculate ages
+                // Calculate milestone dates
                 const oneYearAfterDeposit = new Date(depositDate);
                 oneYearAfterDeposit.setFullYear(depositDate.getFullYear() + 1);
                 
                 const sixMonthsAfterDeposit = new Date(depositDate);
                 sixMonthsAfterDeposit.setMonth(depositDate.getMonth() + 6);
                 
-                // Check if deposit is eligible (1 year + window open)
-                const depositEligible = now >= oneYearAfterDeposit && windowOpen;
+                // Check eligibility: must pass time requirement AND window must be open
+                const depositTimeEligible = now >= oneYearAfterDeposit;
+                const profitTimeEligible = now >= sixMonthsAfterDeposit;
                 
-                // Check if profit is eligible (6 months + window open)
-                const profitEligible = now >= sixMonthsAfterDeposit && windowOpen;
+                const depositEligible = depositTimeEligible && windowOpen;
+                const profitEligible = profitTimeEligible && windowOpen;
                 
-                // Calculate current value and profit for this deposit
+                // Calculate current value and profit for this deposit using CSV data
                 const startCumulative = csvData[depositDateStr];
                 let currentValue = depositAmount;
                 let profit = 0;
@@ -1210,11 +1211,26 @@
                     }
                     
                     if (endCumulative) {
-                        const performanceMultiplier = endCumulative / startCumulative;
+                        // FIXED: Use proper percentage calculation
+                        // CSV stores percentages (like 162.13%), so we need to convert to multiplier
+                        const startMultiplier = 1 + (startCumulative / 100);
+                        const endMultiplier = 1 + (endCumulative / 100);
+                        const performanceMultiplier = endMultiplier / startMultiplier;
+                        
                         currentValue = depositAmount * performanceMultiplier;
                         profit = currentValue - depositAmount;
+                        
+                        console.log(`💰 Deposit $${depositAmount.toLocaleString()} from ${depositDateStr}:`);
+                        console.log(`   📊 Start: ${startCumulative.toFixed(2)}% (${startMultiplier.toFixed(4)}x)`);
+                        console.log(`   📊 End: ${endCumulative.toFixed(2)}% (${endMultiplier.toFixed(4)}x)`);
+                        console.log(`   📈 Performance: ${performanceMultiplier.toFixed(4)}x`);
+                        console.log(`   💵 Value: $${currentValue.toLocaleString()}, Profit: $${profit.toLocaleString()}`);
                     }
                 }
+                
+                // Calculate days remaining (can be negative if already passed)
+                const daysUntilDepositEligible = Math.ceil((oneYearAfterDeposit - now) / (1000 * 60 * 60 * 24));
+                const daysUntilProfitEligible = Math.ceil((sixMonthsAfterDeposit - now) / (1000 * 60 * 60 * 24));
                 
                 const eligibilityInfo = {
                     deposit: deposit,
@@ -1224,35 +1240,36 @@
                     profit: profit,
                     depositEligible: depositEligible,
                     profitEligible: profitEligible,
+                    depositTimeEligible: depositTimeEligible,
+                    profitTimeEligible: profitTimeEligible,
                     oneYearDate: oneYearAfterDeposit,
                     sixMonthsDate: sixMonthsAfterDeposit,
-                    daysUntilDepositEligible: Math.ceil((oneYearAfterDeposit - now) / (1000 * 60 * 60 * 24)),
-                    daysUntilProfitEligible: Math.ceil((sixMonthsAfterDeposit - now) / (1000 * 60 * 60 * 24))
+                    daysUntilDepositEligible: daysUntilDepositEligible,
+                    daysUntilProfitEligible: daysUntilProfitEligible
                 };
                 
                 eligibleDeposits.push(eligibilityInfo);
                 
-                // Add to totals if eligible
+                // Add to totals if actually eligible (both time passed AND window open)
                 if (depositEligible) {
-                    totalEligibleAmount += depositAmount;
+                    totalEligibleDepositAmount += depositAmount;
                 }
-                if (profitEligible) {
-                    eligibleProfit += Math.max(0, profit);
+                if (profitEligible && profit > 0) {
+                    totalEligibleProfit += profit;
                 }
                 
-                console.log(`💰 Deposit $${depositAmount.toLocaleString()} from ${depositDateStr}:`);
-                console.log(`   📅 Deposit eligible: ${depositEligible} (${eligibilityInfo.daysUntilDepositEligible} days)`);
-                console.log(`   📈 Profit eligible: ${profitEligible} (${eligibilityInfo.daysUntilProfitEligible} days)`);
-                console.log(`   💵 Current value: $${currentValue.toLocaleString()}, Profit: $${profit.toLocaleString()}`);
+                console.log(`📅 Deposit eligible: ${depositEligible} (time: ${depositTimeEligible}, window: ${windowOpen})`);
+                console.log(`📈 Profit eligible: ${profitEligible} (time: ${profitTimeEligible}, window: ${windowOpen})`);
             }
             
             return {
                 eligibleDeposits: eligibleDeposits,
-                totalEligibleDeposits: totalEligibleAmount,
-                totalEligibleProfit: eligibleProfit,
-                totalEligibleAmount: totalEligibleAmount + eligibleProfit
+                totalEligibleDeposits: totalEligibleDepositAmount,
+                totalEligibleProfit: totalEligibleProfit,
+                totalEligibleAmount: totalEligibleDepositAmount + totalEligibleProfit
             };
         }
+
 
         // Enhanced withdrawal status update
         function updateWithdrawalStatus() {
@@ -1609,40 +1626,65 @@
                 </div>
                 
                 <div style="display: grid; gap: 16px;">
-                    ${eligibility.eligibleDeposits.map(item => `
-                        <div style="padding: 16px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color);">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <div style="font-weight: 600; color: var(--text-primary);">
-                                    ${formatCurrency(item.depositAmount)} deposited ${item.depositDate.toLocaleDateString()}
-                                </div>
-                                <div style="font-size: 12px; color: var(--text-secondary);">
-                                    Current Value: ${formatCurrency(item.currentValue)}
-                                </div>
-                            </div>
-                            
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px;">
-                                <div style="padding: 8px 12px; background: var(--bg-primary); border-radius: 6px; border: 1px solid ${item.depositEligible ? 'rgba(16, 185, 129, 0.3)' : 'rgba(245, 158, 11, 0.3)'};">
-                                    <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Deposit Withdrawal</div>
-                                    <div style="font-weight: 600; color: ${item.depositEligible ? 'var(--success)' : 'var(--warning)'};">
-                                        ${item.depositEligible ? 
-                                            `✅ Available (${formatCurrency(item.depositAmount)})` : 
-                                            `⏳ ${item.daysUntilDepositEligible > 0 ? `${item.daysUntilDepositEligible} days` : 'Window closed'}`
-                                        }
+                    ${eligibility.eligibleDeposits.map(item => {
+                        // Format deposit status
+                        let depositStatus = '';
+                        if (item.depositEligible) {
+                            depositStatus = `✅ Available (${formatCurrency(item.depositAmount)})`;
+                        } else if (!item.depositTimeEligible) {
+                            depositStatus = `⏳ ${Math.max(0, item.daysUntilDepositEligible)} days until eligible`;
+                        } else {
+                            depositStatus = `⏳ Window closed`;
+                        }
+                        
+                        // Format profit status
+                        let profitStatus = '';
+                        if (item.profitEligible) {
+                            profitStatus = `✅ Available (${formatCurrency(Math.max(0, item.profit))})`;
+                        } else if (!item.profitTimeEligible) {
+                            profitStatus = `⏳ ${Math.max(0, item.daysUntilProfitEligible)} days until eligible`;
+                        } else {
+                            profitStatus = `⏳ Window closed`;
+                        }
+                        
+                        return `
+                            <div style="padding: 16px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <div style="font-weight: 600; color: var(--text-primary);">
+                                        ${formatCurrency(item.depositAmount)} deposited ${item.depositDate.toLocaleDateString()}
+                                    </div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">
+                                        Current Value: ${formatCurrency(item.currentValue)} 
+                                        <span style="color: ${item.profit >= 0 ? 'var(--success)' : 'var(--error)'};">
+                                            (${item.profit >= 0 ? '+' : ''}${formatCurrency(item.profit)})
+                                        </span>
                                     </div>
                                 </div>
                                 
-                                <div style="padding: 8px 12px; background: var(--bg-primary); border-radius: 6px; border: 1px solid ${item.profitEligible ? 'rgba(16, 185, 129, 0.3)' : 'rgba(245, 158, 11, 0.3)'};">
-                                    <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Profit Withdrawal</div>
-                                    <div style="font-weight: 600; color: ${item.profitEligible ? 'var(--success)' : 'var(--warning)'};">
-                                        ${item.profitEligible ? 
-                                            `✅ Available (${formatCurrency(Math.max(0, item.profit))})` : 
-                                            `⏳ ${item.daysUntilProfitEligible > 0 ? `${item.daysUntilProfitEligible} days` : 'Window closed'}`
-                                        }
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px;">
+                                    <div style="padding: 8px 12px; background: var(--bg-primary); border-radius: 6px; border: 1px solid ${item.depositEligible ? 'rgba(16, 185, 129, 0.3)' : 'rgba(245, 158, 11, 0.3)'};">
+                                        <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Deposit Withdrawal</div>
+                                        <div style="font-weight: 600; color: ${item.depositEligible ? 'var(--success)' : 'var(--warning)'}; font-size: 13px;">
+                                            ${depositStatus}
+                                        </div>
+                                        <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 2px;">
+                                            Eligible: ${item.oneYearDate.toLocaleDateString()}
+                                        </div>
+                                    </div>
+                                    
+                                    <div style="padding: 8px 12px; background: var(--bg-primary); border-radius: 6px; border: 1px solid ${item.profitEligible ? 'rgba(16, 185, 129, 0.3)' : 'rgba(245, 158, 11, 0.3)'};">
+                                        <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Profit Withdrawal</div>
+                                        <div style="font-weight: 600; color: ${item.profitEligible ? 'var(--success)' : 'var(--warning)'}; font-size: 13px;">
+                                            ${profitStatus}
+                                        </div>
+                                        <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 2px;">
+                                            Eligible: ${item.sixMonthsDate.toLocaleDateString()}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    `).join('')}
+                        `;
+                    }).join('')}
                 </div>
                 
                 ${!windowOpen ? `
@@ -1657,7 +1699,6 @@
                 ` : ''}
             `;
         }
-
         // Fallback account data when real data unavailable
         function loadFallbackAccountData() {
             console.log('📊 Using fallback account data');
