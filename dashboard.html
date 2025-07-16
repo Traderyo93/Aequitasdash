@@ -1142,11 +1142,31 @@
             }
         }
         // Generate user's equity curve from deposits + CSV returns
+        // FIXED: generateUserEquityCurve function in dashboard.html
         function generateUserEquityCurve(deposits, csvData, startDate, endDate) {
-            console.log('📈 Generating equity curve with CUMULATIVE returns');
+            console.log('📈 Generating equity curve with CUMULATIVE returns (FIXED)');
             
             const equityData = [];
-            const sortedDeposits = deposits.sort((a, b) => {
+            
+            // Filter out invalid deposits (same logic as balance calculation)
+            const validDeposits = deposits.filter(deposit => {
+                const depositDate = deposit.deposit_date || deposit.date;
+                const hasValidDate = depositDate && depositDate !== null;
+                const isCompleted = deposit.status === 'completed' || !deposit.status;
+                
+                if (!hasValidDate) {
+                    console.log(`⚠️ Chart: Skipping deposit with null date: $${deposit.amount}`);
+                }
+                if (!isCompleted) {
+                    console.log(`⚠️ Chart: Skipping non-completed deposit: $${deposit.amount}`);
+                }
+                
+                return hasValidDate && isCompleted;
+            });
+            
+            console.log(`📊 Chart: Processing ${validDeposits.length} valid deposits for equity curve`);
+            
+            const sortedDeposits = validDeposits.sort((a, b) => {
                 const dateA = new Date(a.deposit_date || a.date);
                 const dateB = new Date(b.deposit_date || b.date);
                 return dateA - dateB;
@@ -1161,7 +1181,7 @@
                 
                 let totalValue = 0;
                 
-                // Calculate value of each deposit as of this date
+                // Calculate value of each valid deposit as of this date
                 for (const deposit of sortedDeposits) {
                     const depositAmount = parseFloat(deposit.amount);
                     const depositDate = new Date(deposit.deposit_date || deposit.date);
@@ -1193,9 +1213,9 @@
                 }
             }
             
-            console.log(`✅ Generated ${equityData.length} equity data points`);
+            console.log(`✅ Chart: Generated ${equityData.length} equity data points`);
             if (equityData.length > 0) {
-                console.log(`💰 Final balance: $${equityData[equityData.length - 1].value.toLocaleString()}`);
+                console.log(`💰 Chart: Final balance: $${equityData[equityData.length - 1].value.toLocaleString()}`);
             }
             
             return equityData;
