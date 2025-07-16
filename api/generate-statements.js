@@ -224,6 +224,19 @@ async function generateStatementHTML(client, performance, period) {
     }).format(date);
   };
 
+  // Format the issue date to always show 5th of July or January
+  const formatIssueDate = (periodName) => {
+    if (periodName.includes('January - June')) {
+      const year = periodName.split(' ')[3];
+      return `5th July ${year}`;
+    } else if (periodName.includes('Full Year')) {
+      const year = periodName.split(' ')[2];
+      const nextYear = parseInt(year) + 1;
+      return `5th January ${nextYear}`;
+    }
+    return formatDate(new Date());
+  };
+
   // Create HTML content that matches your PDF layout exactly
   const htmlContent = `
     <!DOCTYPE html>
@@ -262,10 +275,9 @@ async function generateStatementHTML(client, performance, period) {
         }
         
         .p11-logo { 
-          display: inline-block;
-          width: 16px;
-          height: 16px;
-          margin-right: 8px;
+          width: 24px;
+          height: 24px;
+          margin-right: 12px;
           vertical-align: middle;
         }
         
@@ -328,7 +340,8 @@ async function generateStatementHTML(client, performance, period) {
         }
         
         .info-section p strong {
-          color: #333;
+          color: #000;
+          font-weight: bold;
         }
         
         .summary-table { 
@@ -360,7 +373,8 @@ async function generateStatementHTML(client, performance, period) {
         }
         
         .summary-table .positive { 
-          color: #059669; 
+          color: #10b981; 
+          font-weight: bold;
         }
         
         .summary-table .right {
@@ -371,6 +385,7 @@ async function generateStatementHTML(client, performance, period) {
           border-top: 2px solid #374151;
           font-weight: bold;
           color: #333;
+          background-color: #f8f9fa;
         }
         
         .footer { 
@@ -422,11 +437,11 @@ async function generateStatementHTML(client, performance, period) {
         <div class="left-header">
           <div class="company-info">
             <h1>
-              <img src="https://i.postimg.cc/3NnrRJgH/p11.png" alt="P11" class="p11-logo" />
+              <img src="https://i.postimg.cc/3NnrRJgH/p11.png" alt="P11 Logo" class="p11-logo" onerror="this.style.display='none'" />
               P11 Fund Administration
             </h1>
             <p>Independent Fund Administrator</p>
-            <p>Regulated by FCA</p>
+            <p>Authorised and regulated by the FCA</p>
           </div>
         </div>
         <div class="right-header">
@@ -447,7 +462,7 @@ async function generateStatementHTML(client, performance, period) {
         <div class="info-section">
           <h3>Statement Period</h3>
           <p><strong>Period:</strong> ${period.name}</p>
-          <p><strong>Issue Date:</strong> ${formatDate(new Date())}</p>
+          <p><strong>Issue Date:</strong> ${formatIssueDate(period.name)}</p>
           <p><strong>Administrator:</strong> P11 Fund Administration</p>
         </div>
       </div>
@@ -492,7 +507,7 @@ async function generateStatementHTML(client, performance, period) {
       <div class="footer">
         <h4>Important Information</h4>
         
-        <p><strong>Fund Administrator:</strong> This statement has been prepared by P11 Fund Administration, an independent fund administrator regulated by the Financial Conduct Authority (FCA). P11 provides professional oversight and ensures all statements are independently verified and audited.</p>
+        <p><strong>Fund Administrator:</strong> This statement has been prepared by P11 Fund Administration, an independent fund administrator authorised and regulated by the Financial Conduct Authority (FCA). P11 provides professional oversight and ensures all statements are independently verified and audited.</p>
         
         <p><strong>Trade History:</strong> A detailed audit log of all transactions is available upon request. To protect proprietary trading strategies and fund intellectual property, specific entry prices, stop-loss levels, and position sizing details are not disclosed in standard reporting. This information is maintained in our secure audit trail for regulatory compliance purposes.</p>
         
@@ -714,5 +729,7 @@ module.exports = async function handler(req, res) {
       error: 'Failed to generate statement',
       details: error.message
     });
+  }
+};
   }
 };
