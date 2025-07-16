@@ -131,6 +131,7 @@ function calculateClientPerformance(deposits, csvData, periodStart, periodEnd) {
   
   const totalGain = endBalance - startBalance - newDeposits;
   const returnPercent = startBalance > 0 ? ((totalGain / startBalance) * 100) : 0;
+  const totalReturnPercent = startBalance > 0 ? (((endBalance - startBalance) / startBalance) * 100) : 0;
   
   console.log(`📈 Performance Summary:`);
   console.log(`   💰 Total Deposits: ${totalDeposits.toLocaleString()}`);
@@ -139,6 +140,7 @@ function calculateClientPerformance(deposits, csvData, periodStart, periodEnd) {
   console.log(`   🎯 End Balance: ${endBalance.toLocaleString()}`);
   console.log(`   📊 Total Gain: ${totalGain.toLocaleString()}`);
   console.log(`   📈 Return %: ${returnPercent.toFixed(2)}%`);
+  console.log(`   📈 Total Return %: ${totalReturnPercent.toFixed(2)}%`);
   
   return {
     totalDeposits,
@@ -146,7 +148,8 @@ function calculateClientPerformance(deposits, csvData, periodStart, periodEnd) {
     endBalance,
     newDeposits,
     totalGain,
-    returnPercent
+    returnPercent,
+    totalReturnPercent
   };
 }
 
@@ -206,20 +209,11 @@ async function generateClientStatement(client, performance, period) {
         }
         
         .p11-logo { 
-          width: 50px;
-          height: 50px;
-          border-radius: 8px;
-          background: #10b981;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          overflow: hidden;
-        }
-        
-        .p11-logo img {
-          width: 40px;
-          height: 40px;
-          object-fit: contain;
+          display: inline-block;
+          width: 16px;
+          height: 16px;
+          margin-right: 8px;
+          vertical-align: middle;
         }
         
         .company-info h1 { 
@@ -368,11 +362,11 @@ async function generateClientStatement(client, performance, period) {
     <body>
       <div class="header">
         <div class="left-header">
-          <div class="p11-logo">
-            <img src="https://i.postimg.cc/3NnrRJgH/p11.png" alt="P11" />
-          </div>
           <div class="company-info">
-            <h1>P11 Fund Administration</h1>
+            <h1>
+              <img src="https://i.postimg.cc/3NnrRJgH/p11.png" alt="P11" class="p11-logo" />
+              P11 Fund Administration
+            </h1>
             <p>Independent Fund Administrator</p>
             <p>Regulated by FCA</p>
           </div>
@@ -432,7 +426,7 @@ async function generateClientStatement(client, performance, period) {
           <tr class="closing-row">
             <td><strong>Closing Balance</strong></td>
             <td class="amount right"><strong>${formatCurrency(performance.endBalance)}</strong></td>
-            <td class="right"><strong>${performance.startBalance > 0 ? (((performance.endBalance - performance.startBalance) / performance.startBalance) * 100).toFixed(2) : '0.00'}%</strong></td>
+            <td class="right"><strong>${performance.totalReturnPercent.toFixed(2)}%</strong></td>
           </tr>
         </tbody>
       </table>
@@ -495,10 +489,10 @@ function getAvailableStatementPeriods(deposits) {
       });
     }
     
-    // H2 Statement (July - December) - available from January 5th next year
+    // H2 Statement (Full Year) - available from January 5th next year
     const h2Available = new Date(year + 1, 0, 5); // January 5th next year
-    const h2PeriodStart = new Date(year, 6, 1);
-    const h2PeriodEnd = new Date(year, 11, 31);
+    const h2PeriodStart = new Date(year, 0, 1);  // January 1st (full year)
+    const h2PeriodEnd = new Date(year, 11, 31);  // December 31st (full year)
     
     // Check if client had any deposits BY the end of H2 period
     const hasDepositsForH2 = deposits.some(deposit => {
@@ -509,7 +503,7 @@ function getAvailableStatementPeriods(deposits) {
     if (now >= h2Available && hasDepositsForH2) {
       periods.push({
         id: `H2-${year}`,
-        period: `July - December ${year}`,
+        period: `Full Year ${year}`,
         period_start: h2PeriodStart,
         period_end: h2PeriodEnd,
         issue_date: h2Available,
@@ -600,9 +594,9 @@ module.exports = async function handler(req, res) {
         periodEnd = new Date(yearInt, 5, 30);   // June 30
         periodName = `January - June ${yearInt}`;
       } else if (periodType === 'H2') {
-        periodStart = new Date(yearInt, 6, 1);  // July 1
-        periodEnd = new Date(yearInt, 11, 31);  // December 31
-        periodName = `July - December ${yearInt}`;
+        periodStart = new Date(yearInt, 0, 1);  // January 1 (full year)
+        periodEnd = new Date(yearInt, 11, 31);  // December 31 (full year)
+        periodName = `Full Year ${yearInt}`;
       } else {
         return res.status(400).json({ success: false, error: 'Invalid statement ID' });
       }
@@ -626,9 +620,9 @@ module.exports = async function handler(req, res) {
         end: periodEnd
       });
       
-      // Return HTML content that can be printed as PDF
-      res.setHeader('Content-Type', 'text/html');
-      res.setHeader('Content-Disposition', `inline; filename="Aequitas-Statement-${statementId}.html"`);
+      // Return PDF content type and generate actual PDF
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="Aequitas-Statement-${statementId}.pdf"`);
       
       return res.status(200).send(htmlStatement);
     }
