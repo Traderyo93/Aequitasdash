@@ -1,4 +1,4 @@
-// api/generate-statements.js - Fresh Fixed Version with Debug
+// api/generate-statements.js - Clean Fixed Version
 const { sql } = require('@vercel/postgres');
 const jwt = require('jsonwebtoken');
 
@@ -293,8 +293,8 @@ async function generateStatementHTML(client, performance, period) {
         }
         
         .p11-logo { 
-          width: 24px;
-          height: 24px;
+          width: 32px;
+          height: 32px;
           margin-right: 8px;
           vertical-align: middle;
           display: inline-block;
@@ -526,7 +526,7 @@ async function generateStatementHTML(client, performance, period) {
       <div class="footer">
         <h4>Important Information</h4>
         
-        <p><strong>Fund Administrator:</strong> This statement has been prepared by P11 Fund Administration, an independent fund administrator authorised and regulated by the Financial Conduct Authority (FCA). P11 provides professional oversight and ensures all statements are independently verified and audited.</p>
+        <p><strong>Fund Administrator:</strong> This statement has been prepared by P11 Fund Administration, an independent fund administrator authorised and regulated by the FCA. P11 provides professional oversight and ensures all statements are independently verified and audited.</p>
         
         <p><strong>Trade History:</strong> A detailed audit log of all transactions is available upon request. To protect proprietary trading strategies and fund intellectual property, specific entry prices, stop-loss levels, and position sizing details are not disclosed in standard reporting. This information is maintained in our secure audit trail for regulatory compliance purposes.</p>
         
