@@ -744,11 +744,15 @@
         function renderStatements(statements) {
             const tbody = document.getElementById('statementsTableBody');
             
-            tbody.innerHTML = statements.map(statement => `
+            tbody.innerHTML = statements.map(statement => {
+                const isFullYear = statement.period.includes('Full Year');
+                const periodDescription = isFullYear ? '12-Month Period' : '6-Month Period';
+                
+                return `
                 <tr>
                     <td>
                         <div class="statement-name">${statement.period}</div>
-                        <div class="statement-period">6-Month Period</div>
+                        <div class="statement-period">${periodDescription}</div>
                     </td>
                     <td>${new Date(statement.issue_date).toLocaleDateString()}</td>
                     <td>
@@ -763,7 +767,7 @@
                             <span>Available</span>
                         </span>
                     </td>
-                    <td>Generate PDF</td>
+                    <td>PDF Download</td>
                     <td>
                         <button class="download-btn" onclick="downloadStatement('${statement.id}')">
                             <span class="icon icon-download"></span>
@@ -771,7 +775,8 @@
                         </button>
                     </td>
                 </tr>
-            `).join('');
+                `;
+            }).join('');
         }
 
         function showNoStatements() {
@@ -810,31 +815,48 @@
                 });
                 
                 console.log('Response status:', response.status);
-                console.log('Response headers:', response.headers);
                 
                 if (response.ok) {
                     const contentType = response.headers.get('content-type');
                     console.log('Content type:', contentType);
                     
-                    if (contentType && contentType.includes('text/html')) {
-                        // If it's HTML, open in new window
-                        const htmlContent = await response.text();
-                        const newWindow = window.open('', '_blank');
-                        newWindow.document.write(htmlContent);
-                        newWindow.document.close();
-                        
-                        showNotification('Statement opened in new window. You can print it as PDF.', 'success');
-                    } else {
-                        // If it's PDF, download it
+                    if (contentType && contentType.includes('application/pdf')) {
+                        // Handle PDF download
                         const blob = await response.blob();
                         const url = window.URL.createObjectURL(blob);
                         const link = document.createElement('a');
                         link.href = url;
                         link.download = `Aequitas-Statement-${statementId}.pdf`;
+                        document.body.appendChild(link);
                         link.click();
+                        document.body.removeChild(link);
                         window.URL.revokeObjectURL(url);
                         
                         showNotification('Statement downloaded successfully!', 'success');
+                    } else {
+                        // Fallback: HTML content - convert to PDF using browser print
+                        const htmlContent = await response.text();
+                        
+                        // Create a temporary iframe for PDF generation
+                        const iframe = document.createElement('iframe');
+                        iframe.style.display = 'none';
+                        document.body.appendChild(iframe);
+                        
+                        const doc = iframe.contentDocument || iframe.contentWindow.document;
+                        doc.open();
+                        doc.write(htmlContent);
+                        doc.close();
+                        
+                        // Trigger print dialog in the iframe
+                        iframe.contentWindow.focus();
+                        iframe.contentWindow.print();
+                        
+                        // Clean up after a delay
+                        setTimeout(() => {
+                            document.body.removeChild(iframe);
+                        }, 1000);
+                        
+                        showNotification('Statement ready for download. Please save as PDF from the print dialog.', 'success');
                     }
                 } else {
                     const errorText = await response.text();
@@ -920,7 +942,5 @@
             }
         });
     </script>
-</body>
-</html>
 </body>
 </html>
