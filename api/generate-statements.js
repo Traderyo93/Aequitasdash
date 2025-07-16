@@ -1,4 +1,4 @@
-// api/generate-statements.js - Complete Working Version with Logo Fix
+// api/generate-statements.js - HTML-Only Version (No PDF Generation)
 const { sql } = require('@vercel/postgres');
 const jwt = require('jsonwebtoken');
 
@@ -6,25 +6,6 @@ const jwt = require('jsonwebtoken');
 let csvCache = null;
 let csvCacheTime = null;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-
-// Convert image URL to base64 for PDF compatibility
-async function getBase64ImageFromUrl(imageUrl) {
-  try {
-    const response = await fetch(imageUrl);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch image: ${response.status}`);
-    }
-    const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    const base64 = buffer.toString('base64');
-    const mimeType = response.headers.get('content-type') || 'image/png';
-    return `data:${mimeType};base64,${base64}`;
-  } catch (error) {
-    console.error('Failed to convert image to base64:', error);
-    // Return a fallback simple logo
-    return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjQwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iNDAiIGZpbGw9IiMzYjgyZjYiLz48dGV4dCB4PSI2MCIgeT0iMjUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IndoaXRlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIGZvbnQtd2VpZ2h0PSJib2xkIj5QMTE8L3RleHQ+PC9zdmc+';
-  }
-}
 
 // Load CSV data with cumulative returns
 async function loadCSVData() {
@@ -65,18 +46,17 @@ async function loadCSVData() {
   }
 }
 
-// Calculate client performance for a specific period - SAME AS DASHBOARD
+// Calculate client performance for a specific period
 function calculateClientPerformance(deposits, csvData, periodStart, periodEnd) {
   console.log('🧮 Calculating statement performance for period:', periodStart.toISOString().split('T')[0], 'to', periodEnd.toISOString().split('T')[0]);
   
-  // Filter valid deposits up to period end - EXCLUDE bad dates
+  // Filter valid deposits up to period end
   const validDeposits = deposits.filter(deposit => {
     const depositDate = deposit.deposit_date || deposit.created_at;
     if (!depositDate || depositDate === null || depositDate === 'null' || depositDate === '') {
       return false;
     }
     const depDate = new Date(depositDate);
-    // EXCLUDE dates before 2020 (these are database null date bugs)
     return depDate >= new Date(2020, 0, 1) && depDate <= periodEnd;
   });
   
@@ -152,11 +132,6 @@ function calculateClientPerformance(deposits, csvData, periodStart, periodEnd) {
     if (endCumulative) {
       const multiplier = endCumulative / startCumulative;
       endBalance += depositAmount * multiplier;
-      
-      console.log(`💰 Deposit ${depositAmount.toLocaleString()} on ${depositDateStr}:`);
-      console.log(`   📊 Start: ${startCumulative.toFixed(2)}% → End: ${endCumulative.toFixed(2)}%`);
-      console.log(`   📈 Multiplier: ${multiplier.toFixed(4)}x`);
-      console.log(`   💵 Contribution to end balance: ${(depositAmount * multiplier).toLocaleString()}`);
     }
     
     // Track new deposits during period
@@ -165,20 +140,9 @@ function calculateClientPerformance(deposits, csvData, periodStart, periodEnd) {
     }
   }
   
-  // FIXED: Calculate proper percentage returns
   const totalGain = endBalance - startBalance - newDeposits;
   const returnPercent = (startBalance + newDeposits) > 0 ? ((totalGain / (startBalance + newDeposits)) * 100) : 0;
-  // For statements, Total Return should be same as Period Return
   const totalReturnPercent = returnPercent;
-  
-  console.log(`📈 Performance Summary:`);
-  console.log(`   💰 Total Deposits: ${totalDeposits.toLocaleString()}`);
-  console.log(`   🏁 Start Balance: ${startBalance.toLocaleString()}`);
-  console.log(`   💵 New Deposits: ${newDeposits.toLocaleString()}`);
-  console.log(`   🎯 End Balance: ${endBalance.toLocaleString()}`);
-  console.log(`   📊 Total Gain: ${totalGain.toLocaleString()}`);
-  console.log(`   📈 Return %: ${returnPercent.toFixed(2)}%`);
-  console.log(`   📈 Total Return %: ${totalReturnPercent.toFixed(2)}%`);
   
   return {
     totalDeposits,
@@ -191,89 +155,7 @@ function calculateClientPerformance(deposits, csvData, periodStart, periodEnd) {
   };
 }
 
-// Generate PDF using Puppeteer for Vercel - Modified for Logo Fix
-async function generatePDFFromHTML(htmlContent) {
-  // Since direct PDF generation has logo issues, we'll use the HTML → PDF approach
-  // that works when user opens HTML first then prints to PDF
-  
-  try {
-    let browser;
-    
-    if (process.env.NODE_ENV === 'production') {
-      // Use puppeteer-core with @sparticuz/chromium for Vercel
-      const puppeteer = require('puppeteer-core');
-      const chromium = require('@sparticuz/chromium');
-      
-      browser = await puppeteer.launch({
-        args: [...chromium.args, '--hide-scrollbars', '--disable-web-security', '--disable-features=VizDisplayCompositor'],
-        defaultViewport: chromium.defaultViewport,
-        executablePath: await chromium.executablePath(),
-        headless: chromium.headless,
-        ignoreHTTPSErrors: true,
-      });
-    } else {
-      // Use regular puppeteer for local development
-      const puppeteer = require('puppeteer');
-      browser = await puppeteer.launch({ 
-        headless: 'new',
-        args: ['--disable-web-security', '--disable-features=VizDisplayCompositor']
-      });
-    }
-    
-    const page = await browser.newPage();
-    
-    // Set longer timeout for image loading
-    await page.setDefaultTimeout(30000);
-    
-    // Load HTML content
-    await page.setContent(htmlContent, { 
-      waitUntil: ['networkidle0', 'load', 'domcontentloaded'],
-      timeout: 30000
-    });
-    
-    // Wait a bit longer for images to fully load
-    await page.waitForTimeout(2000);
-    
-    // Check if images are loaded
-    const imagesLoaded = await page.evaluate(() => {
-      const images = document.querySelectorAll('img');
-      return Array.from(images).every(img => img.complete && img.naturalWidth > 0);
-    });
-    
-    console.log('📸 Images loaded:', imagesLoaded);
-    
-    // Generate PDF with optimized settings
-    const pdfBuffer = await page.pdf({
-      format: 'A4',
-      printBackground: true,
-      preferCSSPageSize: true,
-      margin: {
-        top: '0.75in',
-        right: '0.75in',
-        bottom: '0.75in',
-        left: '0.75in',
-      },
-      displayHeaderFooter: false,
-      timeout: 30000
-    });
-    
-    await browser.close();
-    console.log('✅ PDF generated successfully with logo');
-    return { success: true, buffer: pdfBuffer, type: 'pdf' };
-    
-  } catch (error) {
-    console.error('PDF generation failed, falling back to HTML:', error);
-    // Return HTML as fallback
-    return { 
-      success: false, 
-      buffer: Buffer.from(htmlContent, 'utf-8'), 
-      type: 'html',
-      error: error.message 
-    };
-  }
-}
-
-// Generate HTML statement content
+// Generate HTML statement content - FIXED LAYOUT
 async function generateStatementHTML(client, performance, period) {
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
@@ -291,7 +173,6 @@ async function generateStatementHTML(client, performance, period) {
     }).format(date);
   };
 
-  // Format the issue date to always show 5th of July or January
   const formatIssueDate = (periodName) => {
     if (periodName.includes('January - June')) {
       const year = periodName.split(' ')[3];
@@ -301,20 +182,19 @@ async function generateStatementHTML(client, performance, period) {
       const nextYear = parseInt(year) + 1;
       return `5th January ${nextYear}`;
     }
-    // For current debugging - if we're in July 2025 and it's an H1 statement, show 5th July 2025
     return `5th July 2025`;
   };
 
-  // Convert logo to base64 for PDF compatibility
-  console.log('🔄 Converting logo to base64...');
-  const logoBase64 = await getBase64ImageFromUrl('https://i.postimg.cc/3NnrRJgH/p11.png');
-  console.log('✅ Logo converted to base64');
+  // Use the external logo URL directly (works in HTML)
+  const logoUrl = 'https://i.postimg.cc/3NnrRJgH/p11.png';
 
-  // Create HTML content that matches your PDF layout exactly
   const htmlContent = `
     <!DOCTYPE html>
     <html>
     <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Aequitas Statement - ${period.name}</title>
       <style>
         @page {
           size: A4;
@@ -344,29 +224,43 @@ async function generateStatementHTML(client, performance, period) {
         .left-header {
           display: flex;
           flex-direction: column;
+          align-items: flex-start;
+          gap: 5px;
+          width: 300px;
+        }
+        
+        .logo-section {
+          display: flex;
           align-items: center;
-          gap: 8px;
-          width: 200px;
-        }
-        
-        .p11-logo { 
-          width: 120px;
-          height: auto;
-          display: block;
-          max-width: 120px;
-          max-height: 60px;
-        }
-        
-        .company-info {
-          text-align: center;
+          gap: 15px;
           width: 100%;
         }
         
-        .company-info p { 
-          margin: 2px 0; 
-          font-size: 11px; 
-          color: #6b7280; 
-          line-height: 1.3;
+        .p11-logo { 
+          width: 80px;
+          height: auto;
+          display: block;
+          max-width: 80px;
+          flex-shrink: 0;
+        }
+        
+        .company-info {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+        
+        .company-info .title {
+          font-size: 12px;
+          font-weight: bold;
+          color: #333;
+          margin: 0;
+        }
+        
+        .company-info .address {
+          font-size: 10px;
+          color: #6b7280;
+          margin: 0;
         }
         
         .right-header {
@@ -499,19 +393,18 @@ async function generateStatementHTML(client, performance, period) {
           .footer {
             break-inside: avoid;
           }
-          .print-instructions {
-            display: none !important;
-          }
         }
       </style>
     </head>
     <body>
       <div class="header">
         <div class="left-header">
-          <img src="${logoBase64}" alt="P11 Logo" class="p11-logo" />
-          <div class="company-info">
-            <p><strong>Small Funds Manager</strong></p>
-            <p>Viru väljak 2, 10111 Tallinn, Estonia</p>
+          <div class="logo-section">
+            <img src="${logoUrl}" alt="P11 Logo" class="p11-logo" crossorigin="anonymous" />
+            <div class="company-info">
+              <p class="title">Small Funds Manager</p>
+              <p class="address">Viru väljak 2, 10111 Tallinn, Estonia</p>
+            </div>
           </div>
         </div>
         <div class="right-header">
@@ -600,7 +493,7 @@ async function generateStatementHTML(client, performance, period) {
   return htmlContent;
 }
 
-// Get available statement periods based on client's deposit history
+// Get available statement periods
 function getAvailableStatementPeriods(deposits) {
   const periods = [];
   const now = new Date();
@@ -609,19 +502,17 @@ function getAvailableStatementPeriods(deposits) {
     return periods;
   }
   
-  // Get the range of years from first deposit to current year
   const depositDates = deposits.map(d => new Date(d.deposit_date || d.created_at));
   const earliestDeposit = new Date(Math.min(...depositDates));
   const startYear = earliestDeposit.getFullYear();
   const currentYear = now.getFullYear();
   
   for (let year = startYear; year <= currentYear; year++) {
-    // H1 Statement (January - June) - available from July 5th
-    const h1Available = new Date(year, 6, 5); // July 5th
+    // H1 Statement (January - June)
+    const h1Available = new Date(year, 6, 5);
     const h1PeriodStart = new Date(year, 0, 1);
     const h1PeriodEnd = new Date(year, 5, 30);
     
-    // Check if client had any deposits BY the end of H1 period
     const hasDepositsForH1 = deposits.some(deposit => {
       const depositDate = new Date(deposit.deposit_date || deposit.created_at);
       return depositDate <= h1PeriodEnd;
@@ -638,12 +529,11 @@ function getAvailableStatementPeriods(deposits) {
       });
     }
     
-    // H2 Statement (Full Year) - available from January 5th next year
-    const h2Available = new Date(year + 1, 0, 5); // January 5th next year
-    const h2PeriodStart = new Date(year, 0, 1);  // January 1st (full year)
-    const h2PeriodEnd = new Date(year, 11, 31);  // December 31st (full year)
+    // H2 Statement (Full Year)
+    const h2Available = new Date(year + 1, 0, 5);
+    const h2PeriodStart = new Date(year, 0, 1);
+    const h2PeriodEnd = new Date(year, 11, 31);
     
-    // Check if client had any deposits BY the end of H2 period
     const hasDepositsForH2 = deposits.some(deposit => {
       const depositDate = new Date(deposit.deposit_date || deposit.created_at);
       return depositDate <= h2PeriodEnd;
@@ -674,7 +564,6 @@ module.exports = async function handler(req, res) {
   }
   
   try {
-    // Verify authentication
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({ success: false, error: 'Authentication required' });
@@ -684,7 +573,6 @@ module.exports = async function handler(req, res) {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'aequitas-secret-key-2025');
     
     if (req.method === 'GET') {
-      // Get available statements for current user based on their deposits
       const client = await sql`
         SELECT id, first_name, last_name, email, address, account_number, created_at
         FROM users 
@@ -695,7 +583,6 @@ module.exports = async function handler(req, res) {
         return res.status(404).json({ success: false, error: 'Client not found' });
       }
       
-      // Get client's completed deposits
       const deposits = await sql`
         SELECT deposit_date, created_at, amount
         FROM deposits 
@@ -703,12 +590,7 @@ module.exports = async function handler(req, res) {
         ORDER BY deposit_date ASC
       `;
       
-      console.log(`📊 Found ${deposits.rows.length} deposits for client ${decoded.id}`);
-      
-      // Get available periods based on actual deposits
       const availablePeriods = getAvailableStatementPeriods(deposits.rows);
-      
-      console.log(`📋 Generated ${availablePeriods.length} available periods`);
       
       return res.status(200).json({
         success: true,
@@ -723,7 +605,6 @@ module.exports = async function handler(req, res) {
         return res.status(400).json({ success: false, error: 'Statement ID required' });
       }
       
-      // Get client info
       const client = await sql`
         SELECT id, first_name, last_name, email, address, account_number, created_at
         FROM users 
@@ -736,25 +617,23 @@ module.exports = async function handler(req, res) {
       
       const clientData = client.rows[0];
       
-      // Parse statement ID to get period info
       const [periodType, year] = statementId.split('-');
       const yearInt = parseInt(year);
       
       let periodStart, periodEnd, periodName;
       
       if (periodType === 'H1') {
-        periodStart = new Date(yearInt, 0, 1); // January 1
-        periodEnd = new Date(yearInt, 5, 30);   // June 30
+        periodStart = new Date(yearInt, 0, 1);
+        periodEnd = new Date(yearInt, 5, 30);
         periodName = `January - June ${yearInt}`;
       } else if (periodType === 'H2') {
-        periodStart = new Date(yearInt, 0, 1);  // January 1 (full year)
-        periodEnd = new Date(yearInt, 11, 31);  // December 31 (full year)
+        periodStart = new Date(yearInt, 0, 1);
+        periodEnd = new Date(yearInt, 11, 31);
         periodName = `Full Year ${yearInt}`;
       } else {
         return res.status(400).json({ success: false, error: 'Invalid statement ID' });
       }
       
-      // Get client's deposits for this period
       const deposits = await sql`
         SELECT * FROM deposits 
         WHERE user_id = ${decoded.id} AND status = 'completed'
@@ -762,50 +641,19 @@ module.exports = async function handler(req, res) {
         ORDER BY deposit_date ASC
       `;
       
-      // Debug: Log the deposits and CSV data being used
-      console.log('🔍 Statement generation debug:');
-      console.log('  Client:', clientData.first_name, clientData.last_name);
-      console.log('  Period:', periodName);
-      console.log('  Deposits found:', deposits.rows.length);
-      
-      // Load CSV data and calculate performance
       const csvData = await loadCSVData();
       const performance = calculateClientPerformance(deposits.rows, csvData, periodStart, periodEnd);
       
-      console.log('  Performance calculated:', performance);
-      
-      // Generate HTML content first
       const htmlContent = await generateStatementHTML(clientData, performance, {
         name: periodName,
         start: periodStart,
         end: periodEnd
       });
       
-      // Generate PDF (try PDF first, fallback to HTML)
-      const result = await generatePDFFromHTML(htmlContent);
-      
-      if (result.success && result.type === 'pdf') {
-        // Return actual PDF
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="Aequitas-Statement-${statementId}.pdf"`);
-        return res.status(200).send(result.buffer);
-      } else {
-        // Return HTML with instructions
-        res.setHeader('Content-Type', 'text/html');
-        res.setHeader('Content-Disposition', `inline; filename="Aequitas-Statement-${statementId}.html"`);
-        
-        // Add print instructions to HTML
-        const htmlWithInstructions = result.buffer.toString().replace(
-          '<body>',
-          `<body>
-            <div class="print-instructions" style="position: fixed; top: 10px; right: 10px; background: #f0f0f0; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 12px; z-index: 1000;">
-              <strong>To save as PDF:</strong> Press Ctrl+P (or Cmd+P), then select "Save as PDF"
-              <button onclick="window.print()" style="margin-left: 10px; padding: 5px 10px;">Print/Save as PDF</button>
-            </div>`
-        );
-        
-        return res.status(200).send(htmlWithInstructions);
-      }
+      // Always return HTML (no PDF generation)
+      res.setHeader('Content-Type', 'text/html');
+      res.setHeader('Content-Disposition', `inline; filename="Aequitas-Statement-${statementId}.html"`);
+      return res.status(200).send(htmlContent);
     }
     
     return res.status(405).json({ success: false, error: 'Method not allowed' });
