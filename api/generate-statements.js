@@ -613,6 +613,39 @@ module.exports = async function handler(req, res) {
       const csvData = await loadCSVData();
       const performance = calculateClientPerformance(deposits.rows, csvData, periodStart, periodEnd);
       
+      // Generate HTML content first
+      const htmlContent = await generateStatementHTML(clientData, performance, {
+        name: periodName,
+        start: periodStart,
+        end: periodEnd
+      });
+      
+      // Generate PDF (try PDF first, fallback to HTML)
+      const result = await generatePDFFromHTML(htmlContent);
+      
+      if (result.success && result.type === 'pdf') {
+        // Return actual PDF
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="Aequitas-Statement-${statementId}.pdf"`);
+        return res.status(200).send(result.buffer);
+      } else {
+        // Return HTML with instructions
+        res.setHeader('Content-Type', 'text/html');
+        res.setHeader('Content-Disposition', `inline; filename="Aequitas-Statement-${statementId}.html"`);
+        
+        // Add print instructions to HTML
+        const htmlWithInstructions = result.buffer.toString().replace(
+          '<body>',
+          `<body>
+            <div style="position: fixed; top: 10px; right: 10px; background: #f0f0f0; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 12px; z-index: 1000;">
+              <strong>To save as PDF:</strong> Press Ctrl+P (or Cmd+P), then select "Save as PDF"
+              <button onclick="window.print()" style="margin-left: 10px; padding: 5px 10px;">Print/Save as PDF</button>
+            </div>`
+        );
+        
+        return res.status(200).send(htmlWithInstructions);
+      }rows, csvData, periodStart, periodEnd);
+      
       // Generate HTML statement
       const htmlStatement = await generateClientStatement(clientData, performance, {
         name: periodName,
