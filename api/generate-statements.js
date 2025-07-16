@@ -1,9 +1,6 @@
-// api/generate-statements.js - Fixed jsPDF import and PDF generation
+// api/generate-statements.js - Complete Updated File
 const { sql } = require('@vercel/postgres');
 const jwt = require('jsonwebtoken');
-
-// Note: jsPDF might not work in Node.js environment
-// We'll create a simple PDF structure instead
 
 // CSV Data Cache
 let csvCache = null;
@@ -48,74 +45,113 @@ async function loadCSVData() {
   }
 }
 
-// Calculate client performance for a specific period
+// Calculate client performance for a specific period - SAME AS DASHBOARD
 function calculateClientPerformance(deposits, csvData, periodStart, periodEnd) {
-  let totalDeposits = 0;
-  let startBalance = 0;
-  let endBalance = 0;
-  let newDeposits = 0;
-
-  const sortedDeposits = deposits.sort((a, b) => {
+  console.log('🧮 Calculating statement performance for period:', periodStart.toISOString().split('T')[0], 'to', periodEnd.toISOString().split('T')[0]);
+  
+  // Filter valid deposits up to period end
+  const validDeposits = deposits.filter(deposit => {
+    const depositDate = deposit.deposit_date || deposit.created_at;
+    if (!depositDate || depositDate === null || depositDate === 'null' || depositDate === '') {
+      return false;
+    }
+    const depDate = new Date(depositDate);
+    return depDate <= periodEnd; // Include all deposits up to period end
+  });
+  
+  console.log(`📊 Found ${validDeposits.length} valid deposits up to period end`);
+  
+  // Sort deposits chronologically
+  const sortedDeposits = validDeposits.sort((a, b) => {
     const dateA = new Date(a.deposit_date || a.created_at);
     const dateB = new Date(b.deposit_date || b.created_at);
     return dateA - dateB;
   });
-
+  
+  let totalDeposits = 0;
+  let startBalance = 0;
+  let endBalance = 0;
+  let newDeposits = 0;
+  
   const periodStartStr = periodStart.toISOString().split('T')[0];
   const periodEndStr = periodEnd.toISOString().split('T')[0];
-
+  
+  // Get latest available CSV data if exact period end not found
+  let endCumulative = csvData[periodEndStr];
+  if (!endCumulative) {
+    const availableDates = Object.keys(csvData).sort().reverse();
+    const latestDate = availableDates.find(date => date <= periodEndStr);
+    if (latestDate) {
+      endCumulative = csvData[latestDate];
+      console.log(`📅 Using latest available date ${latestDate} for period end`);
+    }
+  }
+  
   for (const deposit of sortedDeposits) {
     const depositAmount = parseFloat(deposit.amount);
     const depositDate = new Date(deposit.deposit_date || deposit.created_at);
     const depositDateStr = depositDate.toISOString().split('T')[0];
-
+    
     totalDeposits += depositAmount;
-
-    // Calculate start of period balance
+    
+    // Get cumulative return at deposit date
+    const startCumulative = csvData[depositDateStr];
+    if (!startCumulative) {
+      console.log(`⚠️ No CSV data for deposit date ${depositDateStr}`);
+      continue;
+    }
+    
+    // Calculate balance at period start
     if (depositDate <= periodStart) {
-      const startCumulative = csvData[depositDateStr];
       const periodStartCumulative = csvData[periodStartStr];
-      
-      if (startCumulative && periodStartCumulative) {
+      if (periodStartCumulative) {
         const multiplier = periodStartCumulative / startCumulative;
         startBalance += depositAmount * multiplier;
       } else {
         startBalance += depositAmount;
       }
     }
-
-    // Calculate end of period balance
-    const startCumulative = csvData[depositDateStr];
-    const periodEndCumulative = csvData[periodEndStr];
     
-    if (startCumulative && periodEndCumulative) {
-      const multiplier = periodEndCumulative / startCumulative;
+    // Calculate balance at period end
+    if (endCumulative) {
+      const multiplier = endCumulative / startCumulative;
       endBalance += depositAmount * multiplier;
-    } else {
-      endBalance += depositAmount;
+      
+      console.log(`💰 Deposit ${depositAmount.toLocaleString()} on ${depositDateStr}:`);
+      console.log(`   📊 Start: ${startCumulative.toFixed(2)}% → End: ${endCumulative.toFixed(2)}%`);
+      console.log(`   📈 Multiplier: ${multiplier.toFixed(4)}x`);
+      console.log(`   💵 Contribution to end balance: ${(depositAmount * multiplier).toLocaleString()}`);
     }
-
+    
     // Track new deposits during period
     if (depositDate > periodStart && depositDate <= periodEnd) {
       newDeposits += depositAmount;
     }
   }
-
+  
+  const totalGain = endBalance - startBalance - newDeposits;
+  const returnPercent = startBalance > 0 ? ((totalGain / startBalance) * 100) : 0;
+  
+  console.log(`📈 Performance Summary:`);
+  console.log(`   💰 Total Deposits: ${totalDeposits.toLocaleString()}`);
+  console.log(`   🏁 Start Balance: ${startBalance.toLocaleString()}`);
+  console.log(`   💵 New Deposits: ${newDeposits.toLocaleString()}`);
+  console.log(`   🎯 End Balance: ${endBalance.toLocaleString()}`);
+  console.log(`   📊 Total Gain: ${totalGain.toLocaleString()}`);
+  console.log(`   📈 Return %: ${returnPercent.toFixed(2)}%`);
+  
   return {
     totalDeposits,
     startBalance,
     endBalance,
     newDeposits,
-    totalGain: endBalance - startBalance - newDeposits,
-    returnPercent: startBalance > 0 ? ((endBalance - startBalance - newDeposits) / startBalance) * 100 : 0
+    totalGain,
+    returnPercent
   };
 }
 
 // Generate PDF statement exactly like your image
 async function generateClientStatement(client, performance, period) {
-  // For now, let's create a simple HTML-to-PDF approach
-  // Since jsPDF might not work in Node.js environment
-  
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-GB', {
       style: 'currency',
@@ -138,94 +174,272 @@ async function generateClientStatement(client, performance, period) {
     <html>
     <head>
       <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #e5e7eb; padding-bottom: 20px; }
-        .p11-badge { background: #10b981; color: white; padding: 15px; border-radius: 8px; font-weight: bold; font-size: 18px; }
-        .company-info h1 { margin: 0; font-size: 18px; }
-        .company-info p { margin: 2px 0; font-size: 12px; color: #6b7280; }
-        .title { text-align: center; font-size: 20px; font-weight: bold; margin: 30px 0; }
-        .info-section { display: inline-block; width: 45%; vertical-align: top; margin-right: 5%; }
-        .info-section h3 { margin: 0 0 10px 0; font-size: 14px; color: #374151; text-transform: uppercase; }
-        .info-section p { margin: 2px 0; font-size: 13px; color: #4b5563; }
-        .summary-table { width: 100%; border-collapse: collapse; margin: 30px 0; }
-        .summary-table th, .summary-table td { padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; }
-        .summary-table th { background: #f9fafb; font-weight: 600; }
-        .amount { font-weight: 600; }
-        .positive { color: #059669; }
-        .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; font-size: 11px; color: #6b7280; line-height: 1.5; }
-        .footer h4 { margin: 0 0 10px 0; font-size: 12px; color: #374151; }
+        @page {
+          size: A4;
+          margin: 0.75in;
+        }
+        
+        body { 
+          font-family: Arial, sans-serif; 
+          margin: 0; 
+          padding: 0;
+          font-size: 12px;
+          line-height: 1.4;
+          color: #333;
+          width: 100%;
+          max-width: 8.5in;
+        }
+        
+        .header { 
+          display: flex; 
+          justify-content: space-between; 
+          align-items: flex-start; 
+          margin-bottom: 30px; 
+          border-bottom: 2px solid #e5e7eb; 
+          padding-bottom: 20px; 
+        }
+        
+        .left-header {
+          display: flex;
+          align-items: flex-start;
+          gap: 15px;
+        }
+        
+        .p11-logo { 
+          width: 50px;
+          height: 50px;
+          border-radius: 8px;
+          background: #10b981;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+        }
+        
+        .p11-logo img {
+          width: 40px;
+          height: 40px;
+          object-fit: contain;
+        }
+        
+        .company-info h1 { 
+          margin: 0; 
+          font-size: 16px; 
+          color: #333;
+          font-weight: bold;
+        }
+        
+        .company-info p { 
+          margin: 3px 0; 
+          font-size: 11px; 
+          color: #6b7280; 
+        }
+        
+        .right-header {
+          text-align: right;
+        }
+        
+        .right-header p {
+          margin: 0;
+          font-size: 14px;
+          font-weight: bold;
+          color: #333;
+        }
+        
+        .title { 
+          text-align: center; 
+          font-size: 18px; 
+          font-weight: bold; 
+          margin: 30px 0; 
+          color: #333;
+        }
+        
+        .client-info {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 30px;
+        }
+        
+        .info-section { 
+          width: 45%;
+        }
+        
+        .info-section h3 { 
+          margin: 0 0 10px 0; 
+          font-size: 12px; 
+          color: #6b7280; 
+          text-transform: uppercase; 
+          font-weight: bold;
+        }
+        
+        .info-section p { 
+          margin: 3px 0; 
+          font-size: 11px; 
+          color: #333; 
+        }
+        
+        .info-section p strong {
+          color: #333;
+        }
+        
+        .summary-table { 
+          width: 100%; 
+          border-collapse: collapse; 
+          margin: 30px 0; 
+          font-size: 11px;
+        }
+        
+        .summary-table th, .summary-table td { 
+          padding: 8px 12px; 
+          text-align: left; 
+          border-bottom: 1px solid #e5e7eb; 
+        }
+        
+        .summary-table th { 
+          background: #f9fafb; 
+          font-weight: bold; 
+          color: #374151;
+        }
+        
+        .summary-table td {
+          color: #4b5563;
+        }
+        
+        .summary-table .amount { 
+          font-weight: bold; 
+          color: #333;
+        }
+        
+        .summary-table .positive { 
+          color: #059669; 
+        }
+        
+        .summary-table .right {
+          text-align: right;
+        }
+        
+        .summary-table .closing-row {
+          border-top: 2px solid #374151;
+          font-weight: bold;
+          color: #333;
+        }
+        
+        .footer { 
+          margin-top: 30px; 
+          padding-top: 20px; 
+          border-top: 1px solid #e5e7eb; 
+          font-size: 9px; 
+          color: #6b7280; 
+          line-height: 1.4; 
+        }
+        
+        .footer h4 { 
+          margin: 0 0 8px 0; 
+          font-size: 10px; 
+          color: #374151; 
+          font-weight: bold;
+        }
+        
+        .footer p {
+          margin-bottom: 8px;
+        }
+        
+        .footer p strong {
+          color: #374151;
+          font-weight: bold;
+        }
+        
+        @media print {
+          body { 
+            font-size: 11px; 
+          }
+          .header {
+            break-inside: avoid;
+          }
+          .summary-table {
+            break-inside: avoid;
+          }
+          .footer {
+            break-inside: avoid;
+          }
+        }
       </style>
     </head>
     <body>
       <div class="header">
-        <div>
-          <div class="p11-badge">P11</div>
+        <div class="left-header">
+          <div class="p11-logo">
+            <img src="https://i.postimg.cc/3NnrRJgH/p11.png" alt="P11" />
+          </div>
           <div class="company-info">
             <h1>P11 Fund Administration</h1>
             <p>Independent Fund Administrator</p>
             <p>Regulated by FCA</p>
           </div>
         </div>
-        <div>
-          <p style="text-align: right; font-weight: bold;">Aequitas Capital Partners</p>
+        <div class="right-header">
+          <p>Aequitas Capital Partners</p>
         </div>
       </div>
 
       <div class="title">CONFIDENTIAL ACCOUNT STATEMENT</div>
 
-      <div class="info-section">
-        <h3>Client Information</h3>
-        <p><strong>Name:</strong> ${client.first_name} ${client.last_name}</p>
-        <p><strong>Address:</strong> ${client.address || '123 Main Street, London, UK'}</p>
-        <p><strong>Account:</strong> ${client.account_number || 'ACP-2025-890'}</p>
-      </div>
+      <div class="client-info">
+        <div class="info-section">
+          <h3>Client Information</h3>
+          <p><strong>Name:</strong> ${client.first_name} ${client.last_name}</p>
+          <p><strong>Address:</strong> ${client.address || '123 Main Street, London, UK'}</p>
+          <p><strong>Account:</strong> ${client.account_number || 'ACP-2025-890'}</p>
+        </div>
 
-      <div class="info-section">
-        <h3>Statement Period</h3>
-        <p><strong>Period:</strong> ${period.name}</p>
-        <p><strong>Issue Date:</strong> ${formatDate(new Date())}</p>
-        <p><strong>Administrator:</strong> P11 Fund Administration</p>
+        <div class="info-section">
+          <h3>Statement Period</h3>
+          <p><strong>Period:</strong> ${period.name}</p>
+          <p><strong>Issue Date:</strong> ${formatDate(new Date())}</p>
+          <p><strong>Administrator:</strong> P11 Fund Administration</p>
+        </div>
       </div>
 
       <table class="summary-table">
         <thead>
           <tr>
             <th>Description</th>
-            <th style="text-align: right;">Amount (£)</th>
-            <th style="text-align: right;">Percentage</th>
+            <th class="right">Amount (£)</th>
+            <th class="right">Percentage</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td>Opening Balance</td>
-            <td class="amount" style="text-align: right;">${formatCurrency(performance.startBalance)}</td>
-            <td style="text-align: right;">-</td>
+            <td class="amount right">${formatCurrency(performance.startBalance)}</td>
+            <td class="right">-</td>
           </tr>
           <tr>
             <td>Additional Deposits</td>
-            <td class="amount" style="text-align: right;">${formatCurrency(performance.newDeposits)}</td>
-            <td style="text-align: right;">-</td>
+            <td class="amount right">${formatCurrency(performance.newDeposits)}</td>
+            <td class="right">-</td>
           </tr>
           <tr>
             <td>Investment Gains/(Losses)</td>
-            <td class="amount positive" style="text-align: right;">${formatCurrency(performance.totalGain)}</td>
-            <td class="positive" style="text-align: right;">${performance.returnPercent.toFixed(2)}%</td>
+            <td class="amount positive right">${formatCurrency(performance.totalGain)}</td>
+            <td class="positive right">${performance.returnPercent.toFixed(2)}%</td>
           </tr>
           <tr>
             <td>Withdrawals</td>
-            <td class="amount" style="text-align: right;">${formatCurrency(0)}</td>
-            <td style="text-align: right;">-</td>
+            <td class="amount right">${formatCurrency(0)}</td>
+            <td class="right">-</td>
           </tr>
-          <tr style="border-top: 2px solid #374151;">
+          <tr class="closing-row">
             <td><strong>Closing Balance</strong></td>
-            <td class="amount" style="text-align: right; font-weight: bold;">${formatCurrency(performance.endBalance)}</td>
-            <td style="text-align: right; font-weight: bold;">${((performance.endBalance / performance.startBalance - 1) * 100).toFixed(2)}%</td>
+            <td class="amount right"><strong>${formatCurrency(performance.endBalance)}</strong></td>
+            <td class="right"><strong>${performance.startBalance > 0 ? (((performance.endBalance - performance.startBalance) / performance.startBalance) * 100).toFixed(2) : '0.00'}%</strong></td>
           </tr>
         </tbody>
       </table>
 
       <div class="footer">
         <h4>Important Information</h4>
+        
         <p><strong>Fund Administrator:</strong> This statement has been prepared by P11 Fund Administration, an independent fund administrator regulated by the Financial Conduct Authority (FCA). P11 provides professional oversight and ensures all statements are independently verified and audited.</p>
         
         <p><strong>Trade History:</strong> A detailed audit log of all transactions is available upon request. To protect proprietary trading strategies and fund intellectual property, specific entry prices, stop-loss levels, and position sizing details are not disclosed in standard reporting. This information is maintained in our secure audit trail for regulatory compliance purposes.</p>
@@ -234,18 +448,16 @@ async function generateClientStatement(client, performance, period) {
         
         <p><strong>Performance Disclaimer:</strong> Past performance is not indicative of future results. Investment values can go down as well as up. Please refer to the fund's offering documents for complete risk disclosures.</p>
         
-        <p style="margin-top: 15px; font-size: 10px; color: #9ca3af;">Generated on ${formatDate(new Date())} | P11 Fund Administration | Aequitas Capital Partners</p>
+        <p style="margin-top: 15px; font-size: 8px; color: #9ca3af;">Generated on ${formatDate(new Date())} | P11 Fund Administration | Aequitas Capital Partners</p>
       </div>
     </body>
     </html>
   `;
 
-  // For now, return the HTML content as a simple response
-  // In production, you'd convert this to PDF using puppeteer or similar
   return Buffer.from(htmlContent, 'utf-8');
 }
 
-// Get available statement periods based on client's actual deposits
+// Get available statement periods based on client's deposit history
 function getAvailableStatementPeriods(deposits) {
   const periods = [];
   const now = new Date();
@@ -266,13 +478,13 @@ function getAvailableStatementPeriods(deposits) {
     const h1PeriodStart = new Date(year, 0, 1);
     const h1PeriodEnd = new Date(year, 5, 30);
     
-    // Check if client had any deposits during H1 period
-    const hasH1Deposits = deposits.some(deposit => {
+    // Check if client had any deposits BY the end of H1 period
+    const hasDepositsForH1 = deposits.some(deposit => {
       const depositDate = new Date(deposit.deposit_date || deposit.created_at);
-      return depositDate >= h1PeriodStart && depositDate <= h1PeriodEnd;
+      return depositDate <= h1PeriodEnd;
     });
     
-    if (now >= h1Available && hasH1Deposits) {
+    if (now >= h1Available && hasDepositsForH1) {
       periods.push({
         id: `H1-${year}`,
         period: `January - June ${year}`,
@@ -288,13 +500,13 @@ function getAvailableStatementPeriods(deposits) {
     const h2PeriodStart = new Date(year, 6, 1);
     const h2PeriodEnd = new Date(year, 11, 31);
     
-    // Check if client had any deposits during H2 period
-    const hasH2Deposits = deposits.some(deposit => {
+    // Check if client had any deposits BY the end of H2 period
+    const hasDepositsForH2 = deposits.some(deposit => {
       const depositDate = new Date(deposit.deposit_date || deposit.created_at);
-      return depositDate >= h2PeriodStart && depositDate <= h2PeriodEnd;
+      return depositDate <= h2PeriodEnd;
     });
     
-    if (now >= h2Available && hasH2Deposits) {
+    if (now >= h2Available && hasDepositsForH2) {
       periods.push({
         id: `H2-${year}`,
         period: `July - December ${year}`,
