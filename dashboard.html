@@ -890,19 +890,44 @@
         }
 
         // Calculate real dashboard performance using deposits and CSV returns
+        // FIXED: calculateDashboardPerformance function in dashboard.html
         function calculateDashboardPerformance(deposits, csvData) {
-            console.log('🧮 Calculating performance with CUMULATIVE returns logic');
+            console.log('🧮 Calculating performance with CUMULATIVE returns logic (FIXED)');
             
-            const endDate = new Date();
             let totalDeposits = 0;
             let finalBalance = 0;
             
+            // Filter out deposits with null/invalid dates and only use completed ones
+            const validDeposits = deposits.filter(deposit => {
+                const depositDate = deposit.deposit_date || deposit.date;
+                const hasValidDate = depositDate && depositDate !== null;
+                const isCompleted = deposit.status === 'completed' || !deposit.status; // Include if no status field
+                
+                if (!hasValidDate) {
+                    console.log(`⚠️ Skipping deposit with null date: $${deposit.amount}`);
+                }
+                if (!isCompleted) {
+                    console.log(`⚠️ Skipping non-completed deposit: $${deposit.amount}`);
+                }
+                
+                return hasValidDate && isCompleted;
+            });
+            
+            console.log(`📊 Processing ${validDeposits.length} valid deposits (filtered from ${deposits.length} total)`);
+            
             // Sort deposits chronologically
-            const sortedDeposits = deposits.sort((a, b) => {
+            const sortedDeposits = validDeposits.sort((a, b) => {
                 const dateA = new Date(a.deposit_date || a.date);
                 const dateB = new Date(b.deposit_date || b.date);
                 return dateA - dateB;
             });
+            
+            // Get the latest date in CSV for "end" calculation
+            const csvDates = Object.keys(csvData).sort();
+            const latestCsvDate = csvDates[csvDates.length - 1];
+            const latestCumulativeReturn = csvData[latestCsvDate];
+            
+            console.log(`📅 Using latest CSV date: ${latestCsvDate} (${latestCumulativeReturn?.toFixed(2)}% cumulative)`);
             
             // Process each deposit separately
             for (const deposit of sortedDeposits) {
@@ -920,30 +945,15 @@
                     continue;
                 }
                 
-                // Get cumulative return at end date
-                const endDateStr = endDate.toISOString().split('T')[0];
-                let endCumulative = csvData[endDateStr];
-                
-                // If no data for exact end date, find the latest available date
-                if (!endCumulative) {
-                    const availableDates = Object.keys(csvData).sort().reverse();
-                    const latestDate = availableDates.find(date => date <= endDateStr);
-                    if (latestDate) {
-                        endCumulative = csvData[latestDate];
-                        console.log(`📅 Using latest available date ${latestDate} for end calculation`);
-                    } else {
-                        endCumulative = startCumulative; // No growth if no data
-                    }
-                }
-                
-                // Calculate performance for this deposit
-                const performanceMultiplier = endCumulative / startCumulative;
+                // Calculate performance for this deposit using cumulative returns
+                const performanceMultiplier = latestCumulativeReturn / startCumulative;
                 const currentDepositValue = depositAmount * performanceMultiplier;
                 
                 console.log(`💰 Deposit $${depositAmount.toLocaleString()} on ${depositDateStr}:`);
-                console.log(`   📊 Cumulative: ${startCumulative.toFixed(2)}% → ${endCumulative.toFixed(2)}%`);
+                console.log(`   📊 Deposit date cumulative: ${startCumulative.toFixed(2)}%`);
+                console.log(`   📊 Latest cumulative: ${latestCumulativeReturn.toFixed(2)}%`);
                 console.log(`   📈 Multiplier: ${performanceMultiplier.toFixed(4)}x`);
-                console.log(`   💵 Value: $${currentDepositValue.toLocaleString()}`);
+                console.log(`   💵 Current value: $${currentDepositValue.toLocaleString()}`);
                 
                 finalBalance += currentDepositValue;
             }
@@ -952,7 +962,7 @@
                 totalDeposits,
                 currentBalance: finalBalance
             };
-        }
+}
         // Load real dashboard data with CSV integration
         async function loadDashboard() {
             console.log('📊 Loading dashboard with REAL data...');
