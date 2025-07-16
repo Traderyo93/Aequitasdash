@@ -1390,6 +1390,7 @@
         }
 
         // Calculate real dashboard performance using deposits and CSV returns
+// Calculate real dashboard performance using deposits and CSV returns
         function calculateDashboardPerformance(deposits, csvData) {
             console.log('🧮 Calculating performance with CUMULATIVE returns logic');
             
@@ -1397,8 +1398,16 @@
             let totalDeposits = 0;
             let finalBalance = 0;
             
+            // FIXED: Filter out deposits with null/invalid dates
+            const validDeposits = deposits.filter(deposit => {
+                const depositDate = deposit.deposit_date || deposit.date;
+                return depositDate && depositDate !== null && depositDate !== 'null' && depositDate !== '';
+            });
+            
+            console.log(`📊 Filtered ${deposits.length} deposits to ${validDeposits.length} valid deposits`);
+            
             // Sort deposits chronologically
-            const sortedDeposits = deposits.sort((a, b) => {
+            const sortedDeposits = validDeposits.sort((a, b) => {
                 const dateA = new Date(a.deposit_date || a.date);
                 const dateB = new Date(b.deposit_date || b.date);
                 return dateA - dateB;
@@ -1408,6 +1417,13 @@
             for (const deposit of sortedDeposits) {
                 const depositAmount = parseFloat(deposit.amount);
                 const depositDate = new Date(deposit.deposit_date || deposit.date);
+                
+                // FIXED: Additional date validation
+                if (isNaN(depositDate.getTime())) {
+                    console.warn(`⚠️ Invalid date for deposit: ${deposit.deposit_date || deposit.date}`);
+                    continue;
+                }
+                
                 const depositDateStr = depositDate.toISOString().split('T')[0];
                 
                 totalDeposits += depositAmount;
