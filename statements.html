@@ -51,7 +51,6 @@
             transition: all 0.3s ease;
         }
 
-        /* Icons */
         .icon {
             width: 20px;
             height: 20px;
@@ -114,11 +113,14 @@
             mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z'/%3E%3Cpolyline stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' points='14,2 14,8 20,8'/%3E%3Cline stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' x1='16' y1='13' x2='8' y2='13'/%3E%3Cline stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' x1='16' y1='17' x2='8' y2='17'/%3E%3Cpolyline stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' points='10,9 9,9 8,9'/%3E%3C/svg%3E");
         }
 
+        .icon-info {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'/%3E%3C/svg%3E");
+        }
+
         .icon-users {
             mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m22 0v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75M13 7a4 4 0 11-8 0 4 4 0 018 0z'/%3E%3C/svg%3E");
         }
 
-        /* Sidebar */
         .sidebar {
             position: fixed;
             left: 0;
@@ -191,11 +193,6 @@
             font-size: 14px;
             font-weight: 500;
             transition: all 0.2s ease;
-            border: none;
-            background: none;
-            width: 100%;
-            text-align: left;
-            cursor: pointer;
         }
 
         .nav-item:hover {
@@ -269,7 +266,6 @@
             color: #fca5a5;
         }
 
-        /* Main Content */
         .main-content {
             margin-left: 280px;
             min-height: 100vh;
@@ -461,7 +457,6 @@
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s ease;
-            text-decoration: none;
         }
 
         .download-btn:hover {
@@ -515,60 +510,6 @@
                     <span class="icon icon-document"></span>
                     <span>Statements</span>
                 </a>
-            <div class="card">
-                <div class="card-header">
-                    <span class="icon icon-info card-icon"></span>
-                    <h3 class="card-title">Statement Information</h3>
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
-                    <div>
-                        <h4 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px;">
-                            What's Included
-                        </h4>
-                        <ul style="list-style: none; padding: 0; color: var(--text-secondary); line-height: 1.6;">
-                            <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
-                                <span class="icon icon-check-circle" style="color: var(--success); width: 16px; height: 16px;"></span>
-                                Portfolio performance summary
-                            </li>
-                            <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
-                                <span class="icon icon-check-circle" style="color: var(--success); width: 16px; height: 16px;"></span>
-                                Detailed transaction history
-                            </li>
-                            <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
-                                <span class="icon icon-check-circle" style="color: var(--success); width: 16px; height: 16px;"></span>
-                                Fee breakdown and analysis
-                            </li>
-                            <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
-                                <span class="icon icon-check-circle" style="color: var(--success); width: 16px; height: 16px;"></span>
-                                Audited financial positions
-                            </li>
-                            <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
-                                <span class="icon icon-check-circle" style="color: var(--success); width: 16px; height: 16px;"></span>
-                                Regulatory compliance reports
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div>
-                        <h4 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px;">
-                            Key Dates
-                        </h4>
-                        <div style="color: var(--text-secondary); line-height: 1.6;">
-                            <div style="margin-bottom: 12px; padding: 12px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color);">
-                                <strong style="color: var(--text-primary);">January 5th</strong><br>
-                                H2 Statement (July - December)
-                            </div>
-                            <div style="margin-bottom: 12px; padding: 12px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color);">
-                                <strong style="color: var(--text-primary);">July 5th</strong><br>
-                                H1 Statement (January - June)
-                            </div>
-                            <div style="font-size: 12px; color: var(--text-tertiary); margin-top: 12px;">
-                                Statements are typically available by 5:00 PM GMT on the issue date.
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <div class="nav-section">
@@ -670,6 +611,62 @@
                     </table>
                 </div>
             </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="icon icon-info card-icon"></span>
+                    <h3 class="card-title">Statement Information</h3>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                    <div>
+                        <h4 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px;">
+                            What's Included
+                        </h4>
+                        <ul style="list-style: none; padding: 0; color: var(--text-secondary); line-height: 1.6;">
+                            <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                                <span class="icon icon-check-circle" style="color: var(--success); width: 16px; height: 16px;"></span>
+                                Portfolio performance summary
+                            </li>
+                            <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                                <span class="icon icon-check-circle" style="color: var(--success); width: 16px; height: 16px;"></span>
+                                Detailed transaction history
+                            </li>
+                            <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                                <span class="icon icon-check-circle" style="color: var(--success); width: 16px; height: 16px;"></span>
+                                Fee breakdown and analysis
+                            </li>
+                            <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                                <span class="icon icon-check-circle" style="color: var(--success); width: 16px; height: 16px;"></span>
+                                Audited financial positions
+                            </li>
+                            <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                                <span class="icon icon-check-circle" style="color: var(--success); width: 16px; height: 16px;"></span>
+                                Regulatory compliance reports
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px;">
+                            Key Dates
+                        </h4>
+                        <div style="color: var(--text-secondary); line-height: 1.6;">
+                            <div style="margin-bottom: 12px; padding: 12px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color);">
+                                <strong style="color: var(--text-primary);">January 5th</strong><br>
+                                H2 Statement (July - December)
+                            </div>
+                            <div style="margin-bottom: 12px; padding: 12px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color);">
+                                <strong style="color: var(--text-primary);">July 5th</strong><br>
+                                H1 Statement (January - June)
+                            </div>
+                            <div style="font-size: 12px; color: var(--text-tertiary); margin-top: 12px;">
+                                Statements are typically available by 5:00 PM GMT on the issue date.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -677,7 +674,6 @@
         let currentTheme = 'light';
         let userData = {};
 
-        // Theme toggle
         function toggleTheme() {
             currentTheme = currentTheme === 'light' ? 'dark' : 'light';
             document.documentElement.setAttribute('data-theme', currentTheme);
@@ -688,7 +684,6 @@
             localStorage.setItem('aequitas_theme', currentTheme);
         }
 
-        // Logout
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
                 localStorage.removeItem('aequitas_auth_token');
@@ -697,7 +692,6 @@
             }
         }
 
-        // Load user data
         function loadUserData() {
             const userDataString = localStorage.getItem('aequitas_user_data');
             if (userDataString) {
@@ -716,7 +710,6 @@
             document.getElementById('topUserName').textContent = firstName;
         }
 
-        // Load available statements based on user's first deposit date
         async function loadAvailableStatements() {
             try {
                 const authToken = localStorage.getItem('aequitas_auth_token');
@@ -748,7 +741,6 @@
             }
         }
 
-        // Render statements in table
         function renderStatements(statements) {
             const tbody = document.getElementById('statementsTableBody');
             
@@ -767,29 +759,21 @@
                     </td>
                     <td>
                         <span class="statement-status ${statement.status}">
-                            <span class="icon ${statement.status === 'available' ? 'icon-check-circle' : 'icon-clock'}"></span>
-                            <span>${statement.status}</span>
+                            <span class="icon icon-check-circle"></span>
+                            <span>Available</span>
                         </span>
                     </td>
                     <td>Generate PDF</td>
                     <td>
-                        ${statement.status === 'available' ? `
-                            <button class="download-btn" onclick="downloadStatement('${statement.id}')">
-                                <span class="icon icon-download"></span>
-                                Download PDF
-                            </button>
-                        ` : `
-                            <button class="download-btn" disabled>
-                                <span class="icon icon-clock"></span>
-                                Not Available
-                            </button>
-                        `}
+                        <button class="download-btn" onclick="downloadStatement('${statement.id}')">
+                            <span class="icon icon-download"></span>
+                            Download PDF
+                        </button>
                     </td>
                 </tr>
             `).join('');
         }
 
-        // Show no statements message
         function showNoStatements() {
             const tbody = document.getElementById('statementsTableBody');
             tbody.innerHTML = `
@@ -802,7 +786,6 @@
             `;
         }
 
-        // Download statement
         async function downloadStatement(statementId) {
             try {
                 const authToken = localStorage.getItem('aequitas_auth_token');
@@ -844,7 +827,6 @@
             }
         }
 
-        // Show notification
         function showNotification(message, type = 'info') {
             const notification = document.createElement('div');
             notification.style.cssText = `
@@ -882,9 +864,7 @@
             }, 5000);
         }
 
-        // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
-            // Check authentication
             const authToken = localStorage.getItem('aequitas_auth_token');
             if (!authToken) {
                 showNotification('Please log in to access this page.', 'warning');
@@ -894,7 +874,6 @@
                 return;
             }
 
-            // Load theme
             const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
             if (savedTheme === 'dark') {
                 currentTheme = 'dark';
@@ -903,13 +882,9 @@
                 if (themeToggle) themeToggle.className = 'icon icon-sun';
             }
 
-            // Load user data
             loadUserData();
-
-            // Load available statements
             loadAvailableStatements();
 
-            // Show admin section if admin
             if (userData.role === 'admin') {
                 const adminSection = document.getElementById('adminSection');
                 if (adminSection) adminSection.style.display = 'block';
