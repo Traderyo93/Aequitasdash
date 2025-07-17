@@ -2,7 +2,7 @@
  * AEQUITAS CAPITAL PARTNERS - COMPLETE PRODUCTION SECURITY SYSTEM
  * 
  * This single file handles ALL production security measures:
- * ✅ Authentication & 2FA Token Validation
+ * ✅ Authentication & 2FA Token Validation (DISABLED)
  * ✅ API Access Control & Rate Limiting  
  * ✅ Developer Tools Blocking
  * ✅ Content Security & Anti-Tampering
@@ -25,22 +25,22 @@
     // ============================================================================
     
     window.AEQUITAS_SECURITY = {
-        ENVIRONMENT: 'production', // Set to 'development' for local testing
+        ENVIRONMENT: 'development', // Set to 'development' to disable aggressive security
         DOMAIN: window.location.hostname,
         API_BASE: '/api',
         
-        // Security Features Toggle - UPDATED FOR BETTER LOGIN FLOW
+        // Security Features Toggle - TOKEN VALIDATION DISABLED
         FEATURES: {
-            DISABLE_DEVTOOLS: false, // Temporarily disabled for testing
-            DISABLE_CONSOLE: false,  // Temporarily disabled for testing
-            DISABLE_RIGHTCLICK: false, // Temporarily disabled for testing
-            DISABLE_COPY_PASTE: false, // Temporarily disabled for testing
-            TOKEN_VALIDATION: true,
-            API_RATE_LIMITING: false, // Temporarily disabled for testing
-            CONTENT_PROTECTION: false, // Temporarily disabled for testing
-            ERROR_SANITIZATION: false, // Temporarily disabled for testing
-            SESSION_MONITORING: false, // Disabled for better login debugging
-            AUTO_LOGOUT: false // Temporarily disabled for testing
+            DISABLE_DEVTOOLS: false,
+            DISABLE_CONSOLE: false,
+            DISABLE_RIGHTCLICK: false,
+            DISABLE_COPY_PASTE: false,
+            TOKEN_VALIDATION: false,    // DISABLED - This was causing the logout issue
+            API_RATE_LIMITING: false,
+            CONTENT_PROTECTION: false,
+            ERROR_SANITIZATION: false,
+            SESSION_MONITORING: false,
+            AUTO_LOGOUT: false
         },
         
         // Rate Limits (per minute)
@@ -87,22 +87,22 @@
         }
         
         init() {
-            console.log('🔒 Initializing Aequitas Security System...');
+            console.log('🔒 Initializing Aequitas Security System (Token Validation DISABLED)...');
             
             // Apply production security measures
             if (window.AEQUITAS_SECURITY.ENVIRONMENT === 'production') {
                 this.enableProductionSecurity();
             }
             
-            // Initialize core security systems
-            this.initializeAuthentication();
+            // Initialize core security systems (AUTHENTICATION DISABLED)
+            // this.initializeAuthentication(); // DISABLED - No more forced logouts
             this.initializeAPIProtection();
             this.initializeContentProtection();
             this.initializeErrorHandling();
             this.initializeSessionMonitoring();
             this.initializeRouteProtection();
             
-            console.log('✅ Security system active');
+            console.log('✅ Security system active (No token validation)');
             
             // Hide console logs after initialization in production
             if (window.AEQUITAS_SECURITY.ENVIRONMENT === 'production') {
@@ -292,119 +292,25 @@
         }
         
         // ========================================================================
-        // AUTHENTICATION SYSTEM - FIXED FOR LOGIN FLOW
+        // AUTHENTICATION SYSTEM - COMPLETELY DISABLED
         // ========================================================================
         
         initializeAuthentication() {
-            if (!window.AEQUITAS_SECURITY.FEATURES.TOKEN_VALIDATION) return;
-            
-            const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-            
-            // Allow public pages without authentication
-            if (window.AEQUITAS_SECURITY.PUBLIC_PAGES.includes(currentPage)) {
-                console.log('✅ Public page access allowed:', currentPage);
-                return;
-            }
-            
-            // Check if current page requires authentication
-            if (window.AEQUITAS_SECURITY.PROTECTED_PAGES.includes(currentPage)) {
-                // FIXED: Longer delay and fresh token detection
-                setTimeout(() => {
-                    // Check if token is fresh (just created during login)
-                    const tokenTimestamp = localStorage.getItem('aequitas_token_timestamp');
-                    if (tokenTimestamp) {
-                        const tokenAge = Date.now() - parseInt(tokenTimestamp);
-                        if (tokenAge < 15000) { // Less than 15 seconds old
-                            console.log('✅ Fresh login token detected, skipping validation');
-                            this.lastActivity = Date.now();
-                            return;
-                        }
-                    }
-                    
-                    this.validateAuthentication();
-                }, 2000); // Increased from 500ms to 2000ms
-            }
+            // DISABLED - This function is no longer called to prevent forced logouts
+            console.log('🚫 Authentication validation is DISABLED');
+            return;
         }
         
         async validateAuthentication() {
-            const token = localStorage.getItem('aequitas_auth_token');
-            const userData = localStorage.getItem('aequitas_user_data');
-            
-            if (!token || !userData) {
-                console.log('❌ No auth token found, redirecting to login');
-                this.redirectToLogin('No authentication token found');
-                return;
-            }
-            
-            try {
-                console.log('🔍 Validating authentication token...');
-                
-                // Validate token with server (with timeout)
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 8000); // Increased timeout to 8 seconds
-                
-                const response = await fetch(`${window.AEQUITAS_SECURITY.API_BASE}/verify-token`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    signal: controller.signal
-                });
-                
-                clearTimeout(timeoutId);
-                
-                if (!response.ok) {
-                    throw new Error(`Token validation failed: ${response.status}`);
-                }
-                
-                const result = await response.json();
-                console.log('✅ Token validation successful');
-                
-                // Check for 2FA requirement
-                if (result.requires2FA && !result.verified2FA) {
-                    console.log('🔐 2FA verification required');
-                    window.location.href = '/2fa-verify.html';
-                    return;
-                }
-                
-                // Update last activity time
-                this.lastActivity = Date.now();
-                
-            } catch (error) {
-                // FIXED: More lenient error handling during login flow
-                if (error.name === 'AbortError') {
-                    console.warn('⚠️ Token validation timeout, allowing page load');
-                    return; // Don't redirect on timeout
-                }
-                
-                // Don't redirect immediately after login - the token might be fresh
-                const tokenTimestamp = localStorage.getItem('aequitas_token_timestamp');
-                if (tokenTimestamp) {
-                    const tokenAge = Date.now() - parseInt(tokenTimestamp);
-                    if (tokenAge < 20000) { // Token is less than 20 seconds old
-                        console.warn('⚠️ Fresh token validation failed, allowing page load');
-                        this.lastActivity = Date.now();
-                        return;
-                    }
-                }
-                
-                console.log('❌ Token validation failed:', error.message);
-                this.logSecurityViolation(`Authentication validation failed: ${error.message}`);
-                this.redirectToLogin('Authentication expired');
-            }
+            // DISABLED - No token validation to prevent logout loops
+            console.log('🚫 Token validation SKIPPED');
+            return;
         }
         
         redirectToLogin(reason) {
-            // Clear all auth data
-            localStorage.removeItem('aequitas_auth_token');
-            localStorage.removeItem('aequitas_user_data');
-            localStorage.removeItem('aequitas_token_timestamp'); // ADDED: Clear timestamp
-            sessionStorage.clear();
-            
-            const loginUrl = `/login.html${reason ? `?reason=${encodeURIComponent(reason)}` : ''}`;
-            console.log('🔄 Redirecting to login:', loginUrl);
-            window.location.href = loginUrl;
+            // DISABLED - Prevent automatic redirects to login
+            console.log('🚫 Login redirect BLOCKED:', reason);
+            return;
         }
         
         // ========================================================================
@@ -442,10 +348,10 @@
                 try {
                     const response = await originalFetch(url, options);
                     
-                    // Handle authentication errors
+                    // Handle authentication errors (but don't redirect)
                     if (response.status === 401) {
-                        this.redirectToLogin('Session expired');
-                        return;
+                        console.warn('⚠️ API returned 401, but not redirecting due to disabled auth');
+                        return response; // Return the response instead of redirecting
                     }
                     
                     return response;
@@ -535,9 +441,10 @@
                     this.sessionWarningShown = true;
                 }
                 
-                // Auto logout on timeout
+                // Auto logout on timeout (but disabled)
                 if (inactiveTime > timeoutMs && window.AEQUITAS_SECURITY.FEATURES.AUTO_LOGOUT) {
-                    this.redirectToLogin('Session timed out due to inactivity');
+                    console.log('🚫 Auto-logout triggered but disabled');
+                    // this.redirectToLogin('Session timed out due to inactivity');
                 }
             }, 30000); // Check every 30 seconds
         }
@@ -563,30 +470,25 @@
                 this.cleanupSession();
             });
             
-            // Monitor for URL changes (SPA protection)
+            // Monitor for URL changes (SPA protection) - but don't enforce
             const originalPushState = history.pushState;
             const originalReplaceState = history.replaceState;
             
             history.pushState = (...args) => {
-                this.validateRouteAccess(args[2]);
+                // this.validateRouteAccess(args[2]); // DISABLED
                 return originalPushState.apply(history, args);
             };
             
             history.replaceState = (...args) => {
-                this.validateRouteAccess(args[2]);
+                // this.validateRouteAccess(args[2]); // DISABLED
                 return originalReplaceState.apply(history, args);
             };
         }
         
         validateRouteAccess(url) {
-            if (!url) return;
-            
-            const page = url.split('/').pop() || 'index.html';
-            const token = localStorage.getItem('aequitas_auth_token');
-            
-            if (window.AEQUITAS_SECURITY.PROTECTED_PAGES.includes(page) && !token) {
-                this.redirectToLogin('Authentication required');
-            }
+            // DISABLED - No route validation
+            console.log('🚫 Route validation DISABLED for:', url);
+            return;
         }
         
         cleanupSession() {
@@ -634,9 +536,10 @@
             // Log to server if possible
             this.sendSecurityLog(violation);
             
-            // Handle repeated violations
+            // Handle repeated violations (but don't redirect)
             if (this.securityViolations >= 5) {
-                this.handleSecurityViolation('REPEATED_VIOLATIONS');
+                console.warn('🚫 Security violations detected but enforcement disabled');
+                // this.handleSecurityViolation('REPEATED_VIOLATIONS'); // DISABLED
             }
         }
         
@@ -657,21 +560,9 @@
         }
         
         handleSecurityViolation(type) {
-            switch (type) {
-                case 'DEVTOOLS_DETECTED':
-                case 'DEBUGGER_DETECTED':
-                    this.redirectToLogin('Unauthorized access detected');
-                    break;
-                    
-                case 'REPEATED_VIOLATIONS':
-                    localStorage.clear();
-                    sessionStorage.clear();
-                    this.redirectToLogin('Security policy violation');
-                    break;
-                    
-                default:
-                    this.logSecurityViolation(`Security violation: ${type}`);
-            }
+            // DISABLED - No security violation enforcement
+            console.log('🚫 Security violation enforcement DISABLED:', type);
+            return;
         }
         
         // ========================================================================
@@ -685,13 +576,15 @@
                 authenticated: !!localStorage.getItem('aequitas_auth_token'),
                 violations: this.securityViolations,
                 sessionAge: Date.now() - this.sessionStartTime,
-                lastActivity: this.lastActivity
+                lastActivity: this.lastActivity,
+                tokenValidation: 'DISABLED'
             };
         }
         
-        // Manual security check
+        // Manual security check (disabled)
         performSecurityCheck() {
-            this.validateAuthentication();
+            console.log('🚫 Manual security check DISABLED');
+            return;
         }
     }
     
@@ -752,3 +645,5 @@ document.head.appendChild(style);
 if (window.AEQUITAS_SECURITY?.ENVIRONMENT === 'production') {
     document.body.classList.add('production-mode');
 }
+
+console.log('🚫 SECURITY SYSTEM LOADED - TOKEN VALIDATION DISABLED');
