@@ -1,4 +1,4 @@
-// api/support.js - COMPLETE SUPPORT SYSTEM WITH DATABASE
+// api/support.js - COMPLETE SUPPORT SYSTEM WITH DATABASE + ADMIN NAMES
 const { sql } = require('@vercel/postgres');
 const jwt = require('jsonwebtoken');
 
@@ -50,13 +50,14 @@ module.exports = async function handler(req, res) {
         ticket_id UUID NOT NULL REFERENCES support_tickets(id) ON DELETE CASCADE,
         sender_id UUID NOT NULL,
         sender_type VARCHAR(10) NOT NULL CHECK (sender_type IN ('user', 'admin')),
+        sender_name VARCHAR(255) NOT NULL,
         message TEXT NOT NULL,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       )
     `;
     
     if (req.method === 'GET') {
-      if (user.role === 'admin') {
+      if (user.role === 'admin' || user.role === 'superadmin') {
         // ADMIN: Get all tickets with unread counts and latest message
         const tickets = await sql`
           SELECT 
@@ -113,7 +114,7 @@ module.exports = async function handler(req, res) {
     }
     
     if (req.method === 'POST') {
-      const { action, ticketId, subject, priority, message } = req.body;
+      const { action, ticketId, subject, priority, message, senderName } = req.body;
       
       if (action === 'create_ticket') {
         // Create new support ticket
@@ -133,10 +134,12 @@ module.exports = async function handler(req, res) {
         
         const newTicket = ticketResult.rows[0];
         
-        // Create first message
+        // Create first message with user's name
+        const userSenderName = `${user.firstName} ${user.lastName}`;
+        
         await sql`
-          INSERT INTO support_messages (ticket_id, sender_id, sender_type, message)
-          VALUES (${newTicket.id}, ${user.id}, 'user', ${message})
+          INSERT INTO support_messages (ticket_id, sender_id, sender_type, sender_name, message)
+          VALUES (${newTicket.id}, ${user.id}, 'user', ${userSenderName}, ${message})
         `;
         
         console.log('✅ New support ticket created:', newTicket.id);
@@ -171,20 +174,26 @@ module.exports = async function handler(req, res) {
         const ticket = ticketCheck.rows[0];
         
         // Check permissions
-        if (user.role !== 'admin' && ticket.user_id !== user.id) {
+        const isAdmin = user.role === 'admin' || user.role === 'superadmin';
+        if (!isAdmin && ticket.user_id !== user.id) {
           return res.status(403).json({
             success: false,
             error: 'Access denied'
           });
         }
         
-        // Determine sender type and update unread counts
-        const senderType = user.role === 'admin' ? 'admin' : 'user';
+        // Determine sender type and name
+        const senderType = isAdmin ? 'admin' : 'user';
+        const finalSenderName = isAdmin 
+          ? (senderName || `${user.firstName} ${user.lastName}`)  // Use provided admin name
+          : `${user.firstName} ${user.lastName}`;
         
-        // Insert message
+        console.log(`💬 Adding message as ${senderType}: ${finalSenderName}`);
+        
+        // Insert message with sender name
         await sql`
-          INSERT INTO support_messages (ticket_id, sender_id, sender_type, message)
-          VALUES (${ticketId}, ${user.id}, ${senderType}, ${message})
+          INSERT INTO support_messages (ticket_id, sender_id, sender_type, sender_name, message)
+          VALUES (${ticketId}, ${user.id}, ${senderType}, ${finalSenderName}, ${message})
         `;
         
         // Update ticket timestamp and unread counts
@@ -214,7 +223,7 @@ module.exports = async function handler(req, res) {
           `;
         }
         
-        console.log(`✅ Message sent to ticket ${ticketId} by ${senderType}`);
+        console.log(`✅ Message sent to ticket ${ticketId} by ${finalSenderName}`);
         
         return res.status(200).json({
           success: true,
@@ -235,7 +244,7 @@ module.exports = async function handler(req, res) {
           });
         }
         
-        if (user.role === 'admin') {
+        if (user.role === 'admin' || user.role === 'superadmin') {
           // Admin marking as read
           await sql`
             UPDATE support_tickets 
@@ -258,7 +267,7 @@ module.exports = async function handler(req, res) {
         
       } else if (action === 'close_ticket') {
         // Close ticket (admin only)
-        if (user.role !== 'admin') {
+        if (user.role !== 'admin' && user.role !== 'superadmin') {
           return res.status(403).json({
             success: false,
             error: 'Admin access required'
