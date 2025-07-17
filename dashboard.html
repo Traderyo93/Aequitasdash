@@ -7,282 +7,49 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Geist:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root {
-            --bg-primary: #ffffff;
-            --bg-secondary: #f8fafc;
-            --bg-tertiary: #f1f5f9;
-            --text-primary: #0f172a;
-            --text-secondary: #475569;
-            --text-tertiary: #64748b;
-            --border-color: #e2e8f0;
-            --sidebar-bg: #1e293b;
-            --sidebar-text: #94a3b8;
-            --sidebar-text-active: #ffffff;
-            --sidebar-hover: rgba(59, 130, 246, 0.1);
-            --sidebar-active: rgba(59, 130, 246, 0.2);
-            --accent: #3b82f6;
-            --accent-hover: #2563eb;
-            --success: #10b981;
-            --error: #ef4444;
-            --warning: #f59e0b;
-        }
+:root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8fafc;
+    --bg-tertiary: #f1f5f9;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-tertiary: #64748b;
+    --border-color: #e2e8f0;
+    --sidebar-bg: #1e293b;
+    --sidebar-text: #94a3b8;
+    --sidebar-text-active: #ffffff;
+    --sidebar-hover: rgba(59, 130, 246, 0.1);
+    --sidebar-active: rgba(59, 130, 246, 0.2);
+    --accent: #3b82f6;
+    --accent-hover: #2563eb;
+    --success: #10b981;
+    --error: #ef4444;
+    --warning: #f59e0b;
+}
 
-        [data-theme="dark"] {
-            --bg-primary: #0f172a;
-            --bg-secondary: #1e293b;
-            --bg-tertiary: #334155;
-            --text-primary: #f8fafc;
-            --text-secondary: #cbd5e1;
-            --text-tertiary: #94a3b8;
-            --border-color: #334155;
-            --sidebar-bg: #0f172a;
-        }
+[data-theme="dark"] {
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-tertiary: #334155;
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-tertiary: #94a3b8;
+    --border-color: #334155;
+    --sidebar-bg: #0f172a;
+}
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-        body {
-            font-family: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-            background-color: var(--bg-secondary);
-            color: var(--text-primary);
-            transition: all 0.3s ease;
-        }
-
-        .icon {
-            width: 20px;
-            height: 20px;
-            display: inline-block;
-            background: currentColor;
-            mask-size: contain;
-            mask-repeat: no-repeat;
-            mask-position: center;
-        }
-
-        .icon-dashboard {
-            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2'/%3E%3C/svg%3E");
-        }
-
-        .icon-document {
-            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'/%3E%3C/svg%3E");
-        }
-
-        .icon-money {
-            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z'/%3E%3C/svg%3E");
-        }
-
-        .icon-bank {
-            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4'/%3E%3C/svg%3E");
-        }
-
-        .icon-user {
-            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'/%3E%3C/svg%3E");
-        }
-
-        .icon-chat {
-            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z'/%3E%3C/svg%3E");
-        }
-
-        .icon-moon {
-            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z'/%3E%3C/svg%3E");
-        }
-
-        .icon-sun {
-            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z'/%3E%3C/svg%3E");
-        }
-
-        .icon-logout {
-            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1'/%3E%3C/svg%3E");
-        }
-
-        .icon-dollar {
-            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z'/%3E%3C/svg%3E");
-        }
-
-        .icon-trending-up {
-            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M13 7h8m0 0v8m0-8l-8 8-4-4-6 6'/%3E%3C/svg%3E");
-        }
-
-        .icon-target {
-            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'/%3E%3C/svg%3E");
-        }
-
-        .icon-chart {
-            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'/%3E%3C/svg%3E");
-        }
-
-        .icon-chevron-down {
-            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-        }
-
-        .icon-chevron-up {
-            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M18 15l-6-6-6 6'/%3E%3C/svg%3E");
-        }
-
-        .icon-users {
-            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m22 0v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75M13 7a4 4 0 11-8 0 4 4 0 018 0z'/%3E%3C/svg%3E");
-        }
-
-        /* Sidebar Layout */
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 280px;
-            height: 100vh;
-            background: var(--sidebar-bg);
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            z-index: 1000;
-        }
-
-        .sidebar-header {
-            padding: 24px 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .logo-container {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .logo {
-            max-width: 140px;
-            height: auto;
-            filter: brightness(1.1);
-        }
-
-        .theme-toggle {
-            background: none;
-            border: none;
-            color: var(--sidebar-text);
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 6px;
-            transition: all 0.2s ease;
-        }
-
-        .theme-toggle:hover {
-            background: var(--sidebar-hover);
-            color: var(--sidebar-text-active);
-        }
-
-        .sidebar-nav {
-            flex: 1;
-            padding: 20px 0;
-            overflow-y: auto;
-        }
-
-        .nav-section {
-            margin-bottom: 24px;
-        }
-
-        .nav-section-title {
-            color: var(--accent);
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin: 0 20px 12px 20px;
-            padding-bottom: 4px;
-            border-bottom: 1px solid rgba(59, 130, 246, 0.3);
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 20px;
-            color: var(--sidebar-text);
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            border: none;
-            background: none;
-            width: 100%;
-            text-align: left;
-            cursor: pointer;
-        }
-
-        .nav-item:hover {
-            background: var(--sidebar-hover);
-            color: var(--sidebar-text-active);
-        }
-
-        .nav-item.active {
-            background: var(--sidebar-active);
-            color: var(--accent);
-            border-right: 3px solid var(--accent);
-        }
-
-        .sidebar-footer {
-            padding: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px;
-            background: rgba(59, 130, 246, 0.1);
-            border-radius: 8px;
-            margin-bottom: 12px;
-        }
-
-        .user-avatar {
-            width: 36px;
-            height: 36px;
-            background: var(--accent);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-        }
-
-        .user-details h4 {
-            color: var(--sidebar-text-active);
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .user-details p {
-            color: var(--sidebar-text);
-            font-size: 12px;
-        }
-
-        .logout-btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 16px;
-            background: rgba(15, 23, 42, 0.8);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            color: var(--sidebar-text);
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            width: 100%;
-        }
-
-        .logout-btn:hover {
-            background: rgba(239, 68, 68, 0.1);
-            border-color: rgba(239, 68, 68, 0.3);
-            color: #fca5a5;
-        }
-
+body {
+    font-family: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+}
         /* Main Content */
         .main-content {
             margin-left: 280px;
@@ -748,7 +515,7 @@
                 </div>
             </div>
 
-            <!-- Chart Section -->
+            <!-- Chart Section with LOG/LINEAR Toggle -->
             <div class="chart-section" id="chartSection">
                 <div class="chart-header">
                     <div class="chart-header-left" onclick="toggleChart()">
@@ -777,7 +544,7 @@
                 </div>
             </div>
 
-            <!-- Widgets -->
+            <!-- TradingView Widgets -->
             <div class="widgets-grid">
                 <div class="widget-card">
                     <h3 class="widget-title">Market News</h3>
@@ -880,7 +647,7 @@
             }
         }
 
-        // Chart Scale Toggle
+        // Chart Scale Toggle - NEW FUNCTION FOR LOG/LINEAR
         function toggleChartScale(scale, element) {
             if (event) event.stopPropagation();
             
@@ -1013,7 +780,6 @@
                 currentBalance: finalBalance
             };
         }
-
         // Load Dashboard
         async function loadDashboard() {
             try {
@@ -1270,8 +1036,7 @@
             
             return data;
         }
-
-        // Create Equity Chart
+        // Create Equity Chart with LOG/LINEAR support
         async function createEquityChart() {
             const ctx = document.getElementById('equityChart');
             if (!ctx) {
@@ -1294,6 +1059,7 @@
             const isDark = currentTheme === 'dark';
             const isLogScale = currentChartScale === 'log';
             
+            // Prepare Y-axis configuration based on scale type
             let yAxisConfig = {
                 display: true,
                 grid: {
@@ -1307,9 +1073,11 @@
                 }
             };
             
+            // Add logarithmic configuration if needed
             if (isLogScale) {
                 yAxisConfig.type = 'logarithmic';
                 yAxisConfig.ticks.callback = function(value, index, ticks) {
+                    // For log scale, show major grid lines more clearly
                     if (value >= 1000000) {
                         return '$' + (value / 1000000).toFixed(value >= 10000000 ? 0 : 1) + 'M';
                     } else if (value >= 1000) {
@@ -1318,6 +1086,7 @@
                     return '$' + value.toLocaleString();
                 };
                 
+                // Enhance grid lines for log scale
                 yAxisConfig.grid.lineWidth = function(context) {
                     return context.tick.major ? 2 : 1;
                 };
@@ -1433,88 +1202,49 @@
             economicCalendarContainer.appendChild(economicCalendarScript);
         }
 
+        // Initialize TradingView Widgets
+        function initializeTradingViewWidgets() {
+            const colorTheme = currentTheme === 'dark' ? 'dark' : 'light';
+            
+            const marketNewsContainer = document.getElementById('marketNewsWidget');
+            const marketNewsScript = document.createElement('script');
+            marketNewsScript.type = 'text/javascript';
+            marketNewsScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-timeline.js';
+            marketNewsScript.async = true;
+            marketNewsScript.innerHTML = JSON.stringify({
+                "feedMode": "market",
+                "market": "stock",
+                "isTransparent": false,
+                "displayMode": "regular",
+                "width": "100%",
+                "height": "100%",
+                "colorTheme": colorTheme,
+                "locale": "en"
+            });
+            marketNewsContainer.appendChild(marketNewsScript);
+            
+            const economicCalendarContainer = document.getElementById('economicCalendarWidget');
+            const economicCalendarScript = document.createElement('script');
+            economicCalendarScript.type = 'text/javascript';
+            economicCalendarScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-events.js';
+            economicCalendarScript.async = true;
+            economicCalendarScript.innerHTML = JSON.stringify({
+                "colorTheme": colorTheme,
+                "isTransparent": false,
+                "width": "100%",
+                "height": "100%",
+                "locale": "en",
+                "importanceFilter": "-1,0,1",
+                "currencyFilter": "USD,EUR,ITL,NZD,CHF,AUD,RUB,JPY,TRY,ZAR,CNY,GBP,CAD,MXN"
+            });
+            economicCalendarContainer.appendChild(economicCalendarScript);
+        }
         // Format Currency
         function formatCurrency(amount, short = false) {
             if (short && amount >= 1000000) {
-                return '100%",
-                "height": "100%",
-                "locale": "en",
-                "importanceFilter": "-1,0,1",
-                "currencyFilter": "USD,EUR,ITL,NZD,CHF,AUD,RUB,JPY,TRY,ZAR,CNY,GBP,CAD,MXN"
-            });
-            economicCalendarContainer.appendChild(economicCalendarScript);
-        }
-
-        // Initialize TradingView Widgets
-        function initializeTradingViewWidgets() {
-            const colorTheme = currentTheme === 'dark' ? 'dark' : 'light';
-            
-            const marketNewsContainer = document.getElementById('marketNewsWidget');
-            const marketNewsScript = document.createElement('script');
-            marketNewsScript.type = 'text/javascript';
-            marketNewsScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-timeline.js';
-            marketNewsScript.async = true;
-            marketNewsScript.innerHTML = JSON.stringify({
-                "feedMode": "market",
-                "market": "stock",
-                "isTransparent": false,
-                "displayMode": "regular",
-                "width": "100%",
-                "height": "100%",
-                "colorTheme": colorTheme,
-                "locale": "en"
-            });
-            marketNewsContainer.appendChild(marketNewsScript);
-            
-            const economicCalendarContainer = document.getElementById('economicCalendarWidget');
-            const economicCalendarScript = document.createElement('script');
-            economicCalendarScript.type = 'text/javascript';
-            economicCalendarScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-events.js';
-            economicCalendarScript.async = true;
-            economicCalendarScript.innerHTML = JSON.stringify({
-                "colorTheme": colorTheme,
-                "isTransparent": false,
-                "width": " + (amount / 1000000).toFixed(1) + 'M';
+                return '$' + (amount / 1000000).toFixed(1) + 'M';
             } else if (short && amount >= 1000) {
-                return '100%",
-                "height": "100%",
-                "locale": "en",
-                "importanceFilter": "-1,0,1",
-                "currencyFilter": "USD,EUR,ITL,NZD,CHF,AUD,RUB,JPY,TRY,ZAR,CNY,GBP,CAD,MXN"
-            });
-            economicCalendarContainer.appendChild(economicCalendarScript);
-        }
-
-        // Initialize TradingView Widgets
-        function initializeTradingViewWidgets() {
-            const colorTheme = currentTheme === 'dark' ? 'dark' : 'light';
-            
-            const marketNewsContainer = document.getElementById('marketNewsWidget');
-            const marketNewsScript = document.createElement('script');
-            marketNewsScript.type = 'text/javascript';
-            marketNewsScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-timeline.js';
-            marketNewsScript.async = true;
-            marketNewsScript.innerHTML = JSON.stringify({
-                "feedMode": "market",
-                "market": "stock",
-                "isTransparent": false,
-                "displayMode": "regular",
-                "width": "100%",
-                "height": "100%",
-                "colorTheme": colorTheme,
-                "locale": "en"
-            });
-            marketNewsContainer.appendChild(marketNewsScript);
-            
-            const economicCalendarContainer = document.getElementById('economicCalendarWidget');
-            const economicCalendarScript = document.createElement('script');
-            economicCalendarScript.type = 'text/javascript';
-            economicCalendarScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-events.js';
-            economicCalendarScript.async = true;
-            economicCalendarScript.innerHTML = JSON.stringify({
-                "colorTheme": colorTheme,
-                "isTransparent": false,
-                "width": " + (amount / 1000).toFixed(0) + 'K';
+                return '$' + (amount / 1000).toFixed(0) + 'K';
             }
             
             return new Intl.NumberFormat('en-US', {
@@ -1562,10 +1292,11 @@
             }, 5000);
         }
 
-        // Main Initialization
+        // Main Initialization Function
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM loaded, initializing dashboard...');
             
+            // CHECK: Redirect pending users to setup page
             const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
             if (userData.role === 'pending' && userData.setupStatus !== 'approved') {
                 console.log('Pending user detected, redirecting to setup...');
@@ -1573,6 +1304,7 @@
                 return;
             }
             
+            // Load saved theme preference
             const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
             console.log('Saved theme preference:', savedTheme);
             
@@ -1583,13 +1315,15 @@
                 if (themeToggle) themeToggle.className = 'icon icon-sun';
             }
             
+            // Initialize all dashboard components
             initializeNavigation();
             loadDashboard();
             initializeTradingViewWidgets();
 
-            // Set default scale to logarithmic
+            // Set default scale to logarithmic - THIS IS KEY FOR LOG DEFAULT
             currentChartScale = 'log';
             
+            // Ensure the log button is active by default
             setTimeout(() => {
                 const logBtn = document.getElementById('logScaleBtn');
                 const linearBtn = document.getElementById('linearScaleBtn');
@@ -1600,20 +1334,22 @@
                 }
             }, 100);
 
+            // Create equity chart after everything else is loaded
             setTimeout(() => {
-                console.log('Creating initial equity chart...');
+                console.log('Creating initial equity chart with logarithmic scale...');
                 createEquityChart();
             }, 200);
             
+            // Show admin section if user has admin privileges
             if (userData.role === 'admin') {
                 const adminSection = document.getElementById('adminSection');
                 if (adminSection) adminSection.style.display = 'block';
             }
             
-            console.log('Dashboard initialization complete');
+            console.log('Dashboard initialization complete with LOG scale as default');
         });
 
-        // Window Resize Handler
+        // Handle window resize events - re-render chart for proper sizing
         window.addEventListener('resize', function() {
             if (window.equityChart) {
                 setTimeout(() => {
@@ -1622,7 +1358,7 @@
             }
         });
 
-        // Mobile Sidebar Handler
+        // Close sidebar when clicking outside on mobile devices
         document.addEventListener('click', function(event) {
             if (window.innerWidth <= 1024) {
                 const sidebar = document.getElementById('sidebar');
@@ -1634,44 +1370,67 @@
                 }
             }
         });
+
+        // Additional event listeners for better UX
+        window.addEventListener('beforeunload', function() {
+            // Clean up chart instance if it exists
+            if (window.equityChart && typeof window.equityChart.destroy === 'function') {
+                window.equityChart.destroy();
+            }
+        });
+
+        // Error handling for chart creation
+        window.addEventListener('error', function(event) {
+            if (event.error && event.error.message && event.error.message.includes('Chart')) {
+                console.error('Chart error detected, attempting to recreate chart...');
+                setTimeout(() => {
+                    if (document.getElementById('equityChart')) {
+                        createEquityChart();
+                    }
+                }, 1000);
+            }
+        });
+
+        // Keyboard shortcuts for better accessibility
+        document.addEventListener('keydown', function(event) {
+            // Toggle theme with Ctrl/Cmd + Shift + T
+            if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'T') {
+                event.preventDefault();
+                toggleTheme();
+            }
+            
+            // Toggle chart with Ctrl/Cmd + Shift + C
+            if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'C') {
+                event.preventDefault();
+                toggleChart();
+            }
+        });
+
+        // Performance monitoring for chart rendering
+        let chartRenderStartTime;
+        
+        // Override the createEquityChart function to add performance monitoring
+        const originalCreateEquityChart = createEquityChart;
+        createEquityChart = async function() {
+            chartRenderStartTime = performance.now();
+            await originalCreateEquityChart();
+            const renderTime = performance.now() - chartRenderStartTime;
+            console.log(`Chart rendered in ${renderTime.toFixed(2)}ms with ${currentChartScale} scale`);
+        };
+
+        // Ensure proper cleanup on page unload
+        window.addEventListener('pagehide', function() {
+            if (window.equityChart) {
+                window.equityChart.destroy();
+                window.equityChart = null;
+            }
+        });
+
+        console.log('Dashboard script loaded successfully with logarithmic chart support');
     </script>
 </body>
-</html>100%",
-                "height": "100%",
-                "locale": "en",
-                "importanceFilter": "-1,0,1",
-                "currencyFilter": "USD,EUR,ITL,NZD,CHF,AUD,RUB,JPY,TRY,ZAR,CNY,GBP,CAD,MXN"
-            });
-            economicCalendarContainer.appendChild(economicCalendarScript);
-        }
-
-        // Initialize TradingView Widgets
-        function initializeTradingViewWidgets() {
-            const colorTheme = currentTheme === 'dark' ? 'dark' : 'light';
-            
-            const marketNewsContainer = document.getElementById('marketNewsWidget');
-            const marketNewsScript = document.createElement('script');
-            marketNewsScript.type = 'text/javascript';
-            marketNewsScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-timeline.js';
-            marketNewsScript.async = true;
-            marketNewsScript.innerHTML = JSON.stringify({
-                "feedMode": "market",
-                "market": "stock",
-                "isTransparent": false,
-                "displayMode": "regular",
-                "width": "100%",
-                "height": "100%",
-                "colorTheme": colorTheme,
-                "locale": "en"
-            });
-            marketNewsContainer.appendChild(marketNewsScript);
-            
-            const economicCalendarContainer = document.getElementById('economicCalendarWidget');
-            const economicCalendarScript = document.createElement('script');
-            economicCalendarScript.type = 'text/javascript';
-            economicCalendarScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-events.js';
-            economicCalendarScript.async = true;
-            economicCalendarScript.innerHTML = JSON.stringify({
-                "colorTheme": colorTheme,
-                "isTransparent": false,
-                "width": "
+</html>
+        
+        
+    
+        
