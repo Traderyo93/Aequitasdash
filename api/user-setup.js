@@ -43,7 +43,7 @@ module.exports = async function handler(req, res) {
         const userResult = await sql`
           SELECT 
             id, email, first_name, last_name, phone, address, date_of_birth,
-            created_at, updated_at, role, setup_status, setup_step, setup_progress,
+            created_at, updated_at, role, status, setup_status, setup_step, setup_progress,
             account_value, starting_balance,
             personal_info_completed, documents_uploaded, legal_agreements_signed,
             password_must_change
@@ -138,6 +138,7 @@ module.exports = async function handler(req, res) {
             created_at: userData.created_at,
             updated_at: userData.updated_at,
             role: userData.role,
+            status: userData.status,
             account_value: userData.account_value || 0,
             starting_balance: userData.starting_balance || 0,
             documents: documents,
@@ -152,19 +153,20 @@ module.exports = async function handler(req, res) {
         });
       }
       
-      // If admin, get all pending users
+      // FIXED: If admin, get ONLY actual pending users (not admins!)
       if (user.role === 'admin') {
         console.log('📋 Admin fetching all pending users');
         
-        // FIXED: Include all necessary fields in query
+        // CRITICAL FIX: Only get users with role = 'pending'
+        // Remove the OR condition that was catching admin users
         const pendingUsers = await sql`
           SELECT 
             id, email, first_name, last_name, phone, date_of_birth, address,
-            created_at, updated_at, role, setup_status, setup_progress,
+            created_at, updated_at, role, status, setup_status, setup_progress,
             personal_info_completed, documents_uploaded, legal_agreements_signed,
             password_must_change, setup_step
           FROM users 
-          WHERE role = 'pending' OR setup_status LIKE '%pending%'
+          WHERE role = 'pending'
           ORDER BY created_at DESC
         `;
         
