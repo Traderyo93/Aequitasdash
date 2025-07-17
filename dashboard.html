@@ -8,7 +8,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            /* Light Theme Variables */
             --bg-primary: #ffffff;
             --bg-secondary: #f8fafc;
             --bg-tertiary: #f1f5f9;
@@ -29,7 +28,6 @@
         }
 
         [data-theme="dark"] {
-            /* Dark Theme Variables */
             --bg-primary: #0f172a;
             --bg-secondary: #1e293b;
             --bg-tertiary: #334155;
@@ -40,7 +38,6 @@
             --sidebar-bg: #0f172a;
         }
 
-        /* Global Reset and Base Styles */
         * {
             margin: 0;
             padding: 0;
@@ -54,7 +51,6 @@
             transition: all 0.3s ease;
         }
 
-        /* Solid Color Icon System - All SVG icons as CSS masks */
         .icon {
             width: 20px;
             height: 20px;
@@ -128,7 +124,8 @@
         .icon-users {
             mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m22 0v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75M13 7a4 4 0 11-8 0 4 4 0 018 0z'/%3E%3C/svg%3E");
         }
-        /* Sidebar Layout and Styling */
+
+        /* Sidebar Layout */
         .sidebar {
             position: fixed;
             left: 0;
@@ -177,7 +174,6 @@
             color: var(--sidebar-text-active);
         }
 
-        /* Sidebar Navigation */
         .sidebar-nav {
             flex: 1;
             padding: 20px 0;
@@ -227,7 +223,6 @@
             border-right: 3px solid var(--accent);
         }
 
-        /* Sidebar Footer with User Info */
         .sidebar-footer {
             padding: 20px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -288,7 +283,7 @@
             color: #fca5a5;
         }
 
-        /* Main Content Area */
+        /* Main Content */
         .main-content {
             margin-left: 280px;
             min-height: 100vh;
@@ -325,7 +320,7 @@
             padding: 24px;
         }
 
-        /* Account Statistics Grid */
+        /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -397,7 +392,8 @@
         .stat-neutral {
             color: var(--text-tertiary);
         }
-        /* Chart Section Styling */
+
+        /* Chart Section */
         .chart-section {
             background: var(--bg-primary);
             border: 1px solid var(--border-color);
@@ -449,7 +445,6 @@
             color: var(--text-primary);
         }
 
-        /* Enhanced chart controls styling */
         .chart-controls {
             display: flex;
             align-items: center;
@@ -535,7 +530,7 @@
             max-height: 400px;
         }
 
-        /* TradingView Widgets Grid */
+        /* Widgets Grid */
         .widgets-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -564,7 +559,7 @@
             overflow: hidden;
         }
 
-        /* Responsive Design Media Queries */
+        /* Responsive */
         @media (max-width: 1024px) {
             .sidebar {
                 transform: translateX(-100%);
@@ -613,7 +608,6 @@
             }
         }
 
-        /* Notification Animation Keyframes */
         @keyframes slideInRight {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
@@ -626,7 +620,7 @@
     </style>
 </head>
 <body>
-    <!-- Sidebar Navigation -->
+    <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="logo-container">
@@ -674,7 +668,6 @@
                 </a>
             </div>
 
-            <!-- Admin Section - Hidden by default, shown for admin users -->
             <div class="nav-section" id="adminSection" style="display: none;">
                 <div class="nav-section-title">Admin</div>
                 <a href="admin.html" class="nav-item">
@@ -698,7 +691,8 @@
             </button>
         </div>
     </div>
-        <!-- Main Content Area -->
+
+    <!-- Main Content -->
     <div class="main-content">
         <div class="top-bar">
             <h1 class="page-title">Account Overview</h1>
@@ -709,7 +703,7 @@
         </div>
 
         <div class="dashboard-content">
-            <!-- Account Statistics Cards -->
+            <!-- Stats Cards -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-header">
@@ -754,7 +748,7 @@
                 </div>
             </div>
 
-            <!-- Equity Curve Chart Section -->
+            <!-- Chart Section -->
             <div class="chart-section" id="chartSection">
                 <div class="chart-header">
                     <div class="chart-header-left" onclick="toggleChart()">
@@ -764,12 +758,10 @@
                         <h2 class="chart-title">Account Equity Curve</h2>
                     </div>
                     <div class="chart-controls">
-                        <!-- Scale Toggle -->
                         <div class="scale-toggle">
                             <button class="scale-btn active" id="logScaleBtn" onclick="toggleChartScale('log', this)">LOG</button>
                             <button class="scale-btn" id="linearScaleBtn" onclick="toggleChartScale('linear', this)">LINEAR</button>
                         </div>
-                        <!-- Time Period Filters -->
                         <div class="chart-filters">
                             <button class="filter-btn active" onclick="updateChartPeriod('1M', this)">1M</button>
                             <button class="filter-btn" onclick="updateChartPeriod('3M', this)">3M</button>
@@ -785,57 +777,46 @@
                 </div>
             </div>
 
-            <!-- TradingView Widgets Grid -->
+            <!-- Widgets -->
             <div class="widgets-grid">
                 <div class="widget-card">
                     <h3 class="widget-title">Market News</h3>
                     <div class="tradingview-widget">
-                        <!-- TradingView Widget BEGIN -->
                         <div class="tradingview-widget-container" id="marketNewsWidget">
                             <div class="tradingview-widget-container__widget"></div>
                         </div>
-                        <!-- TradingView Widget END -->
                     </div>
                 </div>
 
                 <div class="widget-card">
                     <h3 class="widget-title">Economic Calendar</h3>
                     <div class="tradingview-widget">
-                        <!-- TradingView Widget BEGIN -->
                         <div class="tradingview-widget-container" id="economicCalendarWidget">
                             <div class="tradingview-widget-container__widget"></div>
                         </div>
-                        <!-- TradingView Widget END -->
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- JavaScript Section Begins -->
     <script>
-        // Global State Variables
+        // Global Variables
         let currentTheme = 'light';
         let currentPeriod = '1M';
-        let currentChartScale = 'log'; // Default to logarithmic
+        let currentChartScale = 'log';
         let chartCollapsed = false;
-        
-        // Universal Navigation System
+
+        // Navigation System
         function initializeNavigation() {
-            // Get current page name from URL
             const currentPage = window.location.pathname.split('/').pop() || 'dashboard.html';
             
-            console.log('Current page:', currentPage);
-            
-            // Remove active class from all navigation items
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
             });
             
-            // Add active class to current page navigation item
             let currentNavItem = document.querySelector(`.nav-item[href="${currentPage}"]`);
             
-            // Handle special cases for dashboard routing
             if (!currentNavItem) {
                 if (currentPage.includes('dashboard') || currentPage === '' || currentPage === 'index.html') {
                     currentNavItem = document.querySelector(`.nav-item[href="dashboard.html"]`);
@@ -844,10 +825,8 @@
             
             if (currentNavItem) {
                 currentNavItem.classList.add('active');
-                console.log('Set active navigation item:', currentNavItem.href);
             }
             
-            // Handle navigation clicks with authentication check
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.addEventListener('click', function(e) {
                     const token = localStorage.getItem('aequitas_auth_token');
@@ -862,32 +841,26 @@
                 });
             });
         }
-        
-        // Theme Toggle Functionality
+
+        // Theme Toggle
         function toggleTheme() {
             currentTheme = currentTheme === 'light' ? 'dark' : 'light';
             document.documentElement.setAttribute('data-theme', currentTheme);
             
-            // Update theme toggle icon
             const themeToggle = document.querySelector('.theme-toggle .icon');
             themeToggle.className = currentTheme === 'light' ? 'icon icon-moon' : 'icon icon-sun';
             
-            // Update chart theme if it exists
             if (window.equityChart) {
                 createEquityChart();
             }
             
-            // Update TradingView widgets theme
             updateTradingViewTheme();
-            
-            // Save theme preference to localStorage
             localStorage.setItem('aequitas_theme', currentTheme);
         }
 
-        // Chart Collapse/Expand Toggle
+        // Chart Toggle
         function toggleChart() {
             const chartSection = document.getElementById('chartSection');
-            const chartContent = document.getElementById('chartContent');
             const collapseBtn = document.getElementById('chartCollapseBtn');
             
             chartCollapsed = !chartCollapsed;
@@ -899,7 +872,6 @@
                 chartSection.classList.remove('collapsed');
                 collapseBtn.innerHTML = '<span class="icon icon-chevron-up"></span>';
                 
-                // Recreate chart when expanding with delay for animation
                 setTimeout(() => {
                     if (window.equityChart) {
                         createEquityChart();
@@ -908,21 +880,15 @@
             }
         }
 
-        // Toggle between logarithmic and linear scale
+        // Chart Scale Toggle
         function toggleChartScale(scale, element) {
-            console.log(`Switching chart scale to: ${scale}`);
-            
-            // Prevent event bubbling
             if (event) event.stopPropagation();
             
-            // Update active button styling
             document.querySelectorAll('.scale-btn').forEach(btn => btn.classList.remove('active'));
             element.classList.add('active');
             
-            // Update global scale state
             currentChartScale = scale;
             
-            // Always ensure chart is expanded when using controls
             const chartSection = document.getElementById('chartSection');
             const collapseBtn = document.getElementById('chartCollapseBtn');
             
@@ -932,24 +898,44 @@
                 collapseBtn.innerHTML = '<span class="icon icon-chevron-up"></span>';
             }
             
-            // Recreate chart with new scale
             setTimeout(() => {
                 createEquityChart();
             }, 100);
         }
 
-        // User Logout Functionality
+        // Update Chart Period
+        function updateChartPeriod(period, element) {
+            if (event) event.stopPropagation();
+            
+            const chartSection = document.getElementById('chartSection');
+            const collapseBtn = document.getElementById('chartCollapseBtn');
+            
+            if (chartCollapsed) {
+                chartCollapsed = false;
+                chartSection.classList.remove('collapsed');
+                collapseBtn.innerHTML = '<span class="icon icon-chevron-up"></span>';
+            }
+            
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+            
+            currentPeriod = period;
+            
+            setTimeout(() => {
+                createEquityChart();
+            }, 100);
+        }
+
+        // Logout
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
                 localStorage.removeItem('aequitas_auth_token');
                 localStorage.removeItem('aequitas_user_data');
-                console.log('User logged out, redirecting to login page');
                 window.location.href = 'login.html';
             }
         }
-        // ===== REAL CSV DATA FUNCTIONS =====
-        
-        // Load CSV trading data from server
+
+        // Load CSV Data
         async function loadCSVData() {
             try {
                 const response = await fetch('/data/daily_returns_simple.csv');
@@ -959,72 +945,51 @@
                 const lines = csvContent.split('\n');
                 const csvData = {};
                 
-                // Skip header row, parse date and CUMULATIVE return
                 for (let i = 1; i < lines.length; i++) {
                     const line = lines[i].trim();
                     if (!line) continue;
                     
                     const values = line.split(',');
-                    if (values.length >= 3) { // Now we need the 3rd column
+                    if (values.length >= 3) {
                         const date = values[0].trim();
-                        const cumulativeReturn = parseFloat(values[2].trim()); // Column 3: Cumulative_Return_Percent
+                        const cumulativeReturn = parseFloat(values[2].trim());
                         
                         if (!isNaN(cumulativeReturn)) {
-                            csvData[date] = cumulativeReturn; // Store as percentage, not decimal
+                            csvData[date] = cumulativeReturn;
                         }
                     }
                 }
                 
-                console.log(`📊 Loaded ${Object.keys(csvData).length} trading days from CSV (cumulative returns)`);
                 return csvData;
                 
             } catch (error) {
-                console.error('💥 Failed to load CSV data:', error);
+                console.error('Failed to load CSV data:', error);
                 return {};
             }
         }
 
-        // Calculate real dashboard performance using deposits and CSV returns
-        // FIXED: calculateDashboardPerformance function in dashboard.html
+        // Calculate Dashboard Performance
         function calculateDashboardPerformance(deposits, csvData) {
-            console.log('🧮 Calculating performance with CUMULATIVE returns logic (FIXED)');
-            
             let totalDeposits = 0;
             let finalBalance = 0;
             
-            // Filter out deposits with null/invalid dates and only use completed ones
             const validDeposits = deposits.filter(deposit => {
                 const depositDate = deposit.deposit_date || deposit.date;
                 const hasValidDate = depositDate && depositDate !== null;
-                const isCompleted = deposit.status === 'completed' || !deposit.status; // Include if no status field
-                
-                if (!hasValidDate) {
-                    console.log(`⚠️ Skipping deposit with null date: $${deposit.amount}`);
-                }
-                if (!isCompleted) {
-                    console.log(`⚠️ Skipping non-completed deposit: $${deposit.amount}`);
-                }
-                
+                const isCompleted = deposit.status === 'completed' || !deposit.status;
                 return hasValidDate && isCompleted;
             });
             
-            console.log(`📊 Processing ${validDeposits.length} valid deposits (filtered from ${deposits.length} total)`);
-            
-            // Sort deposits chronologically
             const sortedDeposits = validDeposits.sort((a, b) => {
                 const dateA = new Date(a.deposit_date || a.date);
                 const dateB = new Date(b.deposit_date || b.date);
                 return dateA - dateB;
             });
             
-            // Get the latest date in CSV for "end" calculation
             const csvDates = Object.keys(csvData).sort();
             const latestCsvDate = csvDates[csvDates.length - 1];
             const latestCumulativeReturn = csvData[latestCsvDate];
             
-            console.log(`📅 Using latest CSV date: ${latestCsvDate} (${latestCumulativeReturn?.toFixed(2)}% cumulative)`);
-            
-            // Process each deposit separately
             for (const deposit of sortedDeposits) {
                 const depositAmount = parseFloat(deposit.amount);
                 const depositDate = new Date(deposit.deposit_date || deposit.date);
@@ -1032,24 +997,14 @@
                 
                 totalDeposits += depositAmount;
                 
-                // Get cumulative return at deposit date (baseline)
                 const startCumulative = csvData[depositDateStr];
                 if (!startCumulative) {
-                    console.log(`⚠️ No CSV data for deposit date ${depositDateStr}, using deposit amount as-is`);
                     finalBalance += depositAmount;
                     continue;
                 }
                 
-                // Calculate performance for this deposit using cumulative returns
                 const performanceMultiplier = latestCumulativeReturn / startCumulative;
                 const currentDepositValue = depositAmount * performanceMultiplier;
-                
-                console.log(`💰 Deposit $${depositAmount.toLocaleString()} on ${depositDateStr}:`);
-                console.log(`   📊 Deposit date cumulative: ${startCumulative.toFixed(2)}%`);
-                console.log(`   📊 Latest cumulative: ${latestCumulativeReturn.toFixed(2)}%`);
-                console.log(`   📈 Multiplier: ${performanceMultiplier.toFixed(4)}x`);
-                console.log(`   💵 Current value: $${currentDepositValue.toLocaleString()}`);
-                
                 finalBalance += currentDepositValue;
             }
             
@@ -1057,20 +1012,17 @@
                 totalDeposits,
                 currentBalance: finalBalance
             };
-}
-        // Load real dashboard data with CSV integration
+        }
+
+        // Load Dashboard
         async function loadDashboard() {
-            console.log('📊 Loading dashboard with REAL data...');
-            
             try {
                 const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
                 
-                // Update user info in sidebar and top bar
                 const firstName = userData.firstName || 'User';
                 const lastName = userData.lastName || '';
                 const email = userData.email || 'user@example.com';
                 
-                // Update UI elements safely with null checks
                 const elements = {
                     userName: document.getElementById('userName'),
                     userEmail: document.getElementById('userEmail'),
@@ -1083,11 +1035,9 @@
                 if (elements.topUserName) elements.topUserName.textContent = firstName;
                 if (elements.userAvatar) elements.userAvatar.textContent = firstName.charAt(0).toUpperCase();
                 
-                // Get REAL account data using existing deposits API
                 const authToken = localStorage.getItem('aequitas_auth_token');
                 if (authToken) {
                     try {
-                        // Fetch user deposits to calculate real account values
                         const depositsResponse = await fetch('/api/deposits', {
                             headers: { 'Authorization': `Bearer ${authToken}` }
                         });
@@ -1097,9 +1047,6 @@
                             const userDeposits = depositsData.deposits || [];
                             
                             if (userDeposits.length > 0) {
-                                console.log('✅ Found real deposits:', userDeposits);
-                                
-                                // Load CSV trading data and calculate performance
                                 const csvData = await loadCSVData();
                                 const performanceResult = calculateDashboardPerformance(userDeposits, csvData);
                                 
@@ -1108,7 +1055,6 @@
                                 const profit = accountValue - totalDeposits;
                                 const profitPercent = totalDeposits > 0 ? ((profit / totalDeposits) * 100) : 0;
                                 
-                                // Update dashboard with REAL calculated values
                                 const accountBalanceEl = document.getElementById('accountBalance');
                                 const accountProfitEl = document.getElementById('accountProfit');
                                 const startingBalanceEl = document.getElementById('startingBalance');
@@ -1117,7 +1063,6 @@
                                 if (accountProfitEl) accountProfitEl.textContent = formatCurrency(profit);
                                 if (startingBalanceEl) startingBalanceEl.textContent = formatCurrency(totalDeposits);
                                 
-                                // Update profit percentage display with proper styling
                                 const profitChange = document.getElementById('profitChange');
                                 if (profitChange) {
                                     if (profitPercent >= 0) {
@@ -1129,46 +1074,29 @@
                                     }
                                 }
                                 
-                                console.log('✅ Dashboard updated with REAL data:', {
-                                    balance: accountValue.toLocaleString(),
-                                    deposits: totalDeposits.toLocaleString(),
-                                    profit: profit.toLocaleString(),
-                                    profitPercent: profitPercent.toFixed(1) + '%'
-                                });
-                                
-                                return; // Exit early with real data loaded successfully
+                                return;
                             }
                         }
                     } catch (apiError) {
-                        console.log('⚠️ API error, using fallback data:', apiError.message);
+                        console.log('API error, using fallback data:', apiError.message);
                     }
                 }
                 
-                // Fallback to demo data if real data unavailable
-                console.log('📊 Using demo data as fallback');
-                
             } catch (error) {
-                console.error('💥 Dashboard load error:', error);
-                // Use demo data on any error
+                console.error('Dashboard load error:', error);
             }
         }
-        
-        // Generate equity data with smart date ranges for all timeframes
+
+        // Generate Equity Data
         async function generateEquityData(period) {
             try {
-                console.log('📊 Loading REAL equity data from CSV + user deposits for period:', period);
-                
-                // Get user's authentication token
                 const authToken = localStorage.getItem('aequitas_auth_token');
                 if (!authToken) {
-                    console.log('⚠️ No auth token found, using demo data');
                     return generateDemoData(period);
                 }
                 
-                // Load CSV trading data
                 const csvData = await loadCSVData();
                 
-                // Get user deposits from API
                 const depositsResponse = await fetch('/api/deposits', {
                     method: 'GET',
                     headers: {
@@ -1178,32 +1106,24 @@
                 });
                 
                 if (!depositsResponse.ok) {
-                    console.log('⚠️ Failed to load deposits, using demo data');
                     return generateDemoData(period);
                 }
                 
                 const depositsData = await depositsResponse.json();
                 const userDeposits = depositsData.deposits || [];
                 
-                console.log(`📊 Found ${userDeposits.length} user deposits`);
-                console.log(`📊 Loaded ${Object.keys(csvData).length} trading days from CSV`);
-                
                 if (userDeposits.length === 0) {
-                    console.log('⚠️ No deposits found, using demo data');
                     return generateDemoData(period);
                 }
                 
-                // Calculate smart date range based on deposits and requested period
                 const today = new Date();
                 let startDate;
                 
-                // Find earliest deposit date for reference
                 const earliestDeposit = userDeposits.reduce((earliest, deposit) => {
                     const depositDate = new Date(deposit.deposit_date || deposit.date);
                     return depositDate < earliest ? depositDate : earliest;
                 }, new Date());
                 
-                // Calculate start date based on period, but never before first deposit
                 switch(period) {
                     case '1M':
                         startDate = new Date();
@@ -1225,41 +1145,24 @@
                         break;
                 }
                 
-                console.log(`📅 Chart range: ${startDate.toISOString().split('T')[0]} to ${today.toISOString().split('T')[0]}`);
-                
-                // Generate user's equity curve from real data
                 return generateUserEquityCurve(userDeposits, csvData, startDate, today);
                 
             } catch (error) {
-                console.error('💥 Failed to load real equity data:', error);
-                console.log('⚠️ Falling back to demo data');
+                console.error('Failed to load real equity data:', error);
                 return generateDemoData(period);
             }
         }
-        // Generate user's equity curve from deposits + CSV returns
-        // FIXED: generateUserEquityCurve function in dashboard.html
+
+        // Generate User Equity Curve
         function generateUserEquityCurve(deposits, csvData, startDate, endDate) {
-            console.log('📈 Generating equity curve with CUMULATIVE returns (FIXED)');
-            
             const equityData = [];
             
-            // Filter out invalid deposits (same logic as balance calculation)
             const validDeposits = deposits.filter(deposit => {
                 const depositDate = deposit.deposit_date || deposit.date;
                 const hasValidDate = depositDate && depositDate !== null;
                 const isCompleted = deposit.status === 'completed' || !deposit.status;
-                
-                if (!hasValidDate) {
-                    console.log(`⚠️ Chart: Skipping deposit with null date: $${deposit.amount}`);
-                }
-                if (!isCompleted) {
-                    console.log(`⚠️ Chart: Skipping non-completed deposit: $${deposit.amount}`);
-                }
-                
                 return hasValidDate && isCompleted;
             });
-            
-            console.log(`📊 Chart: Processing ${validDeposits.length} valid deposits for equity curve`);
             
             const sortedDeposits = validDeposits.sort((a, b) => {
                 const dateA = new Date(a.deposit_date || a.date);
@@ -1267,39 +1170,30 @@
                 return dateA - dateB;
             });
             
-            // For each day in range, calculate the account value
             for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
                 const dateStr = date.toISOString().split('T')[0];
                 
-                // Skip if no CSV data for this date
                 if (!csvData[dateStr]) continue;
                 
                 let totalValue = 0;
                 
-                // Calculate value of each valid deposit as of this date
                 for (const deposit of sortedDeposits) {
                     const depositAmount = parseFloat(deposit.amount);
                     const depositDate = new Date(deposit.deposit_date || deposit.date);
                     const depositDateStr = depositDate.toISOString().split('T')[0];
                     
-                    // Skip deposits that haven't happened yet
                     if (depositDate > date) continue;
                     
-                    // Get baseline cumulative return at deposit date
                     const depositCumulative = csvData[depositDateStr];
                     if (!depositCumulative) continue;
                     
-                    // Get current cumulative return
                     const currentCumulative = csvData[dateStr];
-                    
-                    // Calculate deposit value as of current date
                     const performanceMultiplier = currentCumulative / depositCumulative;
                     const depositValue = depositAmount * performanceMultiplier;
                     
                     totalValue += depositValue;
                 }
                 
-                // Only add data points where we have a balance
                 if (totalValue > 0) {
                     equityData.push({
                         date: dateStr,
@@ -1308,22 +1202,15 @@
                 }
             }
             
-            console.log(`✅ Chart: Generated ${equityData.length} equity data points`);
-            if (equityData.length > 0) {
-                console.log(`💰 Chart: Final balance: $${equityData[equityData.length - 1].value.toLocaleString()}`);
-            }
-            
             return equityData;
         }
-        // Fallback demo data generator for when real data is unavailable
+
+        // Generate Demo Data
         function generateDemoData(period) {
-            console.log('📊 Using demo data for period:', period);
-            
             const now = new Date();
             let dataPoints;
             let startDate = new Date();
             
-            // Set data points and start date based on period
             switch(period) {
                 case '1M':
                     dataPoints = 30;
@@ -1338,47 +1225,41 @@
                     startDate.setFullYear(startDate.getFullYear() - 1);
                     break;
                 case 'ALL':
-                    dataPoints = 1095; // 3 years of data
+                    dataPoints = 1095;
                     startDate.setFullYear(startDate.getFullYear() - 3);
                     break;
             }
             
             const data = [];
-            const startValue = 1000000; // $1M starting capital for demo
+            const startValue = 1000000;
             let currentValue = startValue;
             
-            // Create realistic hedge fund performance pattern
-            const annualReturn = 0.18; // 18% annual target return
-            const volatility = 0.15; // 15% annual volatility
-            const dailyReturn = annualReturn / 252; // 252 trading days per year
+            const annualReturn = 0.18;
+            const volatility = 0.15;
+            const dailyReturn = annualReturn / 252;
             const dailyVol = volatility / Math.sqrt(252);
             
             for (let i = 0; i < dataPoints; i++) {
                 const date = new Date(startDate);
                 date.setDate(date.getDate() + i);
                 
-                // Skip weekends for more realistic trading data
                 if (date.getDay() === 0 || date.getDay() === 6) {
                     continue;
                 }
                 
-                // Generate realistic returns with market cycles
                 const marketCycle = Math.sin((i / dataPoints) * 4 * Math.PI) * 0.3;
                 const randomComponent = (Math.random() - 0.5) * 2 * dailyVol;
                 const trendComponent = dailyReturn * (1 + marketCycle);
                 
-                // Add some drawdown periods for realistic hedge fund performance
                 let drawdownFactor = 1;
                 if (i > dataPoints * 0.3 && i < dataPoints * 0.45) {
-                    drawdownFactor = 0.85; // 15% drawdown period
+                    drawdownFactor = 0.85;
                 } else if (i > dataPoints * 0.7 && i < dataPoints * 0.75) {
-                    drawdownFactor = 0.95; // Smaller correction period
+                    drawdownFactor = 0.95;
                 }
                 
                 const dailyChange = (trendComponent + randomComponent) * drawdownFactor;
                 currentValue *= (1 + dailyChange);
-                
-                // Ensure we don't go below reasonable levels
                 currentValue = Math.max(currentValue, startValue * 0.70);
                 
                 data.push({
@@ -1387,71 +1268,32 @@
                 });
             }
             
-            console.log(`Generated ${data.length} demo data points for ${period}`);
             return data;
         }
 
-        // Update Chart Period with proper event handling
-        function updateChartPeriod(period, element) {
-            console.log(`Updating chart to period: ${period}, maintaining scale: ${currentChartScale}`);
-            
-            // Prevent the event from bubbling up to the chart header click
-            if (event) event.stopPropagation();
-            
-            // Always ensure chart is expanded when using filters
-            const chartSection = document.getElementById('chartSection');
-            const collapseBtn = document.getElementById('chartCollapseBtn');
-            
-            if (chartCollapsed) {
-                chartCollapsed = false;
-                chartSection.classList.remove('collapsed');
-                collapseBtn.innerHTML = '<span class="icon icon-chevron-up"></span>';
-            }
-            
-            // Update active filter button styling
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            element.classList.add('active');
-            
-            currentPeriod = period;
-            
-            // Create chart with slight delay to ensure expansion animation completes
-            setTimeout(() => {
-                createEquityChart();
-            }, 100);
-        }
-
-        // Updated createEquityChart function to support logarithmic scale
+        // Create Equity Chart
         async function createEquityChart() {
-            console.log('createEquityChart function called for period:', currentPeriod, 'scale:', currentChartScale);
-            
             const ctx = document.getElementById('equityChart');
             if (!ctx) {
                 console.error('Chart canvas element not found');
                 return;
             }
             
-            console.log('Chart canvas found, creating chart...');
-            
-            // Properly destroy existing chart before creating new one
             if (window.equityChart && typeof window.equityChart.destroy === 'function') {
-                console.log('Destroying existing chart instance');
                 window.equityChart.destroy();
                 window.equityChart = null;
             }
             
-            // Force canvas sizing for proper chart display
             const container = ctx.parentElement;
             container.style.height = '400px';
             container.style.width = '100%';
             ctx.style.width = '100%';
             ctx.style.height = '400px';
             
-            // Get chart data and theme settings
             const data = await generateEquityData(currentPeriod);
             const isDark = currentTheme === 'dark';
             const isLogScale = currentChartScale === 'log';
             
-            // Prepare Y-axis configuration based on scale type
             let yAxisConfig = {
                 display: true,
                 grid: {
@@ -1465,20 +1307,17 @@
                 }
             };
             
-            // Add logarithmic configuration if needed
             if (isLogScale) {
                 yAxisConfig.type = 'logarithmic';
                 yAxisConfig.ticks.callback = function(value, index, ticks) {
-                    // For log scale, show major grid lines more clearly
                     if (value >= 1000000) {
-                        return ' + (value / 1000000).toFixed(value >= 10000000 ? 0 : 1) + 'M';
+                        return '$' + (value / 1000000).toFixed(value >= 10000000 ? 0 : 1) + 'M';
                     } else if (value >= 1000) {
-                        return ' + (value / 1000).toFixed(value >= 10000 ? 0 : 1) + 'K';
+                        return '$' + (value / 1000).toFixed(value >= 10000 ? 0 : 1) + 'K';
                     }
-                    return ' + value.toLocaleString();
+                    return '$' + value.toLocaleString();
                 };
                 
-                // Enhance grid lines for log scale
                 yAxisConfig.grid.lineWidth = function(context) {
                     return context.tick.major ? 2 : 1;
                 };
@@ -1490,7 +1329,6 @@
                 };
             }
             
-            // Create new Chart.js instance
             window.equityChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -1527,7 +1365,6 @@
                                     return 'Account Value: ' + formatCurrency(context.parsed.y);
                                 },
                                 afterLabel: function(context) {
-                                    // Add scale indicator in tooltip
                                     return isLogScale ? '(Logarithmic Scale)' : '(Linear Scale)';
                                 }
                             }
@@ -1552,14 +1389,12 @@
                     }
                 }
             });
-            
-            console.log(`Chart created successfully with ${currentChartScale} scale`);
         }
-        // Update TradingView widgets theme when theme changes
+
+        // Update TradingView Theme
         function updateTradingViewTheme() {
             const colorTheme = currentTheme === 'dark' ? 'dark' : 'light';
             
-            // Update Market News Widget with new theme
             const marketNewsContainer = document.getElementById('marketNewsWidget');
             marketNewsContainer.innerHTML = '<div class="tradingview-widget-container__widget"></div>';
             
@@ -1579,7 +1414,6 @@
             });
             marketNewsContainer.appendChild(marketNewsScript);
             
-            // Update Economic Calendar Widget with new theme
             const economicCalendarContainer = document.getElementById('economicCalendarWidget');
             economicCalendarContainer.innerHTML = '<div class="tradingview-widget-container__widget"></div>';
             
@@ -1599,11 +1433,22 @@
             economicCalendarContainer.appendChild(economicCalendarScript);
         }
 
-        // Initialize TradingView Widgets on page load
+        // Format Currency
+        function formatCurrency(amount, short = false) {
+            if (short && amount >= 1000000) {
+                return '100%",
+                "height": "100%",
+                "locale": "en",
+                "importanceFilter": "-1,0,1",
+                "currencyFilter": "USD,EUR,ITL,NZD,CHF,AUD,RUB,JPY,TRY,ZAR,CNY,GBP,CAD,MXN"
+            });
+            economicCalendarContainer.appendChild(economicCalendarScript);
+        }
+
+        // Initialize TradingView Widgets
         function initializeTradingViewWidgets() {
             const colorTheme = currentTheme === 'dark' ? 'dark' : 'light';
             
-            // Initialize Market News Widget
             const marketNewsContainer = document.getElementById('marketNewsWidget');
             const marketNewsScript = document.createElement('script');
             marketNewsScript.type = 'text/javascript';
@@ -1621,7 +1466,6 @@
             });
             marketNewsContainer.appendChild(marketNewsScript);
             
-            // Initialize Economic Calendar Widget
             const economicCalendarContainer = document.getElementById('economicCalendarWidget');
             const economicCalendarScript = document.createElement('script');
             economicCalendarScript.type = 'text/javascript';
@@ -1630,7 +1474,9 @@
             economicCalendarScript.innerHTML = JSON.stringify({
                 "colorTheme": colorTheme,
                 "isTransparent": false,
-                "width": "100%",
+                "width": " + (amount / 1000000).toFixed(1) + 'M';
+            } else if (short && amount >= 1000) {
+                return '100%",
                 "height": "100%",
                 "locale": "en",
                 "importanceFilter": "-1,0,1",
@@ -1639,16 +1485,38 @@
             economicCalendarContainer.appendChild(economicCalendarScript);
         }
 
-        // Format currency values with optional short format
-        function formatCurrency(amount, short = false) {
-            // Handle short format for chart axes
-            if (short && amount >= 1000000) {
-                return ' + (amount / 1000000).toFixed(1) + 'M';
-            } else if (short && amount >= 1000) {
-                return ' + (amount / 1000).toFixed(0) + 'K';
+        // Initialize TradingView Widgets
+        function initializeTradingViewWidgets() {
+            const colorTheme = currentTheme === 'dark' ? 'dark' : 'light';
+            
+            const marketNewsContainer = document.getElementById('marketNewsWidget');
+            const marketNewsScript = document.createElement('script');
+            marketNewsScript.type = 'text/javascript';
+            marketNewsScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-timeline.js';
+            marketNewsScript.async = true;
+            marketNewsScript.innerHTML = JSON.stringify({
+                "feedMode": "market",
+                "market": "stock",
+                "isTransparent": false,
+                "displayMode": "regular",
+                "width": "100%",
+                "height": "100%",
+                "colorTheme": colorTheme,
+                "locale": "en"
+            });
+            marketNewsContainer.appendChild(marketNewsScript);
+            
+            const economicCalendarContainer = document.getElementById('economicCalendarWidget');
+            const economicCalendarScript = document.createElement('script');
+            economicCalendarScript.type = 'text/javascript';
+            economicCalendarScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-events.js';
+            economicCalendarScript.async = true;
+            economicCalendarScript.innerHTML = JSON.stringify({
+                "colorTheme": colorTheme,
+                "isTransparent": false,
+                "width": " + (amount / 1000).toFixed(0) + 'K';
             }
             
-            // Full currency formatting for dashboard values
             return new Intl.NumberFormat('en-US', {
                 style: 'currency',
                 currency: 'USD',
@@ -1657,7 +1525,7 @@
             }).format(amount);
         }
 
-        // Notification system for user feedback
+        // Show Notification
         function showNotification(message, type = 'info') {
             const notification = document.createElement('div');
             notification.style.cssText = `
@@ -1686,7 +1554,6 @@
             
             document.body.appendChild(notification);
             
-            // Auto-remove notification after 5 seconds
             setTimeout(() => {
                 if (notification.parentNode) {
                     notification.style.animation = 'slideOutRight 0.3s ease-in';
@@ -1695,19 +1562,17 @@
             }, 5000);
         }
 
-        // Main dashboard initialization function
+        // Main Initialization
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM loaded, initializing dashboard...');
             
-            // CHECK: Redirect pending users to setup page
             const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
             if (userData.role === 'pending' && userData.setupStatus !== 'approved') {
-                console.log('🔄 Pending user detected, redirecting to setup...');
+                console.log('Pending user detected, redirecting to setup...');
                 window.location.href = 'setup.html';
                 return;
             }
             
-            // Load saved theme preference
             const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
             console.log('Saved theme preference:', savedTheme);
             
@@ -1718,19 +1583,13 @@
                 if (themeToggle) themeToggle.className = 'icon icon-sun';
             }
             
-            // Initialize navigation system
             initializeNavigation();
-            
-            // Load dashboard data with real API integration
             loadDashboard();
-
-            // Initialize TradingView widgets
             initializeTradingViewWidgets();
 
             // Set default scale to logarithmic
             currentChartScale = 'log';
             
-            // Ensure the log button is active by default
             setTimeout(() => {
                 const logBtn = document.getElementById('logScaleBtn');
                 const linearBtn = document.getElementById('linearScaleBtn');
@@ -1741,13 +1600,11 @@
                 }
             }, 100);
 
-            // Create equity chart after everything else is loaded
             setTimeout(() => {
                 console.log('Creating initial equity chart...');
                 createEquityChart();
             }, 200);
             
-            // Show admin section if user has admin privileges
             if (userData.role === 'admin') {
                 const adminSection = document.getElementById('adminSection');
                 if (adminSection) adminSection.style.display = 'block';
@@ -1756,7 +1613,7 @@
             console.log('Dashboard initialization complete');
         });
 
-        // Handle window resize events - re-render chart for proper sizing
+        // Window Resize Handler
         window.addEventListener('resize', function() {
             if (window.equityChart) {
                 setTimeout(() => {
@@ -1765,7 +1622,7 @@
             }
         });
 
-        // Close sidebar when clicking outside on mobile devices
+        // Mobile Sidebar Handler
         document.addEventListener('click', function(event) {
             if (window.innerWidth <= 1024) {
                 const sidebar = document.getElementById('sidebar');
@@ -1779,6 +1636,42 @@
         });
     </script>
 </body>
-</html>
-</body>
-</html>
+</html>100%",
+                "height": "100%",
+                "locale": "en",
+                "importanceFilter": "-1,0,1",
+                "currencyFilter": "USD,EUR,ITL,NZD,CHF,AUD,RUB,JPY,TRY,ZAR,CNY,GBP,CAD,MXN"
+            });
+            economicCalendarContainer.appendChild(economicCalendarScript);
+        }
+
+        // Initialize TradingView Widgets
+        function initializeTradingViewWidgets() {
+            const colorTheme = currentTheme === 'dark' ? 'dark' : 'light';
+            
+            const marketNewsContainer = document.getElementById('marketNewsWidget');
+            const marketNewsScript = document.createElement('script');
+            marketNewsScript.type = 'text/javascript';
+            marketNewsScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-timeline.js';
+            marketNewsScript.async = true;
+            marketNewsScript.innerHTML = JSON.stringify({
+                "feedMode": "market",
+                "market": "stock",
+                "isTransparent": false,
+                "displayMode": "regular",
+                "width": "100%",
+                "height": "100%",
+                "colorTheme": colorTheme,
+                "locale": "en"
+            });
+            marketNewsContainer.appendChild(marketNewsScript);
+            
+            const economicCalendarContainer = document.getElementById('economicCalendarWidget');
+            const economicCalendarScript = document.createElement('script');
+            economicCalendarScript.type = 'text/javascript';
+            economicCalendarScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-events.js';
+            economicCalendarScript.async = true;
+            economicCalendarScript.innerHTML = JSON.stringify({
+                "colorTheme": colorTheme,
+                "isTransparent": false,
+                "width": "
