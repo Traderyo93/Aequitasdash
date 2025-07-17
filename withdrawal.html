@@ -924,28 +924,39 @@
                 </div>
             </div>
 
-            <!-- Account Summary -->
-            <div class="card">
-                <div class="card-header">
-                    <span class="icon icon-money card-icon"></span>
-                    <h3 class="card-title">Account Summary</h3>
-                </div>
-
-                <div class="account-summary">
-                    <div class="summary-item">
-                        <div class="summary-value" id="accountValue">$0</div>
-                        <div class="summary-label">Current Account Value</div>
+        <!-- Account Summary -->
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="icon icon-money card-icon"></span>
+                            <h3 class="card-title">Account Summary</h3>
+                        </div>
+        
+                        <div class="account-summary">
+                            <div class="summary-item">
+                                <div class="summary-value" id="accountValue">$0</div>
+                                <div class="summary-label">Current Account Value</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-value" id="totalProfit">$0</div>
+                                <div class="summary-label">Total Profit</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-value" id="totalDeposits">$0</div>
+                                <div class="summary-label">Total Deposits</div>
+                            </div>
+                        </div>
+        
+                        <!-- Fund Performance Fee Notice -->
+                        <div style="margin-top: 20px; padding: 16px; background: rgba(245, 158, 11, 0.1); border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.3);">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                <span class="icon icon-warning" style="width: 16px; height: 16px; color: var(--warning);"></span>
+                                <div style="font-size: 14px; color: var(--warning); font-weight: 600;">Important: Fund Performance Fees</div>
+                            </div>
+                            <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.4;">
+                                The profit shown above is <strong>before fund performance fees</strong>. Applicable performance fees will be automatically deducted from your profit portion when processing any withdrawal request. Your deposit amount remains fee-free and can be withdrawn in full after the required holding period.
+                            </div>
+                        </div>
                     </div>
-                    <div class="summary-item">
-                        <div class="summary-value" id="totalProfit">$0</div>
-                        <div class="summary-label">Total Profit</div>
-                    </div>
-                    <div class="summary-item">
-                        <div class="summary-value" id="totalDeposits">$0</div>
-                        <div class="summary-label">Total Deposits</div>
-                    </div>
-                </div>
-            </div>
 
             <!-- Withdrawal Form -->
             <div class="card withdrawal-form" id="withdrawalForm">
