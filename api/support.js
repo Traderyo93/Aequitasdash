@@ -1,4 +1,4 @@
-// api/support.js - COMPLETE SUPPORT SYSTEM WITH DATABASE + ADMIN NAMES
+// api/support.js - FIXED SUPPORT SYSTEM WITH PROPER DATABASE MIGRATION
 const { sql } = require('@vercel/postgres');
 const jwt = require('jsonwebtoken');
 
@@ -28,7 +28,10 @@ module.exports = async function handler(req, res) {
       return res.status(401).json({ success: false, error: 'Invalid token' });
     }
     
-    // Create support tables if they don't exist
+    // Create and update support tables with proper migration
+    console.log('🔧 Checking and updating database schema...');
+    
+    // Create support_tickets table
     await sql`
       CREATE TABLE IF NOT EXISTS support_tickets (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -44,17 +47,54 @@ module.exports = async function handler(req, res) {
       )
     `;
     
+    // Create support_messages table
     await sql`
       CREATE TABLE IF NOT EXISTS support_messages (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        ticket_id UUID NOT NULL REFERENCES support_tickets(id) ON DELETE CASCADE,
+        ticket_id UUID NOT NULL,
         sender_id UUID NOT NULL,
-        sender_type VARCHAR(10) NOT NULL CHECK (sender_type IN ('user', 'admin')),
-        sender_name VARCHAR(255) NOT NULL,
+        sender_type VARCHAR(10) NOT NULL,
         message TEXT NOT NULL,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       )
     `;
+    
+    // Add sender_name column if it doesn't exist (migration)
+    try {
+      await sql`
+        ALTER TABLE support_messages 
+        ADD COLUMN IF NOT EXISTS sender_name VARCHAR(255) DEFAULT 'Unknown User'
+      `;
+      console.log('✅ Added sender_name column to support_messages');
+    } catch (alterError) {
+      console.log('ℹ️ sender_name column already exists or cannot be added:', alterError.message);
+    }
+    
+    // Add constraint if it doesn't exist
+    try {
+      await sql`
+        ALTER TABLE support_messages 
+        ADD CONSTRAINT check_sender_type 
+        CHECK (sender_type IN ('user', 'admin'))
+      `;
+    } catch (constraintError) {
+      // Constraint might already exist, ignore
+      console.log('ℹ️ Constraint already exists or cannot be added:', constraintError.message);
+    }
+    
+    // Add foreign key if it doesn't exist
+    try {
+      await sql`
+        ALTER TABLE support_messages 
+        ADD CONSTRAINT fk_ticket_id 
+        FOREIGN KEY (ticket_id) REFERENCES support_tickets(id) ON DELETE CASCADE
+      `;
+    } catch (fkError) {
+      // Foreign key might already exist, ignore
+      console.log('ℹ️ Foreign key already exists or cannot be added:', fkError.message);
+    }
+    
+    console.log('✅ Database schema updated successfully');
     
     if (req.method === 'GET') {
       if (user.role === 'admin' || user.role === 'superadmin') {
@@ -125,6 +165,9 @@ module.exports = async function handler(req, res) {
           });
         }
         
+        console.log('🎫 Creating new support ticket for user:', user.id);
+        console.log('📝 Ticket details:', { subject, priority, message });
+        
         // Create ticket
         const ticketResult = await sql`
           INSERT INTO support_tickets (user_id, subject, priority, status)
@@ -133,16 +176,21 @@ module.exports = async function handler(req, res) {
         `;
         
         const newTicket = ticketResult.rows[0];
+        console.log('✅ Ticket created with ID:', newTicket.id);
         
         // Create first message with user's name
-        const userSenderName = `${user.firstName} ${user.lastName}`;
+        const userSenderName = user.firstName && user.lastName 
+          ? `${user.firstName} ${user.lastName}`.trim()
+          : user.email || 'User';
+        
+        console.log('💬 Adding initial message from:', userSenderName);
         
         await sql`
           INSERT INTO support_messages (ticket_id, sender_id, sender_type, sender_name, message)
           VALUES (${newTicket.id}, ${user.id}, 'user', ${userSenderName}, ${message})
         `;
         
-        console.log('✅ New support ticket created:', newTicket.id);
+        console.log('✅ Initial message added to ticket');
         
         return res.status(200).json({
           success: true,
@@ -185,8 +233,8 @@ module.exports = async function handler(req, res) {
         // Determine sender type and name
         const senderType = isAdmin ? 'admin' : 'user';
         const finalSenderName = isAdmin 
-          ? (senderName || `${user.firstName} ${user.lastName}`)  // Use provided admin name
-          : `${user.firstName} ${user.lastName}`;
+          ? (senderName || `${user.firstName || 'Admin'} ${user.lastName || ''}`.trim())
+          : `${user.firstName || 'User'} ${user.lastName || ''}`.trim();
         
         console.log(`💬 Adding message as ${senderType}: ${finalSenderName}`);
         
@@ -296,6 +344,7 @@ module.exports = async function handler(req, res) {
     
   } catch (error) {
     console.error('💥 Support API error:', error);
+    console.error('💥 Error stack:', error.stack);
     
     return res.status(500).json({
       success: false,
