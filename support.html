@@ -88,7 +88,7 @@
         }
 
         .icon-moon {
-            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z'/%3E%3C/svg%3E");
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M20.354 15.354A9 9 0 718.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z'/%3E%3C/svg%3E");
         }
 
         .icon-sun {
@@ -1022,6 +1022,60 @@
             return localStorage.getItem('aequitas_auth_token');
         }
 
+        // Load user data from API with fallback - FIXED VERSION
+        async function loadUserData() {
+            try {
+                console.log('👤 Loading user data...');
+                
+                const response = await fetch('/api/profile', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('aequitas_auth_token')}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const userData = data.user;
+                    updateUserDisplay(userData);
+                    console.log('✅ User data loaded from API');
+                    return userData;
+                } else {
+                    throw new Error('Failed to load from API');
+                }
+            } catch (error) {
+                console.error('Failed to load user data from API:', error);
+                
+                // Fallback to localStorage
+                const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
+                updateUserDisplay(userData);
+                console.log('✅ Using fallback user data');
+                return userData;
+            }
+        }
+
+        // Update user display - FIXED VERSION
+        function updateUserDisplay(userData) {
+            const firstName = userData.firstName || userData.first_name || 'User';
+            const lastName = userData.lastName || userData.last_name || '';
+            const email = userData.email || 'user@example.com';
+            const fullName = `${firstName} ${lastName}`.trim();
+            
+            // Update all user info elements
+            const userNameEl = document.getElementById('userName');
+            const userEmailEl = document.getElementById('userEmail');
+            const topUserNameEl = document.getElementById('topUserName');
+            const userAvatarEl = document.getElementById('userAvatar');
+            
+            if (userNameEl) userNameEl.textContent = fullName;
+            if (userEmailEl) userEmailEl.textContent = email;
+            if (topUserNameEl) topUserNameEl.textContent = firstName;
+            if (userAvatarEl) userAvatarEl.textContent = firstName.charAt(0).toUpperCase();
+            
+            console.log('✅ User display updated:', { fullName, email });
+        }
+
         // Enhanced notification system
         function showNotification(message, type = 'info') {
             const existingNotifications = document.querySelectorAll('.notification');
@@ -1064,20 +1118,6 @@
                 }
             }, 5000);
         }
-
-        // Add CSS for notification animations
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideInRight {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
-            }
-            @keyframes slideOutRight {
-                from { transform: translateX(0); opacity: 1; }
-                to { transform: translateX(100%); opacity: 0; }
-            }
-        `;
-        document.head.appendChild(style);
 
         // Theme Toggle
         function toggleTheme() {
@@ -1461,88 +1501,88 @@
                 console.log('📡 Response data:', data);
                 
                 if (data.success) {
-                    console.log('✅ Support ticket created successfully:', data.ticket);
-                    
-                    // Reset form
-                    e.target.reset();
-                    
-                    // Show success message
-                    showNotification('Support ticket submitted successfully! Henry Windeler Cohen will respond within 24 hours.', 'success');
-                    
-                    // Reload tickets immediately
-                    console.log('🔄 Reloading support tickets...');
-                    await loadSupportTickets();
-                } else {
-                    console.error('❌ API returned error:', data.error);
-                    throw new Error(data.error || 'Failed to create support ticket');
-                }
-                
-            } catch (error) {
-                console.error('💥 Failed to create support ticket:', error);
-                showNotification(`Failed to submit support request: ${error.message}`, 'error');
-            } finally {
-                // Reset button state
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalText;
-            }
-        });
+                    console.log('✅ Support ticket created successfully:',
+                                console.log('✅ Support ticket created successfully:', data.ticket);
+                   
+                   // Reset form
+                   e.target.reset();
+                   
+                   // Show success message
+                   showNotification('Support ticket submitted successfully! Henry Windeler Cohen will respond within 24 hours.', 'success');
+                   
+                   // Reload tickets immediately
+                   console.log('🔄 Reloading support tickets...');
+                   await loadSupportTickets();
+               } else {
+                   console.error('❌ API returned error:', data.error);
+                   throw new Error(data.error || 'Failed to create support ticket');
+               }
+               
+           } catch (error) {
+               console.error('💥 Failed to create support ticket:', error);
+               showNotification(`Failed to submit support request: ${error.message}`, 'error');
+           } finally {
+               // Reset button state
+               submitBtn.disabled = false;
+               submitBtn.innerHTML = originalText;
+           }
+       });
 
-        // Initialize page
-        document.addEventListener('DOMContentLoaded', function() {
-            // Async initialization function
-            async function initializePage() {
-                // Check authentication
-                const authToken = localStorage.getItem('aequitas_auth_token');
-                const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
-                
-                if (!authToken) {
-                    showNotification('Please log in to access this page.', 'warning');
-                    setTimeout(() => {
-                        window.location.href = 'login.html';
-                    }, 2000);
-                    return;
-                }
+       // Add CSS for notification animations - PREVENT DUPLICATE STYLE DECLARATION
+       if (!document.getElementById('notification-styles')) {
+           const notificationStyles = document.createElement('style');
+           notificationStyles.id = 'notification-styles';
+           notificationStyles.textContent = `
+               @keyframes slideInRight {
+                   from { transform: translateX(100%); opacity: 0; }
+                   to { transform: translateX(0); opacity: 1; }
+               }
+               @keyframes slideOutRight {
+                   from { transform: translateX(0); opacity: 1; }
+                   to { transform: translateX(100%); opacity: 0; }
+               }
+           `;
+           document.head.appendChild(notificationStyles);
+       }
 
-                // Load saved theme
-                const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
-                if (savedTheme === 'dark') {
-                    currentTheme = 'dark';
-                    document.documentElement.setAttribute('data-theme', 'dark');
-                    const themeToggle = document.querySelector('.theme-toggle .icon');
-                    if (themeToggle) themeToggle.className = 'icon icon-sun';
-                }
+       // Initialize page - FIXED VERSION
+       document.addEventListener('DOMContentLoaded', async function() {
+           // Check authentication
+           const authToken = localStorage.getItem('aequitas_auth_token');
+           if (!authToken) {
+               showNotification('Please log in to access this page.', 'warning');
+               setTimeout(() => {
+                   window.location.href = 'login.html';
+               }, 2000);
+               return;
+           }
 
-                // Load user data and update UI
-                const firstName = userData.firstName || 'User';
-                const lastName = userData.lastName || '';
-                const email = userData.email || 'user@example.com';
-                
-                // Update user info elements
-                const userNameEl = document.getElementById('userName');
-                const userEmailEl = document.getElementById('userEmail');
-                const topUserNameEl = document.getElementById('topUserName');
-                const userAvatarEl = document.getElementById('userAvatar');
-                
-                if (userNameEl) userNameEl.textContent = `${firstName} ${lastName}`.trim();
-                if (userEmailEl) userEmailEl.textContent = email;
-                if (topUserNameEl) topUserNameEl.textContent = firstName;
-                if (userAvatarEl) userAvatarEl.textContent = firstName.charAt(0).toUpperCase();
+           // Load saved theme
+           const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
+           if (savedTheme === 'dark') {
+               currentTheme = 'dark';
+               document.documentElement.setAttribute('data-theme', 'dark');
+               const themeToggle = document.querySelector('.theme-toggle .icon');
+               if (themeToggle) themeToggle.className = 'icon icon-sun';
+           }
 
-                // Show admin section if user is admin
-                if (userData.role === 'admin') {
-                    const adminSection = document.getElementById('adminSection');
-                    if (adminSection) adminSection.style.display = 'block';
-                }
+           // Load user data FIRST and wait for it to complete
+           console.log('🚀 Starting user data loading...');
+           const userData = await loadUserData();
+           console.log('👤 User data loaded:', userData);
 
-                // Load support tickets
-                await loadSupportTickets();
-            }
-            
-            // Call the async initialization
-            initializePage().catch(error => {
-                console.error('Initialization error:', error);
-            });
-        });
-    </script>
+           // Show admin section if user is admin
+           if (userData && userData.role === 'admin') {
+               const adminSection = document.getElementById('adminSection');
+               if (adminSection) adminSection.style.display = 'block';
+           }
+
+           // Load support tickets
+           await loadSupportTickets();
+           
+           console.log('✅ Fixed support page initialized');
+       });
+   </script>
 </body>
 </html>
+                                
