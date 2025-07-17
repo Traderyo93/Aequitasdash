@@ -1,4 +1,4 @@
-// api/support-messages.js - GET MESSAGES FOR SPECIFIC TICKET
+// api/support-messages.js - FIXED VERSION WITH DYNAMIC ADMIN NAMES
 const { sql } = require('@vercel/postgres');
 const jwt = require('jsonwebtoken');
 
@@ -63,16 +63,17 @@ module.exports = async function handler(req, res) {
       });
     }
     
-    // Get all messages for this ticket with sender info
+    // FIXED: Get all messages with DYNAMIC admin names based on sender_name field
     const messages = await sql`
       SELECT 
         m.*,
         CASE 
-          WHEN m.sender_type = 'admin' THEN 'Henry Windeler Cohen'
+          WHEN m.sender_type = 'admin' AND m.sender_name IS NOT NULL THEN m.sender_name
+          WHEN m.sender_type = 'admin' THEN 'Admin User'
           ELSE CONCAT(u.first_name, ' ', u.last_name)
         END as sender_name,
         CASE 
-          WHEN m.sender_type = 'admin' THEN 'Henry.Cohen@aequitascap.com'
+          WHEN m.sender_type = 'admin' THEN 'admin@aequitascap.com'
           ELSE u.email
         END as sender_email
       FROM support_messages m
