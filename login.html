@@ -727,6 +727,7 @@
                         console.log('🔐 2FA setup required');
                         localStorage.setItem('aequitas_auth_token', data.token);
                         localStorage.setItem('aequitas_user_data', JSON.stringify(data.user));
+                        localStorage.setItem('aequitas_token_timestamp', Date.now().toString());
                         
                         successMessage.textContent = '2FA setup required. Redirecting...';
                         successMessage.style.display = 'block';
@@ -758,6 +759,7 @@
                     console.log('✅ Direct login successful');
                     localStorage.setItem('aequitas_auth_token', data.token);
                     localStorage.setItem('aequitas_user_data', JSON.stringify(data.user));
+                    localStorage.setItem('aequitas_token_timestamp', Date.now().toString());
                     
                     credentialsBtn.querySelector('.btn-text').textContent = 'Success!';
                     successMessage.textContent = 'Login successful! Redirecting...';
