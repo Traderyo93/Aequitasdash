@@ -31,16 +31,16 @@
         
         // Security Features Toggle
         FEATURES: {
-            DISABLE_DEVTOOLS: true,
-            DISABLE_CONSOLE: true, 
-            DISABLE_RIGHTCLICK: true,
-            DISABLE_COPY_PASTE: true,
+            DISABLE_DEVTOOLS: false, // Temporarily disabled for testing
+            DISABLE_CONSOLE: false,  // Temporarily disabled for testing
+            DISABLE_RIGHTCLICK: false, // Temporarily disabled for testing
+            DISABLE_COPY_PASTE: false, // Temporarily disabled for testing
             TOKEN_VALIDATION: true,
-            API_RATE_LIMITING: true,
-            CONTENT_PROTECTION: true,
-            ERROR_SANITIZATION: true,
+            API_RATE_LIMITING: false, // Temporarily disabled for testing
+            CONTENT_PROTECTION: false, // Temporarily disabled for testing
+            ERROR_SANITIZATION: false, // Temporarily disabled for testing
             SESSION_MONITORING: true,
-            AUTO_LOGOUT: true
+            AUTO_LOGOUT: false // Temporarily disabled for testing
         },
         
         // Rate Limits (per minute)
@@ -300,9 +300,18 @@
             
             const currentPage = window.location.pathname.split('/').pop() || 'index.html';
             
+            // Allow public pages without authentication
+            if (window.AEQUITAS_SECURITY.PUBLIC_PAGES.includes(currentPage)) {
+                console.log('✅ Public page access allowed:', currentPage);
+                return;
+            }
+            
             // Check if current page requires authentication
             if (window.AEQUITAS_SECURITY.PROTECTED_PAGES.includes(currentPage)) {
-                this.validateAuthentication();
+                // Add delay to allow login process to complete
+                setTimeout(() => {
+                    this.validateAuthentication();
+                }, 500);
             }
         }
         
@@ -311,28 +320,39 @@
             const userData = localStorage.getItem('aequitas_user_data');
             
             if (!token || !userData) {
+                console.log('❌ No auth token found, redirecting to login');
                 this.redirectToLogin('No authentication token found');
                 return;
             }
             
             try {
-                // Validate token with server
+                console.log('🔍 Validating authentication token...');
+                
+                // Validate token with server (with timeout)
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+                
                 const response = await fetch(`${window.AEQUITAS_SECURITY.API_BASE}/verify-token`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
-                    }
+                    },
+                    signal: controller.signal
                 });
                 
+                clearTimeout(timeoutId);
+                
                 if (!response.ok) {
-                    throw new Error('Token validation failed');
+                    throw new Error(`Token validation failed: ${response.status}`);
                 }
                 
                 const result = await response.json();
+                console.log('✅ Token validation successful');
                 
                 // Check for 2FA requirement
                 if (result.requires2FA && !result.verified2FA) {
+                    console.log('🔐 2FA verification required');
                     window.location.href = '/2fa-verify.html';
                     return;
                 }
@@ -341,6 +361,13 @@
                 this.lastActivity = Date.now();
                 
             } catch (error) {
+                // If token validation fails, only redirect if it's a real auth error
+                if (error.name === 'AbortError') {
+                    console.warn('⚠️ Token validation timeout, allowing page load');
+                    return; // Don't redirect on timeout
+                }
+                
+                console.log('❌ Token validation failed:', error.message);
                 this.logSecurityViolation(`Authentication validation failed: ${error.message}`);
                 this.redirectToLogin('Authentication expired');
             }
