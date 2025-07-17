@@ -89,7 +89,7 @@
         }
 
         .icon-moon {
-            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z'/%3E%3C/svg%3E");
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M20.354 15.354A9 9 0 718.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z'/%3E%3C/svg%3E");
         }
 
         .icon-sun {
@@ -127,6 +127,7 @@
         .icon-users {
             mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m22 0v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75M13 7a4 4 0 11-8 0 4 4 0 018 0z'/%3E%3C/svg%3E");
         }
+
         /* Sidebar Styles */
         .sidebar {
             position: fixed;
@@ -1167,6 +1168,7 @@
             </div>
         </div>
     </div>
+
     <script>
         // === USER ISOLATION SYSTEM ===
         function getCurrentUserId() {
@@ -1189,7 +1191,6 @@
             const key = getUserStorageKey('uploaded_files');
             const files = localStorage.getItem(key);
             const parsed = files ? JSON.parse(files) : [];
-            // Ensure it's always an array
             return Array.isArray(parsed) ? parsed : [];
         }
 
@@ -1265,8 +1266,6 @@
         let depositHistory = [];
         let pendingDeposit = null;
 
-        // === MAIN FUNCTIONS ===
-        
         // Theme Toggle
         function toggleTheme() {
             currentTheme = currentTheme === 'light' ? 'dark' : 'light';
@@ -1306,11 +1305,6 @@
             });
         }
 
-        // Copy bank reference
-        function copyBankReference() {
-            copyToClipboard('KC5230');
-        }
-
         // Download forms
         function downloadSourceOfFundsForm() {
             const link = document.createElement('a');
@@ -1336,7 +1330,6 @@
             
             if (files.length === 0) return;
 
-            // Ensure uploadedFiles is always an array
             if (!Array.isArray(uploadedFiles)) {
                 uploadedFiles = [];
             }
@@ -1350,7 +1343,6 @@
                 return;
             }
 
-            // Create pending deposit if not exists
             if (!pendingDeposit) {
                 pendingDeposit = {
                     tempId: 'temp_' + Date.now(),
@@ -1362,7 +1354,6 @@
             }
             
             for (const file of files) {
-                // Validate file
                 if (file.type !== 'application/pdf') {
                     showNotification(`${file.name} is not a PDF file. Only PDF files are allowed.`, 'error');
                     continue;
@@ -1376,21 +1367,19 @@
                 try {
                     showNotification('Processing file...', 'info');
                     
-                    // Convert file to base64
                     const fileData = await new Promise((resolve) => {
                         const reader = new FileReader();
                         reader.onload = (e) => resolve(e.target.result);
                         reader.readAsDataURL(file);
                     });
                     
-                    // Store file locally until deposit is submitted
                     const fileObj = {
                         id: 'temp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
                         name: file.name,
                         size: formatFileSize(file.size),
                         uploadDate: new Date().toISOString(),
                         tempId: pendingDeposit.tempId,
-                        fileData: fileData, // Store base64 data temporarily
+                        fileData: fileData,
                         status: 'ready',
                         userId: getCurrentUserId()
                     };
@@ -1416,7 +1405,6 @@
         function renderUploadedFiles() {
             const container = document.getElementById('uploadedForms');
             
-            // Ensure uploadedFiles is always an array
             if (!Array.isArray(uploadedFiles)) {
                 uploadedFiles = [];
             }
@@ -1484,77 +1472,77 @@
                 `;
             }
         }
-        // Update progress steps
-       function updateProgressSteps() {
-           const amount = document.getElementById('depositAmount').value;
-           const purpose = document.getElementById('depositPurpose').value;
-           const hasFiles = uploadedFiles.length >= 2;
-           
-           const steps = document.querySelectorAll('.step');
-           
-           steps.forEach((step, index) => {
-               step.classList.remove('active', 'completed');
-               
-               if (index === 0) {
-                   if (amount && purpose) {
-                       step.classList.add('completed');
-                       step.querySelector('.step-circle').innerHTML = '<span class="icon icon-check"></span>';
-                   } else {
-                       step.classList.add('active');
-                       step.querySelector('.step-circle').textContent = '1';
-                   }
-               } else if (index === 1) {
-                   if (hasFiles) {
-                       step.classList.add('completed');
-                       step.querySelector('.step-circle').innerHTML = '<span class="icon icon-check"></span>';
-                   } else if (amount && purpose) {
-                       step.classList.add('active');
-                       step.querySelector('.step-circle').textContent = '2';
-                   } else {
-                       step.querySelector('.step-circle').textContent = '2';
-                   }
-               } else if (index === 2) {
-                   if (amount && purpose && hasFiles) {
-                       step.classList.add('active');
-                       step.querySelector('.step-circle').textContent = '3';
-                   } else {
-                       step.querySelector('.step-circle').textContent = '3';
-                   }
-               } else {
-                   step.querySelector('.step-circle').textContent = '4';
-               }
-           });
-       }
 
-       // Submit deposit request
-       async function submitDepositRequest() {
-           const amount = document.getElementById('depositAmount').value;
-           const purpose = document.getElementById('depositPurpose').value;
+        // Update progress steps
+        function updateProgressSteps() {
+            const amount = document.getElementById('depositAmount').value;
+            const purpose = document.getElementById('depositPurpose').value;
+            const hasFiles = uploadedFiles.length >= 2;
+            
+            const steps = document.querySelectorAll('.step');
+            
+            steps.forEach((step, index) => {
+                step.classList.remove('active', 'completed');
+                
+                if (index === 0) {
+                    if (amount && purpose) {
+                        step.classList.add('completed');
+                        step.querySelector('.step-circle').innerHTML = '<span class="icon icon-check"></span>';
+                    } else {
+                        step.classList.add('active');
+                        step.querySelector('.step-circle').textContent = '1';
+                    }
+                } else if (index === 1) {
+                    if (hasFiles) {
+                        step.classList.add('completed');
+                        step.querySelector('.step-circle').innerHTML = '<span class="icon icon-check"></span>';
+                    } else if (amount && purpose) {
+                        step.classList.add('active');
+                        step.querySelector('.step-circle').textContent = '2';
+                    } else {
+                        step.querySelector('.step-circle').textContent = '2';
+                    }
+                } else if (index === 2) {
+                    if (amount && purpose && hasFiles) {
+                        step.classList.add('active');
+                        step.querySelector('.step-circle').textContent = '3';
+                    } else {
+                        step.querySelector('.step-circle').textContent = '3';
+                    }
+                } else {
+                    step.querySelector('.step-circle').textContent = '4';
+                }
+            });
+        }
+
+        // Submit deposit request
+        async function submitDepositRequest() {
+            const amount = document.getElementById('depositAmount').value;
+            const purpose = document.getElementById('depositPurpose').value;
+            
+            if (!amount || !purpose) {
+                showNotification('Please fill in all required fields.', 'error');
+                return;
+           }
            
-           if (!amount || !purpose) {
-               showNotification('Please fill in all required fields.', 'error');
+           if (uploadedFiles.length < 2) {
+               showNotification('Please upload at least 2 documents before submitting.', 'error');
                return;
-          }
-          
-          if (uploadedFiles.length < 2) {
-              showNotification('Please upload at least 2 documents before submitting.', 'error');
-              return;
-          }
-          
-          if (parseFloat(amount) < 1000) {
-              showNotification('Minimum deposit amount is $1,000.', 'error');
-              return;
-          }
-          
-          try {
-              showNotification('Submitting deposit request...', 'info');
-              
-              // Submit deposit to database
-              const response = await fetch('/api/deposits', {
-                  method: 'POST',
-                  headers: {
-                      'Content-Type': 'application/json',
-                      'Authorization': `Bearer ${localStorage.getItem('aequitas_auth_token')}`
+           }
+           
+           if (parseFloat(amount) < 1000) {
+               showNotification('Minimum deposit amount is $1,000.', 'error');
+               return;
+           }
+           
+           try {
+               showNotification('Submitting deposit request...', 'info');
+               
+               const response = await fetch('/api/deposits', {
+                   method: 'POST',
+                   headers: {
+                       'Content-Type': 'application/json',
+                       'Authorization': `Bearer ${localStorage.getItem('aequitas_auth_token')}`
                   },
                   body: JSON.stringify({
                       amount: parseFloat(amount),
@@ -1572,7 +1560,6 @@
               const depositId = result.deposit.id;
               const reference = result.reference;
               
-              // Upload all files to the created deposit
               for (const file of uploadedFiles) {
                   await fetch('/api/upload', {
                       method: 'POST',
@@ -1588,7 +1575,6 @@
                   });
               }
               
-              // Save to local history
               const depositRecord = {
                   id: depositId,
                   amount: parseFloat(amount),
@@ -1602,7 +1588,6 @@
               depositHistory.push(depositRecord);
               saveUserDeposits(depositHistory);
               
-              // Clear form
               document.getElementById('depositAmount').value = '';
               document.getElementById('depositPurpose').value = '';
               uploadedFiles = [];
@@ -1616,7 +1601,6 @@
               
               showNotification(`Deposit request submitted successfully! Reference: ${reference}`, 'success');
               
-              // Update final step
               const steps = document.querySelectorAll('.step');
               steps[2].classList.remove('active');
               steps[2].classList.add('completed');
@@ -1741,7 +1725,6 @@
           uploadedFiles = loadUploadedFiles();
           depositHistory = loadUserDeposits();
           
-          // Ensure uploadedFiles is always an array
           if (!Array.isArray(uploadedFiles)) {
               uploadedFiles = [];
               saveUploadedFiles(uploadedFiles);
@@ -1769,19 +1752,22 @@
           });
       }
 
-      // Add CSS for notification animations
-      const style = document.createElement('style');
-      style.textContent = `
-          @keyframes slideInRight {
-              from { transform: translateX(100%); opacity: 0; }
-              to { transform: translateX(0); opacity: 1; }
-          }
-          @keyframes slideOutRight {
-              from { transform: translateX(0); opacity: 1; }
-              to { transform: translateX(100%); opacity: 0; }
-          }
-      `;
-      document.head.appendChild(style);
+      // Add CSS for notification animations - REMOVED DUPLICATE STYLE DECLARATION
+      if (!document.getElementById('notification-styles')) {
+          const notificationStyles = document.createElement('style');
+          notificationStyles.id = 'notification-styles';
+          notificationStyles.textContent = `
+              @keyframes slideInRight {
+                  from { transform: translateX(100%); opacity: 0; }
+                  to { transform: translateX(0); opacity: 1; }
+              }
+              @keyframes slideOutRight {
+                  from { transform: translateX(0); opacity: 1; }
+                  to { transform: translateX(100%); opacity: 0; }
+              }
+          `;
+          document.head.appendChild(notificationStyles);
+      }
 
       // Initialize page - FIXED VERSION
       document.addEventListener('DOMContentLoaded', async function() {
@@ -1805,10 +1791,12 @@
           }
           
           // Load user data FIRST and wait for it to complete
+          console.log('🚀 Starting user data loading...');
           const userData = await loadUserData();
+          console.log('👤 User data loaded:', userData);
           
           // Show admin section if user is admin
-          if (userData.role === 'admin') {
+          if (userData && userData.role === 'admin') {
               const adminSection = document.getElementById('adminSection');
               if (adminSection) adminSection.style.display = 'block';
           }
@@ -1824,3 +1812,4 @@
   </script>
 </body>
 </html>
+                       
