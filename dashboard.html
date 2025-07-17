@@ -7,50 +7,288 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Geist:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-:root {
-    --bg-primary: #ffffff;
-    --bg-secondary: #f8fafc;
-    --bg-tertiary: #f1f5f9;
-    --text-primary: #0f172a;
-    --text-secondary: #475569;
-    --text-tertiary: #64748b;
-    --border-color: #e2e8f0;
-    --sidebar-bg: #1e293b;
-    --sidebar-text: #94a3b8;
-    --sidebar-text-active: #ffffff;
-    --sidebar-hover: rgba(59, 130, 246, 0.1);
-    --sidebar-active: rgba(59, 130, 246, 0.2);
-    --accent: #3b82f6;
-    --accent-hover: #2563eb;
-    --success: #10b981;
-    --error: #ef4444;
-    --warning: #f59e0b;
-}
+        :root {
+            /* Light Theme Variables */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-tertiary: #64748b;
+            --border-color: #e2e8f0;
+            --sidebar-bg: #1e293b;
+            --sidebar-text: #94a3b8;
+            --sidebar-text-active: #ffffff;
+            --sidebar-hover: rgba(59, 130, 246, 0.1);
+            --sidebar-active: rgba(59, 130, 246, 0.2);
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+        }
 
-[data-theme="dark"] {
-    --bg-primary: #0f172a;
-    --bg-secondary: #1e293b;
-    --bg-tertiary: #334155;
-    --text-primary: #f8fafc;
-    --text-secondary: #cbd5e1;
-    --text-tertiary: #94a3b8;
-    --border-color: #334155;
-    --sidebar-bg: #0f172a;
-}
+        [data-theme="dark"] {
+            /* Dark Theme Variables */
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-tertiary: #94a3b8;
+            --border-color: #334155;
+            --sidebar-bg: #0f172a;
+        }
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+        /* Global Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-body {
-    font-family: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-    background-color: var(--bg-secondary);
-    color: var(--text-primary);
-    transition: all 0.3s ease;
-}
-        /* Main Content */
+        body {
+            font-family: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        /* Solid Color Icon System - All SVG icons as CSS masks */
+        .icon {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            background: currentColor;
+            mask-size: contain;
+            mask-repeat: no-repeat;
+            mask-position: center;
+        }
+
+        .icon-dashboard {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2'/%3E%3C/svg%3E");
+        }
+
+        .icon-document {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'/%3E%3C/svg%3E");
+        }
+
+        .icon-money {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z'/%3E%3C/svg%3E");
+        }
+
+        .icon-bank {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4'/%3E%3C/svg%3E");
+        }
+
+        .icon-user {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'/%3E%3C/svg%3E");
+        }
+
+        .icon-chat {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z'/%3E%3C/svg%3E");
+        }
+
+        .icon-moon {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z'/%3E%3C/svg%3E");
+        }
+
+        .icon-sun {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z'/%3E%3C/svg%3E");
+        }
+
+        .icon-logout {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1'/%3E%3C/svg%3E");
+        }
+
+        .icon-dollar {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z'/%3E%3C/svg%3E");
+        }
+
+        .icon-trending-up {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M13 7h8m0 0v8m0-8l-8 8-4-4-6 6'/%3E%3C/svg%3E");
+        }
+
+        .icon-target {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'/%3E%3C/svg%3E");
+        }
+
+        .icon-chart {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'/%3E%3C/svg%3E");
+        }
+
+        .icon-chevron-down {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+        }
+
+        .icon-chevron-up {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M18 15l-6-6-6 6'/%3E%3C/svg%3E");
+        }
+
+        .icon-users {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m22 0v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75M13 7a4 4 0 11-8 0 4 4 0 018 0z'/%3E%3C/svg%3E");
+        }
+        /* Sidebar Layout and Styling */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo {
+            max-width: 140px;
+            height: auto;
+            filter: brightness(1.1);
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--sidebar-text);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .theme-toggle:hover {
+            background: var(--sidebar-hover);
+            color: var(--sidebar-text-active);
+        }
+
+        /* Sidebar Navigation */
+        .sidebar-nav {
+            flex: 1;
+            padding: 20px 0;
+            overflow-y: auto;
+        }
+
+        .nav-section {
+            margin-bottom: 24px;
+        }
+
+        .nav-section-title {
+            color: var(--accent);
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0 20px 12px 20px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .nav-item:hover {
+            background: var(--sidebar-hover);
+            color: var(--sidebar-text-active);
+        }
+
+        .nav-item.active {
+            background: var(--sidebar-active);
+            color: var(--accent);
+            border-right: 3px solid var(--accent);
+        }
+
+        /* Sidebar Footer with User Info */
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .user-details h4 {
+            color: var(--sidebar-text-active);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .user-details p {
+            color: var(--sidebar-text);
+            font-size: 12px;
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: var(--sidebar-text);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+        }
+
+        /* Main Content Area */
         .main-content {
             margin-left: 280px;
             min-height: 100vh;
@@ -87,7 +325,7 @@ body {
             padding: 24px;
         }
 
-        /* Stats Grid */
+        /* Account Statistics Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -159,8 +397,7 @@ body {
         .stat-neutral {
             color: var(--text-tertiary);
         }
-
-        /* Chart Section */
+        /* Chart Section Styling */
         .chart-section {
             background: var(--bg-primary);
             border: 1px solid var(--border-color);
@@ -212,6 +449,7 @@ body {
             color: var(--text-primary);
         }
 
+        /* Enhanced chart controls styling - NEW FOR LOG CHARTS */
         .chart-controls {
             display: flex;
             align-items: center;
@@ -297,7 +535,7 @@ body {
             max-height: 400px;
         }
 
-        /* Widgets Grid */
+        /* TradingView Widgets Grid */
         .widgets-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -326,7 +564,7 @@ body {
             overflow: hidden;
         }
 
-        /* Responsive */
+        /* Responsive Design Media Queries */
         @media (max-width: 1024px) {
             .sidebar {
                 transform: translateX(-100%);
@@ -344,6 +582,16 @@ body {
             .widgets-grid {
                 grid-template-columns: 1fr;
             }
+
+            .chart-controls {
+                flex-direction: column;
+                gap: 12px;
+                align-items: stretch;
+            }
+            
+            .scale-toggle {
+                justify-content: center;
+            }
         }
 
         @media (max-width: 768px) {
@@ -359,22 +607,13 @@ body {
                 padding: 16px;
             }
 
-            .chart-controls {
-                flex-direction: column;
-                gap: 12px;
-                align-items: stretch;
-            }
-            
-            .scale-toggle {
-                justify-content: center;
-            }
-            
             .chart-filters {
-                justify-content: center;
                 flex-wrap: wrap;
+                justify-content: center;
             }
         }
 
+        /* Notification Animation Keyframes */
         @keyframes slideInRight {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
@@ -387,7 +626,7 @@ body {
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
+    <!-- Sidebar Navigation -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="logo-container">
@@ -435,6 +674,7 @@ body {
                 </a>
             </div>
 
+            <!-- Admin Section - Hidden by default, shown for admin users -->
             <div class="nav-section" id="adminSection" style="display: none;">
                 <div class="nav-section-title">Admin</div>
                 <a href="admin.html" class="nav-item">
@@ -458,8 +698,7 @@ body {
             </button>
         </div>
     </div>
-
-    <!-- Main Content -->
+        <!-- Main Content Area -->
     <div class="main-content">
         <div class="top-bar">
             <h1 class="page-title">Account Overview</h1>
@@ -470,7 +709,7 @@ body {
         </div>
 
         <div class="dashboard-content">
-            <!-- Stats Cards -->
+            <!-- Account Statistics Cards -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-header">
@@ -515,7 +754,7 @@ body {
                 </div>
             </div>
 
-            <!-- Chart Section with LOG/LINEAR Toggle -->
+            <!-- Equity Curve Chart Section - ONLY CHANGE: Added LOG/LINEAR toggle -->
             <div class="chart-section" id="chartSection">
                 <div class="chart-header">
                     <div class="chart-header-left" onclick="toggleChart()">
@@ -525,10 +764,12 @@ body {
                         <h2 class="chart-title">Account Equity Curve</h2>
                     </div>
                     <div class="chart-controls">
+                        <!-- Scale Toggle - NEW -->
                         <div class="scale-toggle">
                             <button class="scale-btn active" id="logScaleBtn" onclick="toggleChartScale('log', this)">LOG</button>
                             <button class="scale-btn" id="linearScaleBtn" onclick="toggleChartScale('linear', this)">LINEAR</button>
                         </div>
+                        <!-- Time Period Filters - UNCHANGED -->
                         <div class="chart-filters">
                             <button class="filter-btn active" onclick="updateChartPeriod('1M', this)">1M</button>
                             <button class="filter-btn" onclick="updateChartPeriod('3M', this)">3M</button>
@@ -544,46 +785,57 @@ body {
                 </div>
             </div>
 
-            <!-- TradingView Widgets -->
+            <!-- TradingView Widgets Grid -->
             <div class="widgets-grid">
                 <div class="widget-card">
                     <h3 class="widget-title">Market News</h3>
                     <div class="tradingview-widget">
+                        <!-- TradingView Widget BEGIN -->
                         <div class="tradingview-widget-container" id="marketNewsWidget">
                             <div class="tradingview-widget-container__widget"></div>
                         </div>
+                        <!-- TradingView Widget END -->
                     </div>
                 </div>
 
                 <div class="widget-card">
                     <h3 class="widget-title">Economic Calendar</h3>
                     <div class="tradingview-widget">
+                        <!-- TradingView Widget BEGIN -->
                         <div class="tradingview-widget-container" id="economicCalendarWidget">
                             <div class="tradingview-widget-container__widget"></div>
                         </div>
+                        <!-- TradingView Widget END -->
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- JavaScript Section Begins -->
     <script>
-        // Global Variables
+        // Global State Variables - ONLY ADDITION: currentChartScale
         let currentTheme = 'light';
         let currentPeriod = '1M';
-        let currentChartScale = 'log';
+        let currentChartScale = 'log'; // NEW - Default to logarithmic
         let chartCollapsed = false;
-
-        // Navigation System
+        
+        // Universal Navigation System - UNCHANGED
         function initializeNavigation() {
+            // Get current page name from URL
             const currentPage = window.location.pathname.split('/').pop() || 'dashboard.html';
             
+            console.log('Current page:', currentPage);
+            
+            // Remove active class from all navigation items
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
             });
             
+            // Add active class to current page navigation item
             let currentNavItem = document.querySelector(`.nav-item[href="${currentPage}"]`);
             
+            // Handle special cases for dashboard routing
             if (!currentNavItem) {
                 if (currentPage.includes('dashboard') || currentPage === '' || currentPage === 'index.html') {
                     currentNavItem = document.querySelector(`.nav-item[href="dashboard.html"]`);
@@ -592,8 +844,10 @@ body {
             
             if (currentNavItem) {
                 currentNavItem.classList.add('active');
+                console.log('Set active navigation item:', currentNavItem.href);
             }
             
+            // Handle navigation clicks with authentication check
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.addEventListener('click', function(e) {
                     const token = localStorage.getItem('aequitas_auth_token');
@@ -608,26 +862,32 @@ body {
                 });
             });
         }
-
-        // Theme Toggle
+        
+        // Theme Toggle Functionality - UNCHANGED
         function toggleTheme() {
             currentTheme = currentTheme === 'light' ? 'dark' : 'light';
             document.documentElement.setAttribute('data-theme', currentTheme);
             
+            // Update theme toggle icon
             const themeToggle = document.querySelector('.theme-toggle .icon');
             themeToggle.className = currentTheme === 'light' ? 'icon icon-moon' : 'icon icon-sun';
             
+            // Update chart theme if it exists
             if (window.equityChart) {
                 createEquityChart();
             }
             
+            // Update TradingView widgets theme
             updateTradingViewTheme();
+            
+            // Save theme preference to localStorage
             localStorage.setItem('aequitas_theme', currentTheme);
         }
 
-        // Chart Toggle
+        // Chart Collapse/Expand Toggle - UNCHANGED
         function toggleChart() {
             const chartSection = document.getElementById('chartSection');
+            const chartContent = document.getElementById('chartContent');
             const collapseBtn = document.getElementById('chartCollapseBtn');
             
             chartCollapsed = !chartCollapsed;
@@ -639,6 +899,7 @@ body {
                 chartSection.classList.remove('collapsed');
                 collapseBtn.innerHTML = '<span class="icon icon-chevron-up"></span>';
                 
+                // Recreate chart when expanding with delay for animation
                 setTimeout(() => {
                     if (window.equityChart) {
                         createEquityChart();
@@ -647,15 +908,21 @@ body {
             }
         }
 
-        // Chart Scale Toggle - NEW FUNCTION FOR LOG/LINEAR
+        // Toggle between logarithmic and linear scale - NEW FUNCTION
         function toggleChartScale(scale, element) {
+            console.log(`Switching chart scale to: ${scale}`);
+            
+            // Prevent event bubbling
             if (event) event.stopPropagation();
             
+            // Update active button styling
             document.querySelectorAll('.scale-btn').forEach(btn => btn.classList.remove('active'));
             element.classList.add('active');
             
+            // Update global scale state
             currentChartScale = scale;
             
+            // Always ensure chart is expanded when using controls
             const chartSection = document.getElementById('chartSection');
             const collapseBtn = document.getElementById('chartCollapseBtn');
             
@@ -665,44 +932,24 @@ body {
                 collapseBtn.innerHTML = '<span class="icon icon-chevron-up"></span>';
             }
             
+            // Recreate chart with new scale
             setTimeout(() => {
                 createEquityChart();
             }, 100);
         }
 
-        // Update Chart Period
-        function updateChartPeriod(period, element) {
-            if (event) event.stopPropagation();
-            
-            const chartSection = document.getElementById('chartSection');
-            const collapseBtn = document.getElementById('chartCollapseBtn');
-            
-            if (chartCollapsed) {
-                chartCollapsed = false;
-                chartSection.classList.remove('collapsed');
-                collapseBtn.innerHTML = '<span class="icon icon-chevron-up"></span>';
-            }
-            
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            element.classList.add('active');
-            
-            currentPeriod = period;
-            
-            setTimeout(() => {
-                createEquityChart();
-            }, 100);
-        }
-
-        // Logout
+        // User Logout Functionality - UNCHANGED
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
                 localStorage.removeItem('aequitas_auth_token');
                 localStorage.removeItem('aequitas_user_data');
+                console.log('User logged out, redirecting to login page');
                 window.location.href = 'login.html';
             }
         }
-
-        // Load CSV Data
+        // ===== REAL CSV DATA FUNCTIONS - UNCHANGED =====
+        
+        // Load CSV trading data from server
         async function loadCSVData() {
             try {
                 const response = await fetch('/data/daily_returns_simple.csv');
@@ -712,51 +959,72 @@ body {
                 const lines = csvContent.split('\n');
                 const csvData = {};
                 
+                // Skip header row, parse date and CUMULATIVE return
                 for (let i = 1; i < lines.length; i++) {
                     const line = lines[i].trim();
                     if (!line) continue;
                     
                     const values = line.split(',');
-                    if (values.length >= 3) {
+                    if (values.length >= 3) { // Now we need the 3rd column
                         const date = values[0].trim();
-                        const cumulativeReturn = parseFloat(values[2].trim());
+                        const cumulativeReturn = parseFloat(values[2].trim()); // Column 3: Cumulative_Return_Percent
                         
                         if (!isNaN(cumulativeReturn)) {
-                            csvData[date] = cumulativeReturn;
+                            csvData[date] = cumulativeReturn; // Store as percentage, not decimal
                         }
                     }
                 }
                 
+                console.log(`📊 Loaded ${Object.keys(csvData).length} trading days from CSV (cumulative returns)`);
                 return csvData;
                 
             } catch (error) {
-                console.error('Failed to load CSV data:', error);
+                console.error('💥 Failed to load CSV data:', error);
                 return {};
             }
         }
 
-        // Calculate Dashboard Performance
+        // Calculate real dashboard performance using deposits and CSV returns
+        // FIXED: calculateDashboardPerformance function in dashboard.html
         function calculateDashboardPerformance(deposits, csvData) {
+            console.log('🧮 Calculating performance with CUMULATIVE returns logic (FIXED)');
+            
             let totalDeposits = 0;
             let finalBalance = 0;
             
+            // Filter out deposits with null/invalid dates and only use completed ones
             const validDeposits = deposits.filter(deposit => {
                 const depositDate = deposit.deposit_date || deposit.date;
                 const hasValidDate = depositDate && depositDate !== null;
-                const isCompleted = deposit.status === 'completed' || !deposit.status;
+                const isCompleted = deposit.status === 'completed' || !deposit.status; // Include if no status field
+                
+                if (!hasValidDate) {
+                    console.log(`⚠️ Skipping deposit with null date: $${deposit.amount}`);
+                }
+                if (!isCompleted) {
+                    console.log(`⚠️ Skipping non-completed deposit: $${deposit.amount}`);
+                }
+                
                 return hasValidDate && isCompleted;
             });
             
+            console.log(`📊 Processing ${validDeposits.length} valid deposits (filtered from ${deposits.length} total)`);
+            
+            // Sort deposits chronologically
             const sortedDeposits = validDeposits.sort((a, b) => {
                 const dateA = new Date(a.deposit_date || a.date);
                 const dateB = new Date(b.deposit_date || b.date);
                 return dateA - dateB;
             });
             
+            // Get the latest date in CSV for "end" calculation
             const csvDates = Object.keys(csvData).sort();
             const latestCsvDate = csvDates[csvDates.length - 1];
             const latestCumulativeReturn = csvData[latestCsvDate];
             
+            console.log(`📅 Using latest CSV date: ${latestCsvDate} (${latestCumulativeReturn?.toFixed(2)}% cumulative)`);
+            
+            // Process each deposit separately
             for (const deposit of sortedDeposits) {
                 const depositAmount = parseFloat(deposit.amount);
                 const depositDate = new Date(deposit.deposit_date || deposit.date);
@@ -764,14 +1032,24 @@ body {
                 
                 totalDeposits += depositAmount;
                 
+                // Get cumulative return at deposit date (baseline)
                 const startCumulative = csvData[depositDateStr];
                 if (!startCumulative) {
+                    console.log(`⚠️ No CSV data for deposit date ${depositDateStr}, using deposit amount as-is`);
                     finalBalance += depositAmount;
                     continue;
                 }
                 
+                // Calculate performance for this deposit using cumulative returns
                 const performanceMultiplier = latestCumulativeReturn / startCumulative;
                 const currentDepositValue = depositAmount * performanceMultiplier;
+                
+                console.log(`💰 Deposit $${depositAmount.toLocaleString()} on ${depositDateStr}:`);
+                console.log(`   📊 Deposit date cumulative: ${startCumulative.toFixed(2)}%`);
+                console.log(`   📊 Latest cumulative: ${latestCumulativeReturn.toFixed(2)}%`);
+                console.log(`   📈 Multiplier: ${performanceMultiplier.toFixed(4)}x`);
+                console.log(`   💵 Current value: $${currentDepositValue.toLocaleString()}`);
+                
                 finalBalance += currentDepositValue;
             }
             
@@ -780,15 +1058,20 @@ body {
                 currentBalance: finalBalance
             };
         }
-        // Load Dashboard
+
+        // Load real dashboard data with CSV integration - UNCHANGED
         async function loadDashboard() {
+            console.log('📊 Loading dashboard with REAL data...');
+            
             try {
                 const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
                 
+                // Update user info in sidebar and top bar
                 const firstName = userData.firstName || 'User';
                 const lastName = userData.lastName || '';
                 const email = userData.email || 'user@example.com';
                 
+                // Update UI elements safely with null checks
                 const elements = {
                     userName: document.getElementById('userName'),
                     userEmail: document.getElementById('userEmail'),
@@ -801,9 +1084,11 @@ body {
                 if (elements.topUserName) elements.topUserName.textContent = firstName;
                 if (elements.userAvatar) elements.userAvatar.textContent = firstName.charAt(0).toUpperCase();
                 
+                // Get REAL account data using existing deposits API
                 const authToken = localStorage.getItem('aequitas_auth_token');
                 if (authToken) {
                     try {
+                        // Fetch user deposits to calculate real account values
                         const depositsResponse = await fetch('/api/deposits', {
                             headers: { 'Authorization': `Bearer ${authToken}` }
                         });
@@ -813,6 +1098,9 @@ body {
                             const userDeposits = depositsData.deposits || [];
                             
                             if (userDeposits.length > 0) {
+                                console.log('✅ Found real deposits:', userDeposits);
+                                
+                                // Load CSV trading data and calculate performance
                                 const csvData = await loadCSVData();
                                 const performanceResult = calculateDashboardPerformance(userDeposits, csvData);
                                 
@@ -821,6 +1109,7 @@ body {
                                 const profit = accountValue - totalDeposits;
                                 const profitPercent = totalDeposits > 0 ? ((profit / totalDeposits) * 100) : 0;
                                 
+                                // Update dashboard with REAL calculated values
                                 const accountBalanceEl = document.getElementById('accountBalance');
                                 const accountProfitEl = document.getElementById('accountProfit');
                                 const startingBalanceEl = document.getElementById('startingBalance');
@@ -829,6 +1118,7 @@ body {
                                 if (accountProfitEl) accountProfitEl.textContent = formatCurrency(profit);
                                 if (startingBalanceEl) startingBalanceEl.textContent = formatCurrency(totalDeposits);
                                 
+                                // Update profit percentage display with proper styling
                                 const profitChange = document.getElementById('profitChange');
                                 if (profitChange) {
                                     if (profitPercent >= 0) {
@@ -840,29 +1130,46 @@ body {
                                     }
                                 }
                                 
-                                return;
+                                console.log('✅ Dashboard updated with REAL data:', {
+                                    balance: accountValue.toLocaleString(),
+                                    deposits: totalDeposits.toLocaleString(),
+                                    profit: profit.toLocaleString(),
+                                    profitPercent: profitPercent.toFixed(1) + '%'
+                                });
+                                
+                                return; // Exit early with real data loaded successfully
                             }
                         }
                     } catch (apiError) {
-                        console.log('API error, using fallback data:', apiError.message);
+                        console.log('⚠️ API error, using fallback data:', apiError.message);
                     }
                 }
                 
+                // Fallback to demo data if real data unavailable
+                console.log('📊 Using demo data as fallback');
+                
             } catch (error) {
-                console.error('Dashboard load error:', error);
+                console.error('💥 Dashboard load error:', error);
+                // Use demo data on any error
             }
         }
-
-        // Generate Equity Data
+        
+        // Generate equity data with smart date ranges for all timeframes - UNCHANGED
         async function generateEquityData(period) {
             try {
+                console.log('📊 Loading REAL equity data from CSV + user deposits for period:', period);
+                
+                // Get user's authentication token
                 const authToken = localStorage.getItem('aequitas_auth_token');
                 if (!authToken) {
+                    console.log('⚠️ No auth token found, using demo data');
                     return generateDemoData(period);
                 }
                 
+                // Load CSV trading data
                 const csvData = await loadCSVData();
                 
+                // Get user deposits from API
                 const depositsResponse = await fetch('/api/deposits', {
                     method: 'GET',
                     headers: {
@@ -872,24 +1179,32 @@ body {
                 });
                 
                 if (!depositsResponse.ok) {
+                    console.log('⚠️ Failed to load deposits, using demo data');
                     return generateDemoData(period);
                 }
                 
                 const depositsData = await depositsResponse.json();
                 const userDeposits = depositsData.deposits || [];
                 
+                console.log(`📊 Found ${userDeposits.length} user deposits`);
+                console.log(`📊 Loaded ${Object.keys(csvData).length} trading days from CSV`);
+                
                 if (userDeposits.length === 0) {
+                    console.log('⚠️ No deposits found, using demo data');
                     return generateDemoData(period);
                 }
                 
+                // Calculate smart date range based on deposits and requested period
                 const today = new Date();
                 let startDate;
                 
+                // Find earliest deposit date for reference
                 const earliestDeposit = userDeposits.reduce((earliest, deposit) => {
                     const depositDate = new Date(deposit.deposit_date || deposit.date);
                     return depositDate < earliest ? depositDate : earliest;
                 }, new Date());
                 
+                // Calculate start date based on period, but never before first deposit
                 switch(period) {
                     case '1M':
                         startDate = new Date();
@@ -911,24 +1226,41 @@ body {
                         break;
                 }
                 
+                console.log(`📅 Chart range: ${startDate.toISOString().split('T')[0]} to ${today.toISOString().split('T')[0]}`);
+                
+                // Generate user's equity curve from real data
                 return generateUserEquityCurve(userDeposits, csvData, startDate, today);
                 
             } catch (error) {
-                console.error('Failed to load real equity data:', error);
+                console.error('💥 Failed to load real equity data:', error);
+                console.log('⚠️ Falling back to demo data');
                 return generateDemoData(period);
             }
         }
-
-        // Generate User Equity Curve
+        // Generate user's equity curve from deposits + CSV returns - UNCHANGED
+        // FIXED: generateUserEquityCurve function in dashboard.html
         function generateUserEquityCurve(deposits, csvData, startDate, endDate) {
+            console.log('📈 Generating equity curve with CUMULATIVE returns (FIXED)');
+            
             const equityData = [];
             
+            // Filter out invalid deposits (same logic as balance calculation)
             const validDeposits = deposits.filter(deposit => {
                 const depositDate = deposit.deposit_date || deposit.date;
                 const hasValidDate = depositDate && depositDate !== null;
                 const isCompleted = deposit.status === 'completed' || !deposit.status;
+                
+                if (!hasValidDate) {
+                    console.log(`⚠️ Chart: Skipping deposit with null date: $${deposit.amount}`);
+                }
+                if (!isCompleted) {
+                    console.log(`⚠️ Chart: Skipping non-completed deposit: $${deposit.amount}`);
+                }
+                
                 return hasValidDate && isCompleted;
             });
+            
+            console.log(`📊 Chart: Processing ${validDeposits.length} valid deposits for equity curve`);
             
             const sortedDeposits = validDeposits.sort((a, b) => {
                 const dateA = new Date(a.deposit_date || a.date);
@@ -936,30 +1268,39 @@ body {
                 return dateA - dateB;
             });
             
+            // For each day in range, calculate the account value
             for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
                 const dateStr = date.toISOString().split('T')[0];
                 
+                // Skip if no CSV data for this date
                 if (!csvData[dateStr]) continue;
                 
                 let totalValue = 0;
                 
+                // Calculate value of each valid deposit as of this date
                 for (const deposit of sortedDeposits) {
                     const depositAmount = parseFloat(deposit.amount);
                     const depositDate = new Date(deposit.deposit_date || deposit.date);
                     const depositDateStr = depositDate.toISOString().split('T')[0];
                     
+                    // Skip deposits that haven't happened yet
                     if (depositDate > date) continue;
                     
+                    // Get baseline cumulative return at deposit date
                     const depositCumulative = csvData[depositDateStr];
                     if (!depositCumulative) continue;
                     
+                    // Get current cumulative return
                     const currentCumulative = csvData[dateStr];
+                    
+                    // Calculate deposit value as of current date
                     const performanceMultiplier = currentCumulative / depositCumulative;
                     const depositValue = depositAmount * performanceMultiplier;
                     
                     totalValue += depositValue;
                 }
                 
+                // Only add data points where we have a balance
                 if (totalValue > 0) {
                     equityData.push({
                         date: dateStr,
@@ -968,15 +1309,23 @@ body {
                 }
             }
             
+            console.log(`✅ Chart: Generated ${equityData.length} equity data points`);
+            if (equityData.length > 0) {
+                console.log(`💰 Chart: Final balance: $${equityData[equityData.length - 1].value.toLocaleString()}`);
+            }
+            
             return equityData;
         }
-
-        // Generate Demo Data
+        
+        // Fallback demo data generator for when real data is unavailable - UNCHANGED
         function generateDemoData(period) {
+            console.log('📊 Using demo data for period:', period);
+            
             const now = new Date();
             let dataPoints;
             let startDate = new Date();
             
+            // Set data points and start date based on period
             switch(period) {
                 case '1M':
                     dataPoints = 30;
@@ -991,41 +1340,47 @@ body {
                     startDate.setFullYear(startDate.getFullYear() - 1);
                     break;
                 case 'ALL':
-                    dataPoints = 1095;
+                    dataPoints = 1095; // 3 years of data
                     startDate.setFullYear(startDate.getFullYear() - 3);
                     break;
             }
             
             const data = [];
-            const startValue = 1000000;
+            const startValue = 1000000; // $1M starting capital for demo
             let currentValue = startValue;
             
-            const annualReturn = 0.18;
-            const volatility = 0.15;
-            const dailyReturn = annualReturn / 252;
+            // Create realistic hedge fund performance pattern
+            const annualReturn = 0.18; // 18% annual target return
+            const volatility = 0.15; // 15% annual volatility
+            const dailyReturn = annualReturn / 252; // 252 trading days per year
             const dailyVol = volatility / Math.sqrt(252);
             
             for (let i = 0; i < dataPoints; i++) {
                 const date = new Date(startDate);
                 date.setDate(date.getDate() + i);
                 
+                // Skip weekends for more realistic trading data
                 if (date.getDay() === 0 || date.getDay() === 6) {
                     continue;
                 }
                 
+                // Generate realistic returns with market cycles
                 const marketCycle = Math.sin((i / dataPoints) * 4 * Math.PI) * 0.3;
                 const randomComponent = (Math.random() - 0.5) * 2 * dailyVol;
                 const trendComponent = dailyReturn * (1 + marketCycle);
                 
+                // Add some drawdown periods for realistic hedge fund performance
                 let drawdownFactor = 1;
                 if (i > dataPoints * 0.3 && i < dataPoints * 0.45) {
-                    drawdownFactor = 0.85;
+                    drawdownFactor = 0.85; // 15% drawdown period
                 } else if (i > dataPoints * 0.7 && i < dataPoints * 0.75) {
-                    drawdownFactor = 0.95;
+                    drawdownFactor = 0.95; // Smaller correction period
                 }
                 
                 const dailyChange = (trendComponent + randomComponent) * drawdownFactor;
                 currentValue *= (1 + dailyChange);
+                
+                // Ensure we don't go below reasonable levels
                 currentValue = Math.max(currentValue, startValue * 0.70);
                 
                 data.push({
@@ -1034,32 +1389,70 @@ body {
                 });
             }
             
+            console.log(`Generated ${data.length} demo data points for ${period}`);
             return data;
         }
-        // Create Equity Chart with LOG/LINEAR support
+
+        // Update Chart Period with proper event handling - UNCHANGED EXCEPT maintains scale
+        function updateChartPeriod(period, element) {
+            console.log(`Updating chart to period: ${period}, maintaining scale: ${currentChartScale}`);
+            
+            // Prevent the event from bubbling up to the chart header click
+            if (event) event.stopPropagation();
+            
+            // Always ensure chart is expanded when using filters
+            const chartSection = document.getElementById('chartSection');
+            const collapseBtn = document.getElementById('chartCollapseBtn');
+            
+            if (chartCollapsed) {
+                chartCollapsed = false;
+                chartSection.classList.remove('collapsed');
+                collapseBtn.innerHTML = '<span class="icon icon-chevron-up"></span>';
+            }
+            
+            // Update active filter button styling
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+            
+            currentPeriod = period;
+            
+            // Create chart with slight delay to ensure expansion animation completes
+            setTimeout(() => {
+                createEquityChart();
+            }, 100);
+        }
+        // Create Equity Chart with Chart.js - ENHANCED WITH LOG SCALE SUPPORT
         async function createEquityChart() {
+            console.log('createEquityChart function called for period:', currentPeriod, 'scale:', currentChartScale);
+            
             const ctx = document.getElementById('equityChart');
             if (!ctx) {
                 console.error('Chart canvas element not found');
                 return;
             }
             
+            console.log('Chart canvas found, creating chart...');
+            
+            // Properly destroy existing chart before creating new one
             if (window.equityChart && typeof window.equityChart.destroy === 'function') {
+                console.log('Destroying existing chart instance');
                 window.equityChart.destroy();
                 window.equityChart = null;
             }
             
+            // Force canvas sizing for proper chart display
             const container = ctx.parentElement;
             container.style.height = '400px';
             container.style.width = '100%';
             ctx.style.width = '100%';
             ctx.style.height = '400px';
             
+            // Get chart data and theme settings
             const data = await generateEquityData(currentPeriod);
             const isDark = currentTheme === 'dark';
-            const isLogScale = currentChartScale === 'log';
+            const isLogScale = currentChartScale === 'log'; // NEW - Check if log scale
             
-            // Prepare Y-axis configuration based on scale type
+            // Prepare Y-axis configuration based on scale type - NEW LOGIC
             let yAxisConfig = {
                 display: true,
                 grid: {
@@ -1073,7 +1466,7 @@ body {
                 }
             };
             
-            // Add logarithmic configuration if needed
+            // Add logarithmic configuration if needed - NEW
             if (isLogScale) {
                 yAxisConfig.type = 'logarithmic';
                 yAxisConfig.ticks.callback = function(value, index, ticks) {
@@ -1086,7 +1479,7 @@ body {
                     return '$' + value.toLocaleString();
                 };
                 
-                // Enhance grid lines for log scale
+                // Enhance grid lines for log scale - NEW
                 yAxisConfig.grid.lineWidth = function(context) {
                     return context.tick.major ? 2 : 1;
                 };
@@ -1098,6 +1491,7 @@ body {
                 };
             }
             
+            // Create new Chart.js instance
             window.equityChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -1134,6 +1528,7 @@ body {
                                     return 'Account Value: ' + formatCurrency(context.parsed.y);
                                 },
                                 afterLabel: function(context) {
+                                    // Add scale indicator in tooltip - NEW
                                     return isLogScale ? '(Logarithmic Scale)' : '(Linear Scale)';
                                 }
                             }
@@ -1150,7 +1545,7 @@ body {
                                 maxTicksLimit: 6
                             }
                         },
-                        y: yAxisConfig
+                        y: yAxisConfig // NEW - Use dynamic Y-axis config
                     },
                     interaction: {
                         intersect: false,
@@ -1158,12 +1553,15 @@ body {
                     }
                 }
             });
+            
+            console.log(`Chart created successfully with ${currentChartScale} scale`); // NEW - Log scale type
         }
-
-        // Update TradingView Theme
+        
+        // Update TradingView widgets theme when theme changes - UNCHANGED
         function updateTradingViewTheme() {
             const colorTheme = currentTheme === 'dark' ? 'dark' : 'light';
             
+            // Update Market News Widget with new theme
             const marketNewsContainer = document.getElementById('marketNewsWidget');
             marketNewsContainer.innerHTML = '<div class="tradingview-widget-container__widget"></div>';
             
@@ -1183,6 +1581,7 @@ body {
             });
             marketNewsContainer.appendChild(marketNewsScript);
             
+            // Update Economic Calendar Widget with new theme
             const economicCalendarContainer = document.getElementById('economicCalendarWidget');
             economicCalendarContainer.innerHTML = '<div class="tradingview-widget-container__widget"></div>';
             
@@ -1202,10 +1601,11 @@ body {
             economicCalendarContainer.appendChild(economicCalendarScript);
         }
 
-        // Initialize TradingView Widgets
+        // Initialize TradingView Widgets on page load - UNCHANGED
         function initializeTradingViewWidgets() {
             const colorTheme = currentTheme === 'dark' ? 'dark' : 'light';
             
+            // Initialize Market News Widget
             const marketNewsContainer = document.getElementById('marketNewsWidget');
             const marketNewsScript = document.createElement('script');
             marketNewsScript.type = 'text/javascript';
@@ -1223,6 +1623,7 @@ body {
             });
             marketNewsContainer.appendChild(marketNewsScript);
             
+            // Initialize Economic Calendar Widget
             const economicCalendarContainer = document.getElementById('economicCalendarWidget');
             const economicCalendarScript = document.createElement('script');
             economicCalendarScript.type = 'text/javascript';
@@ -1239,14 +1640,17 @@ body {
             });
             economicCalendarContainer.appendChild(economicCalendarScript);
         }
-        // Format Currency
+
+        // Format currency values with optional short format - UNCHANGED
         function formatCurrency(amount, short = false) {
+            // Handle short format for chart axes
             if (short && amount >= 1000000) {
                 return '$' + (amount / 1000000).toFixed(1) + 'M';
             } else if (short && amount >= 1000) {
                 return '$' + (amount / 1000).toFixed(0) + 'K';
             }
             
+            // Full currency formatting for dashboard values
             return new Intl.NumberFormat('en-US', {
                 style: 'currency',
                 currency: 'USD',
@@ -1255,7 +1659,7 @@ body {
             }).format(amount);
         }
 
-        // Show Notification
+        // Notification system for user feedback - UNCHANGED
         function showNotification(message, type = 'info') {
             const notification = document.createElement('div');
             notification.style.cssText = `
@@ -1284,6 +1688,7 @@ body {
             
             document.body.appendChild(notification);
             
+            // Auto-remove notification after 5 seconds
             setTimeout(() => {
                 if (notification.parentNode) {
                     notification.style.animation = 'slideOutRight 0.3s ease-in';
@@ -1291,15 +1696,14 @@ body {
                 }
             }, 5000);
         }
-
-        // Main Initialization Function
+        // Main dashboard initialization function - ENHANCED FOR LOG DEFAULT
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM loaded, initializing dashboard...');
             
             // CHECK: Redirect pending users to setup page
             const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
             if (userData.role === 'pending' && userData.setupStatus !== 'approved') {
-                console.log('Pending user detected, redirecting to setup...');
+                console.log('🔄 Pending user detected, redirecting to setup...');
                 window.location.href = 'setup.html';
                 return;
             }
@@ -1315,15 +1719,19 @@ body {
                 if (themeToggle) themeToggle.className = 'icon icon-sun';
             }
             
-            // Initialize all dashboard components
+            // Initialize navigation system
             initializeNavigation();
+            
+            // Load dashboard data with real API integration
             loadDashboard();
+
+            // Initialize TradingView widgets
             initializeTradingViewWidgets();
 
-            // Set default scale to logarithmic - THIS IS KEY FOR LOG DEFAULT
+            // Set default scale to logarithmic - NEW FOR LOG DEFAULT
             currentChartScale = 'log';
             
-            // Ensure the log button is active by default
+            // Ensure the log button is active by default - NEW
             setTimeout(() => {
                 const logBtn = document.getElementById('logScaleBtn');
                 const linearBtn = document.getElementById('linearScaleBtn');
@@ -1336,7 +1744,7 @@ body {
 
             // Create equity chart after everything else is loaded
             setTimeout(() => {
-                console.log('Creating initial equity chart with logarithmic scale...');
+                console.log('Creating initial equity chart...');
                 createEquityChart();
             }, 200);
             
@@ -1346,10 +1754,10 @@ body {
                 if (adminSection) adminSection.style.display = 'block';
             }
             
-            console.log('Dashboard initialization complete with LOG scale as default');
+            console.log('Dashboard initialization complete');
         });
 
-        // Handle window resize events - re-render chart for proper sizing
+        // Handle window resize events - re-render chart for proper sizing - UNCHANGED
         window.addEventListener('resize', function() {
             if (window.equityChart) {
                 setTimeout(() => {
@@ -1358,7 +1766,7 @@ body {
             }
         });
 
-        // Close sidebar when clicking outside on mobile devices
+        // Close sidebar when clicking outside on mobile devices - UNCHANGED
         document.addEventListener('click', function(event) {
             if (window.innerWidth <= 1024) {
                 const sidebar = document.getElementById('sidebar');
@@ -1370,67 +1778,10 @@ body {
                 }
             }
         });
-
-        // Additional event listeners for better UX
-        window.addEventListener('beforeunload', function() {
-            // Clean up chart instance if it exists
-            if (window.equityChart && typeof window.equityChart.destroy === 'function') {
-                window.equityChart.destroy();
-            }
-        });
-
-        // Error handling for chart creation
-        window.addEventListener('error', function(event) {
-            if (event.error && event.error.message && event.error.message.includes('Chart')) {
-                console.error('Chart error detected, attempting to recreate chart...');
-                setTimeout(() => {
-                    if (document.getElementById('equityChart')) {
-                        createEquityChart();
-                    }
-                }, 1000);
-            }
-        });
-
-        // Keyboard shortcuts for better accessibility
-        document.addEventListener('keydown', function(event) {
-            // Toggle theme with Ctrl/Cmd + Shift + T
-            if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'T') {
-                event.preventDefault();
-                toggleTheme();
-            }
-            
-            // Toggle chart with Ctrl/Cmd + Shift + C
-            if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'C') {
-                event.preventDefault();
-                toggleChart();
-            }
-        });
-
-        // Performance monitoring for chart rendering
-        let chartRenderStartTime;
-        
-        // Override the createEquityChart function to add performance monitoring
-        const originalCreateEquityChart = createEquityChart;
-        createEquityChart = async function() {
-            chartRenderStartTime = performance.now();
-            await originalCreateEquityChart();
-            const renderTime = performance.now() - chartRenderStartTime;
-            console.log(`Chart rendered in ${renderTime.toFixed(2)}ms with ${currentChartScale} scale`);
-        };
-
-        // Ensure proper cleanup on page unload
-        window.addEventListener('pagehide', function() {
-            if (window.equityChart) {
-                window.equityChart.destroy();
-                window.equityChart = null;
-            }
-        });
-
-        console.log('Dashboard script loaded successfully with logarithmic chart support');
     </script>
 </body>
 </html>
         
         
-    
         
+    
