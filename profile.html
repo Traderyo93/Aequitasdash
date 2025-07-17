@@ -1787,63 +1787,70 @@
                 // Populate navigation based on user role
                 const sidebarNav = document.getElementById('sidebarNav');
                 
-                if (userData && (userData.role === 'admin' || userData.role === 'superadmin')) {
-                    // ADMIN NAVIGATION - Only Profile and Client Management
-                    sidebarNav.innerHTML = `
-                        <div class="nav-section">
-                            <div class="nav-section-title">Admin Panel</div>
-                            <a href="profile.html" class="nav-item active">
-                                <span class="icon icon-user"></span>
-                                <span>Profile</span>
-                            </a>
-                            <a href="admin.html" class="nav-item">
-                                <span class="icon icon-users"></span>
-                                <span>Client Management</span>
-                            </a>
-                        </div>
-                    `;
-                    console.log('👑 Admin navigation loaded');
+            if (userData && (userData.role === 'admin' || userData.role === 'superadmin')) {
+                // ADMIN NAVIGATION - Only Profile and Client Management
+                const currentPage = window.location.pathname.split('/').pop() || 'profile.html';
+                const isProfileActive = currentPage === 'profile.html' || currentPage === '';
+                const isAdminActive = currentPage === 'admin.html';
+                
+                sidebarNav.innerHTML = `
+                    <div class="nav-section">
+                        <div class="nav-section-title">Admin Panel</div>
+                        <a href="profile.html" class="nav-item ${isProfileActive ? 'active' : ''}">
+                            <span class="icon icon-user"></span>
+                            <span>Profile</span>
+                        </a>
+                        <a href="admin.html" class="nav-item ${isAdminActive ? 'active' : ''}">
+                            <span class="icon icon-users"></span>
+                            <span>Client Management</span>
+                        </a>
+                    </div>
+                `;
+                console.log('👑 Admin navigation loaded - current page:', currentPage);
                 } else {
-                    // CLIENT NAVIGATION - Full navigation for regular users
-                    sidebarNav.innerHTML = `
-                        <div class="nav-section">
-                            <div class="nav-section-title">Account</div>
-                            <a href="dashboard.html" class="nav-item">
-                                <span class="icon icon-dashboard"></span>
-                                <span>Overview</span>
-                            </a>
-                            <a href="statements.html" class="nav-item">
-                                <span class="icon icon-document"></span>
-                                <span>Statements</span>
-                            </a>
-                        </div>
 
-                        <div class="nav-section">
-                            <div class="nav-section-title">Trading</div>
-                            <a href="deposit.html" class="nav-item">
-                                <span class="icon icon-money"></span>
-                                <span>Deposit</span>
-                            </a>
-                            <a href="withdrawal.html" class="nav-item">
-                                <span class="icon icon-bank"></span>
-                                <span>Withdraw</span>
-                            </a>
-                        </div>
-
-                        <div class="nav-section">
-                            <div class="nav-section-title">Settings</div>
-                            <a href="profile.html" class="nav-item active">
-                                <span class="icon icon-user"></span>
-                                <span>Profile</span>
-                            </a>
-                            <a href="support.html" class="nav-item">
-                                <span class="icon icon-chat"></span>
-                                <span>Support</span>
-                            </a>
-                        </div>
-                    `;
-                    console.log('👤 Client navigation loaded');
-                }
+                // CLIENT NAVIGATION - Full navigation for regular users
+            const currentPage = window.location.pathname.split('/').pop() || 'profile.html';
+            
+            sidebarNav.innerHTML = `
+                <div class="nav-section">
+                    <div class="nav-section-title">Account</div>
+                    <a href="dashboard.html" class="nav-item ${currentPage === 'dashboard.html' ? 'active' : ''}">
+                        <span class="icon icon-dashboard"></span>
+                        <span>Overview</span>
+                    </a>
+                    <a href="statements.html" class="nav-item ${currentPage === 'statements.html' ? 'active' : ''}">
+                        <span class="icon icon-document"></span>
+                        <span>Statements</span>
+                    </a>
+                </div>
+        
+                <div class="nav-section">
+                    <div class="nav-section-title">Trading</div>
+                    <a href="deposit.html" class="nav-item ${currentPage === 'deposit.html' ? 'active' : ''}">
+                        <span class="icon icon-money"></span>
+                        <span>Deposit</span>
+                    </a>
+                    <a href="withdrawal.html" class="nav-item ${currentPage === 'withdrawal.html' ? 'active' : ''}">
+                        <span class="icon icon-bank"></span>
+                        <span>Withdraw</span>
+                    </a>
+                </div>
+        
+                <div class="nav-section">
+                    <div class="nav-section-title">Settings</div>
+                    <a href="profile.html" class="nav-item ${currentPage === 'profile.html' || currentPage === '' ? 'active' : ''}">
+                        <span class="icon icon-user"></span>
+                        <span>Profile</span>
+                    </a>
+                    <a href="support.html" class="nav-item ${currentPage === 'support.html' ? 'active' : ''}">
+                        <span class="icon icon-chat"></span>
+                        <span>Support</span>
+                    </a>
+                </div>
+            `;
+            console.log('👤 Client navigation loaded - current page:', currentPage);
+        }
                 
                 console.log('✅ Profile page initialized');
             });
