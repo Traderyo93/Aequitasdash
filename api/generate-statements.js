@@ -186,7 +186,7 @@ async function generateStatementHTML(client, performance, period) {
   };
 
   // Use the external logo URL directly (works in HTML)
-  const logoUrl = 'https://i.postimg.cc/3NnrRJgH/p11.png';
+  // const logoUrl = 'https://i.postimg.cc/3NnrRJgH/p11.png'; // REMOVED - using text instead
 
   const htmlContent = `
     <!DOCTYPE html>
@@ -229,28 +229,20 @@ async function generateStatementHTML(client, performance, period) {
           width: 300px;
         }
         
-        .logo-section {
-          display: flex;
-          align-items: center;
-          gap: 15px;
-          width: 100%;
-        }
-        
-        .p11-logo { 
-          width: 80px;
-          height: auto;
-          display: block;
-          max-width: 80px;
-          flex-shrink: 0;
-        }
-        
         .company-info {
           display: flex;
           flex-direction: column;
           gap: 2px;
         }
         
-        .company-info .title {
+        .company-info .p11-title {
+          font-size: 16px;
+          font-weight: bold;
+          color: #333;
+          margin: 0;
+        }
+        
+        .company-info .subtitle {
           font-size: 12px;
           font-weight: bold;
           color: #333;
@@ -399,12 +391,10 @@ async function generateStatementHTML(client, performance, period) {
     <body>
       <div class="header">
         <div class="left-header">
-          <div class="logo-section">
-            <img src="${logoUrl}" alt="P11 Logo" class="p11-logo" crossorigin="anonymous" />
-            <div class="company-info">
-              <p class="title">Small Funds Manager</p>
-              <p class="address">Viru väljak 2, 10111 Tallinn, Estonia</p>
-            </div>
+          <div class="company-info">
+            <p class="p11-title">P11 Management</p>
+            <p class="subtitle">Small Funds Manager</p>
+            <p class="address">Viru väljak 2, 10111 Tallinn, Estonia</p>
           </div>
         </div>
         <div class="right-header">
