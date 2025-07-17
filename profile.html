@@ -836,18 +836,9 @@
             </button>
         </div>
 
-        <nav class="sidebar-nav">
-            <div class="nav-section">
-                <div class="nav-section-title">Account</div>
-                <a href="dashboard.html" class="nav-item">
-                    <span class="icon icon-dashboard"></span>
-                    <span>Overview</span>
-                </a>
-                <a href="statements.html" class="nav-item">
-                    <span class="icon icon-document"></span>
-                    <span>Statements</span>
-                </a>
-            </div>
+            <nav class="sidebar-nav" id="sidebarNav">
+                <!-- Navigation will be populated by JavaScript based on user role -->
+            </nav>
 
             <div class="nav-section">
                 <div class="nav-section-title">Trading</div>
@@ -1855,16 +1846,15 @@
 
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
-            // Check authentication
+            // Check authentication first
             const authToken = localStorage.getItem('aequitas_auth_token');
+            userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
+            
             if (!authToken) {
-                showNotification('Please log in to access this page.', 'warning');
-                setTimeout(() => {
-                    window.location.href = 'login.html';
-                }, 2000);
+                window.location.href = 'login.html';
                 return;
             }
-
+            
             // Load saved theme
             const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
             if (savedTheme === 'dark') {
@@ -1873,18 +1863,66 @@
                 const themeToggle = document.querySelector('.theme-toggle .icon');
                 if (themeToggle) themeToggle.className = 'icon icon-sun';
             }
-
-            // Initialize navigation
-            initializeNavigation();
-
+            
+            // Populate navigation based on user role
+            const sidebarNav = document.getElementById('sidebarNav');
+            
+            if (userData.role === 'admin' || userData.role === 'superadmin') {
+                // ADMIN NAVIGATION - Only Profile and Client Management
+                sidebarNav.innerHTML = `
+                    <div class="nav-section" id="adminSection">
+                        <div class="nav-section-title">Admin Panel</div>
+                        <button class="nav-item" onclick="navigateTo('admin')">
+                            <span class="icon icon-users"></span>
+                            <span>Client Management</span>
+                        </button>
+                        <button class="nav-item active" onclick="navigateTo('profile')">
+                            <span class="icon icon-user"></span>
+                            <span>Profile</span>
+                        </button>
+                    </div>
+                `;
+            } else {
+                // CLIENT NAVIGATION - Full navigation for regular users
+                sidebarNav.innerHTML = `
+                    <div class="nav-section">
+                        <div class="nav-section-title">Account</div>
+                        <button class="nav-item" onclick="navigateTo('dashboard')">
+                            <span class="icon icon-dashboard"></span>
+                            <span>Overview</span>
+                        </button>
+                        <button class="nav-item" onclick="navigateTo('statements')">
+                            <span class="icon icon-document"></span>
+                            <span>Statements</span>
+                        </button>
+                    </div>
+                    <div class="nav-section">
+                        <div class="nav-section-title">Trading</div>
+                        <button class="nav-item" onclick="navigateTo('deposit')">
+                            <span class="icon icon-money"></span>
+                            <span>Deposit</span>
+                        </button>
+                        <button class="nav-item" onclick="navigateTo('withdraw')">
+                            <span class="icon icon-bank"></span>
+                            <span>Withdraw</span>
+                        </button>
+                    </div>
+                    <div class="nav-section">
+                        <div class="nav-section-title">Settings</div>
+                        <button class="nav-item active" onclick="navigateTo('profile')">
+                            <span class="icon icon-user"></span>
+                            <span>Profile</span>
+                        </button>
+                        <button class="nav-item" onclick="navigateTo('support')">
+                            <span class="icon icon-chat"></span>
+                            <span>Support</span>
+                        </button>
+                    </div>
+                `;
+            }
+            
             // Load user data and initialize page
             loadUserData().then(() => {
-                // Show admin section if user is admin
-                if (userData.role === 'admin') {
-                    const adminSection = document.getElementById('adminSection');
-                    if (adminSection) adminSection.style.display = 'block';
-                }
-                
                 console.log('✅ Profile page initialized');
             });
         });
@@ -1892,3 +1930,4 @@
     </script>
 </body>
 </html>
+
