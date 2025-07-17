@@ -143,7 +143,6 @@
         .icon-users {
             mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m22 0v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75M13 7a4 4 0 11-8 0 4 4 0 018 0z'/%3E%3C/svg%3E");
         }
-
         /* Sidebar Styles */
         .sidebar {
             position: fixed;
@@ -301,7 +300,6 @@
             border-color: rgba(239, 68, 68, 0.3);
             color: #fca5a5;
         }
-
         /* Main Content */
         .main-content {
             margin-left: 280px;
@@ -608,7 +606,6 @@
             padding: 8px 12px;
             font-size: 12px;
         }
-
         /* Timeline */
         .timeline {
             position: relative;
@@ -824,7 +821,7 @@
         }
     </style>
 </head>
-<body>
+    <body>
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -836,42 +833,8 @@
             </button>
         </div>
 
-            <nav class="sidebar-nav" id="sidebarNav">
-                <!-- Navigation will be populated by JavaScript based on user role -->
-            </nav>
-
-            <div class="nav-section">
-                <div class="nav-section-title">Trading</div>
-                <a href="deposit.html" class="nav-item">
-                    <span class="icon icon-money"></span>
-                    <span>Deposit</span>
-                </a>
-                <a href="withdrawal.html" class="nav-item">
-                    <span class="icon icon-bank"></span>
-                    <span>Withdraw</span>
-                </a>
-            </div>
-
-            <div class="nav-section">
-                <div class="nav-section-title">Settings</div>
-                <a href="profile.html" class="nav-item active">
-                    <span class="icon icon-user"></span>
-                    <span>Profile</span>
-                </a>
-                <a href="support.html" class="nav-item">
-                    <span class="icon icon-chat"></span>
-                    <span>Support</span>
-                </a>
-            </div>
-
-            <!-- Admin Section -->
-            <div class="nav-section" id="adminSection" style="display: none;">
-                <div class="nav-section-title">Admin</div>
-                <a href="admin.html" class="nav-item">
-                    <span class="icon icon-users"></span>
-                    <span>Client Management</span>
-                </a>
-            </div>
+        <nav class="sidebar-nav" id="sidebarNav">
+            <!-- Navigation will be populated by JavaScript based on user role -->
         </nav>
 
         <div class="sidebar-footer">
@@ -1072,55 +1035,11 @@
             </div>
         </div>
     </div>
-
-    <script>
+        <script>
         let currentTheme = 'light';
         let editMode = false;
         let userData = {};
         let timelineData = [];
-
-        // Universal Navigation System
-        function initializeNavigation() {
-            // Get current page name
-            const currentPage = window.location.pathname.split('/').pop() || 'profile.html';
-            
-            console.log('Current page:', currentPage);
-            
-            // Remove active class from all nav items
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            
-            // Add active class to current page
-            let currentNavItem = document.querySelector(`.nav-item[href="${currentPage}"]`);
-            
-            // Handle special cases
-            if (!currentNavItem) {
-                if (currentPage.includes('profile') || currentPage === '') {
-                    currentNavItem = document.querySelector(`.nav-item[href="profile.html"]`);
-                }
-            }
-            
-            if (currentNavItem) {
-                currentNavItem.classList.add('active');
-                console.log('Set active:', currentNavItem.href);
-            }
-            
-            // Handle navigation clicks - ensure authentication
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.addEventListener('click', function(e) {
-                    const token = localStorage.getItem('aequitas_auth_token');
-                    if (!token) {
-                        e.preventDefault();
-                        showNotification('Please log in to access this page.', 'warning');
-                        setTimeout(() => {
-                            window.location.href = 'login.html';
-                        }, 1000);
-                        return;
-                    }
-                });
-            });
-        }
 
         // Theme Toggle
         function toggleTheme() {
@@ -1343,8 +1262,7 @@
                 changeBtn.innerHTML = '<span class="icon icon-save"></span>Change Password';
             }
         });
-
-        // ===== REAL CSV DATA FUNCTIONS - SAME AS DASHBOARD =====
+            // ===== REAL CSV DATA FUNCTIONS - SAME AS DASHBOARD =====
         
         // Load CSV trading data from server
         async function loadCSVData() {
@@ -1382,7 +1300,6 @@
         }
 
         // Calculate real dashboard performance using deposits and CSV returns
-// Calculate real dashboard performance using deposits and CSV returns
         function calculateDashboardPerformance(deposits, csvData) {
             console.log('🧮 Calculating performance with CUMULATIVE returns logic');
             
@@ -1583,6 +1500,7 @@
                     // Load REAL account stats with CSV calculation
                     await loadAccountStats();
                     
+                    return userData;
                 } else {
                     const errorText = await response.text();
                     throw new Error(`API responded with ${response.status}: ${errorText}`);
@@ -1621,6 +1539,7 @@
                 loadTimeline(); // Use dummy data
                 
                 showNotification('Using cached profile data - some information may be outdated', 'warning');
+                return userData;
             }
         }
 
@@ -1706,8 +1625,7 @@
             }
             renderTimeline();
         }
-
-        // Render Timeline with proper document handling
+            // Render Timeline with proper document handling
         function renderTimeline() {
             const timeline = document.getElementById('accountTimeline');
             
@@ -1864,65 +1782,69 @@
                 if (themeToggle) themeToggle.className = 'icon icon-sun';
             }
             
-            // Populate navigation based on user role
-            const sidebarNav = document.getElementById('sidebarNav');
-            
-            if (userData.role === 'admin' || userData.role === 'superadmin') {
-                // ADMIN NAVIGATION - Only Profile and Client Management
-                sidebarNav.innerHTML = `
-                    <div class="nav-section" id="adminSection">
-                        <div class="nav-section-title">Admin Panel</div>
-                        <button class="nav-item" onclick="navigateTo('admin')">
-                            <span class="icon icon-users"></span>
-                            <span>Client Management</span>
-                        </button>
-                        <button class="nav-item active" onclick="navigateTo('profile')">
-                            <span class="icon icon-user"></span>
-                            <span>Profile</span>
-                        </button>
-                    </div>
-                `;
-            } else {
-                // CLIENT NAVIGATION - Full navigation for regular users
-                sidebarNav.innerHTML = `
-                    <div class="nav-section">
-                        <div class="nav-section-title">Account</div>
-                        <button class="nav-item" onclick="navigateTo('dashboard')">
-                            <span class="icon icon-dashboard"></span>
-                            <span>Overview</span>
-                        </button>
-                        <button class="nav-item" onclick="navigateTo('statements')">
-                            <span class="icon icon-document"></span>
-                            <span>Statements</span>
-                        </button>
-                    </div>
-                    <div class="nav-section">
-                        <div class="nav-section-title">Trading</div>
-                        <button class="nav-item" onclick="navigateTo('deposit')">
-                            <span class="icon icon-money"></span>
-                            <span>Deposit</span>
-                        </button>
-                        <button class="nav-item" onclick="navigateTo('withdraw')">
-                            <span class="icon icon-bank"></span>
-                            <span>Withdraw</span>
-                        </button>
-                    </div>
-                    <div class="nav-section">
-                        <div class="nav-section-title">Settings</div>
-                        <button class="nav-item active" onclick="navigateTo('profile')">
-                            <span class="icon icon-user"></span>
-                            <span>Profile</span>
-                        </button>
-                        <button class="nav-item" onclick="navigateTo('support')">
-                            <span class="icon icon-chat"></span>
-                            <span>Support</span>
-                        </button>
-                    </div>
-                `;
-            }
-            
             // Load user data and initialize page
-            loadUserData().then(() => {
+            loadUserData().then((userData) => {
+                // Populate navigation based on user role
+                const sidebarNav = document.getElementById('sidebarNav');
+                
+                if (userData && (userData.role === 'admin' || userData.role === 'superadmin')) {
+                    // ADMIN NAVIGATION - Only Profile and Client Management
+                    sidebarNav.innerHTML = `
+                        <div class="nav-section">
+                            <div class="nav-section-title">Admin Panel</div>
+                            <a href="profile.html" class="nav-item active">
+                                <span class="icon icon-user"></span>
+                                <span>Profile</span>
+                            </a>
+                            <a href="admin.html" class="nav-item">
+                                <span class="icon icon-users"></span>
+                                <span>Client Management</span>
+                            </a>
+                        </div>
+                    `;
+                    console.log('👑 Admin navigation loaded');
+                } else {
+                    // CLIENT NAVIGATION - Full navigation for regular users
+                    sidebarNav.innerHTML = `
+                        <div class="nav-section">
+                            <div class="nav-section-title">Account</div>
+                            <a href="dashboard.html" class="nav-item">
+                                <span class="icon icon-dashboard"></span>
+                                <span>Overview</span>
+                            </a>
+                            <a href="statements.html" class="nav-item">
+                                <span class="icon icon-document"></span>
+                                <span>Statements</span>
+                            </a>
+                        </div>
+
+                        <div class="nav-section">
+                            <div class="nav-section-title">Trading</div>
+                            <a href="deposit.html" class="nav-item">
+                                <span class="icon icon-money"></span>
+                                <span>Deposit</span>
+                            </a>
+                            <a href="withdrawal.html" class="nav-item">
+                                <span class="icon icon-bank"></span>
+                                <span>Withdraw</span>
+                            </a>
+                        </div>
+
+                        <div class="nav-section">
+                            <div class="nav-section-title">Settings</div>
+                            <a href="profile.html" class="nav-item active">
+                                <span class="icon icon-user"></span>
+                                <span>Profile</span>
+                            </a>
+                            <a href="support.html" class="nav-item">
+                                <span class="icon icon-chat"></span>
+                                <span>Support</span>
+                            </a>
+                        </div>
+                    `;
+                    console.log('👤 Client navigation loaded');
+                }
+                
                 console.log('✅ Profile page initialized');
             });
         });
@@ -1930,4 +1852,9 @@
     </script>
 </body>
 </html>
-
+            
+            
+        
+        
+        
+        
