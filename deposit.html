@@ -1205,7 +1205,7 @@
             return deposits ? JSON.parse(deposits) : [];
         }
 
-        // Load user data from API
+        // Load user data from API with fallback - FIXED VERSION
         async function loadUserData() {
             try {
                 console.log('👤 Loading user data...');
@@ -1238,7 +1238,7 @@
             }
         }
 
-        // Update user display
+        // Update user display - FIXED VERSION
         function updateUserDisplay(userData) {
             const firstName = userData.firstName || userData.first_name || 'User';
             const lastName = userData.lastName || userData.last_name || '';
@@ -1484,347 +1484,343 @@
                 `;
             }
         }
-
         // Update progress steps
-        function updateProgressSteps() {
-            const amount = document.getElementById('depositAmount').value;
-            const purpose = document.getElementById('depositPurpose').value;
-            const hasFiles = uploadedFiles.length >= 2;
-            
-            const steps = document.querySelectorAll('.step');
-            
-            steps.forEach((step, index) => {
-                step.classList.remove('active', 'completed');
-                
-                if (index === 0) {
-                    if (amount && purpose) {
-                        step.classList.add('completed');
-                        step.querySelector('.step-circle').innerHTML = '<span class="icon icon-check"></span>';
-                    } else {
-                        step.classList.add('active');
-                        step.querySelector('.step-circle').textContent = '1';
-                    }
-                } else if (index === 1) {
-                    if (hasFiles) {
-                        step.classList.add('completed');
-                        step.querySelector('.step-circle').innerHTML = '<span class="icon icon-check"></span>';
-                    } else if (amount && purpose) {
-                        step.classList.add('active');
-                        step.querySelector('.step-circle').textContent = '2';
-                    } else {
-                        step.querySelector('.step-circle').textContent = '2';
-                    }
-                } else if (index === 2) {
-                    if (amount && purpose && hasFiles) {
-                        step.classList.add('active');
-                        step.querySelector('.step-circle').textContent = '3';
-                    } else {
-                        step.querySelector('.step-circle').textContent = '3';
-                    }
-                } else {
-                    step.querySelector('.step-circle').textContent = '4';
-                }
-            });
-        }
-
-        // Submit deposit request
-        async function submitDepositRequest() {
-            const amount = document.getElementById('depositAmount').value;
-            const purpose = document.getElementById('depositPurpose').value;
-            
-            if (!amount || !purpose) {
-                showNotification('Please fill in all required fields.', 'error');
-                return;
-           }
+       function updateProgressSteps() {
+           const amount = document.getElementById('depositAmount').value;
+           const purpose = document.getElementById('depositPurpose').value;
+           const hasFiles = uploadedFiles.length >= 2;
            
-           if (uploadedFiles.length < 2) {
-               showNotification('Please upload at least 2 documents before submitting.', 'error');
-               return;
-           }
+           const steps = document.querySelectorAll('.step');
            
-           if (parseFloat(amount) < 1000) {
-               showNotification('Minimum deposit amount is $1,000.', 'error');
-               return;
-           }
-           
-           try {
-               showNotification('Submitting deposit request...', 'info');
+           steps.forEach((step, index) => {
+               step.classList.remove('active', 'completed');
                
-               // Submit deposit to database
-               const response = await fetch('/api/deposits', {
-                   method: 'POST',
-                   headers: {
-                       'Content-Type': 'application/json',
-                       'Authorization': `Bearer ${localStorage.getItem('aequitas_auth_token')}`
-                   },
-                   body: JSON.stringify({
-                       amount: parseFloat(amount),
-                       purpose: purpose,
-                       userId: getCurrentUserId()
-                   })
-               });
-               
-               const result = await response.json();
-               
-               if (!result.success) {
-                   throw new Error(result.error || 'Failed to submit deposit request');
+               if (index === 0) {
+                   if (amount && purpose) {
+                       step.classList.add('completed');
+                       step.querySelector('.step-circle').innerHTML = '<span class="icon icon-check"></span>';
+                   } else {
+                       step.classList.add('active');
+                       step.querySelector('.step-circle').textContent = '1';
+                   }
+               } else if (index === 1) {
+                   if (hasFiles) {
+                       step.classList.add('completed');
+                       step.querySelector('.step-circle').innerHTML = '<span class="icon icon-check"></span>';
+                   } else if (amount && purpose) {
+                       step.classList.add('active');
+                       step.querySelector('.step-circle').textContent = '2';
+                   } else {
+                       step.querySelector('.step-circle').textContent = '2';
+                   }
+               } else if (index === 2) {
+                   if (amount && purpose && hasFiles) {
+                       step.classList.add('active');
+                       step.querySelector('.step-circle').textContent = '3';
+                   } else {
+                       step.querySelector('.step-circle').textContent = '3';
+                   }
+               } else {
+                   step.querySelector('.step-circle').textContent = '4';
                }
-               
-               const depositId = result.deposit.id;
-               const reference = result.reference;
-               
-               // Upload all files to the created deposit
-               for (const file of uploadedFiles) {
-                   await fetch('/api/upload', {
-                       method: 'POST',
-                       headers: {
-                           'Content-Type': 'application/json',
-                       },
-                       body: JSON.stringify({
-                           fileName: file.name,
-                           fileData: file.fileData,
-                           depositId: depositId,
-                           userId: getCurrentUserId()
-                       })
-                   });
-               }
-               
-               // Save to local history
-               const depositRecord = {
-                   id: depositId,
-                   amount: parseFloat(amount),
-                   purpose: purpose,
-                   reference: reference,
-                   status: 'pending',
-                   createdAt: new Date().toISOString(),
-                   userId: getCurrentUserId()
-               };
-               
-               depositHistory.push(depositRecord);
-               saveUserDeposits(depositHistory);
-               
-               // Clear form
-               document.getElementById('depositAmount').value = '';
-               document.getElementById('depositPurpose').value = '';
-               uploadedFiles = [];
-               saveUploadedFiles(uploadedFiles);
-               pendingDeposit = null;
-               
-               renderUploadedFiles();
-               updateSubmitButton();
-               updateProgressSteps();
-               updateDepositTimeline();
-               
-               showNotification(`Deposit request submitted successfully! Reference: ${reference}`, 'success');
-               
-               // Update final step
-               const steps = document.querySelectorAll('.step');
-               steps[2].classList.remove('active');
-               steps[2].classList.add('completed');
-               steps[2].querySelector('.step-circle').innerHTML = '<span class="icon icon-check"></span>';
-               steps[3].classList.add('active');
-               
-           } catch (error) {
-               console.error('Deposit submission error:', error);
-               showNotification(`Failed to submit deposit request: ${error.message}`, 'error');
-           }
-       }
-
-       // Update deposit timeline
-       function updateDepositTimeline() {
-           const timeline = document.getElementById('depositTimeline');
-           
-           if (depositHistory.length === 0) {
-               timeline.innerHTML = `
-                   <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
-                       <div style="font-size: 18px; margin-bottom: 8px;">No deposits yet</div>
-                       <div style="font-size: 14px;">Your deposit history will appear here once you submit a request.</div>
-                   </div>
-               `;
-               return;
-           }
-           
-           timeline.innerHTML = depositHistory.map(deposit => `
-               <div class="timeline-item ${deposit.status}">
-                   <div class="timeline-content">
-                       <div class="timeline-header">
-                           <div class="timeline-title">Deposit Request - ${deposit.reference}</div>
-                           <div class="timeline-date">${new Date(deposit.createdAt).toLocaleDateString()}</div>
-                       </div>
-                       <div class="timeline-description">
-                           ${deposit.amount.toLocaleString()} deposit for ${deposit.purpose} - ${getStatusDescription(deposit.status)}
-                       </div>
-                       <div class="timeline-actions">
-                           <span class="status-badge status-${deposit.status}">
-                               <span class="icon icon-${getStatusIcon(deposit.status)}"></span>
-                               ${deposit.status.charAt(0).toUpperCase() + deposit.status.slice(1)}
-                           </span>
-                       </div>
-                   </div>
-               </div>
-           `).join('');
-       }
-
-       // Helper functions
-       function getStatusDescription(status) {
-           switch(status) {
-               case 'pending': return 'Awaiting admin review and approval';
-               case 'approved': return 'Approved - proceed with bank transfer using reference KC5230';
-               case 'completed': return 'Funds received and allocated to your account';
-               case 'rejected': return 'Please contact support for details';
-               default: return 'Status unknown';
-           }
-       }
-
-       function getStatusIcon(status) {
-           switch(status) {
-               case 'completed': return 'check';
-               case 'approved': return 'check';
-               case 'pending': return 'clock';
-               case 'rejected': return 'x';
-               default: return 'clock';
-           }
-       }
-
-       function formatFileSize(bytes) {
-           if (bytes === 0) return '0 Bytes';
-           const k = 1024;
-           const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-           const i = Math.floor(Math.log(bytes) / Math.log(k));
-           return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-       }
-
-       // Notification system
-       function showNotification(message, type = 'info') {
-           const existingNotifications = document.querySelectorAll('.notification');
-           existingNotifications.forEach(n => n.remove());
-
-           const notification = document.createElement('div');
-           notification.className = `notification notification-${type}`;
-           notification.style.cssText = `
-               position: fixed;
-               top: 20px;
-               right: 20px;
-               padding: 16px 20px;
-               border-radius: 8px;
-               color: white;
-               font-weight: 500;
-               z-index: 10001;
-               max-width: 400px;
-               word-wrap: break-word;
-               box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-               animation: slideInRight 0.3s ease-out;
-               ${type === 'success' ? 'background: linear-gradient(135deg, #10b981, #059669);' : ''}
-               ${type === 'error' ? 'background: linear-gradient(135deg, #ef4444, #dc2626);' : ''}
-               ${type === 'warning' ? 'background: linear-gradient(135deg, #f59e0b, #d97706);' : ''}
-               ${type === 'info' ? 'background: linear-gradient(135deg, #3b82f6, #2563eb);' : ''}
-           `;
-           
-           notification.innerHTML = `
-               <div style="display: flex; align-items: flex-start; gap: 8px;">
-                   <span class="icon icon-${type === 'success' ? 'check' : 'clock'}" style="margin-top: 2px;"></span>
-                   <span>${message}</span>
-               </div>
-           `;
-           
-           document.body.appendChild(notification);
-           
-           setTimeout(() => {
-               if (notification.parentNode) {
-                   notification.style.animation = 'slideOutRight 0.3s ease-in';
-                   setTimeout(() => notification.remove(), 300);
-               }
-           }, 5000);
-       }
-
-       // Load existing data
-       function loadExistingData() {
-           uploadedFiles = loadUploadedFiles();
-           depositHistory = loadUserDeposits();
-           
-           // Ensure uploadedFiles is always an array
-           if (!Array.isArray(uploadedFiles)) {
-               uploadedFiles = [];
-               saveUploadedFiles(uploadedFiles);
-           }
-           
-           renderUploadedFiles();
-           updateSubmitButton();
-           updateProgressSteps();
-           updateDepositTimeline();
-           
-           console.log(`📂 Loaded data for user: ${getCurrentUserId()}`);
-           console.log(`📋 Uploaded files:`, uploadedFiles);
-       }
-
-       // Input event handlers
-       function setupInputHandlers() {
-           document.getElementById('depositAmount').addEventListener('input', function() {
-               updateSubmitButton();
-               updateProgressSteps();
-           });
-
-           document.getElementById('depositPurpose').addEventListener('change', function() {
-               updateSubmitButton();
-               updateProgressSteps();
            });
        }
 
-       // Add CSS for notification animations
-       const style = document.createElement('style');
-       style.textContent = `
-           @keyframes slideInRight {
-               from { transform: translateX(100%); opacity: 0; }
-               to { transform: translateX(0); opacity: 1; }
-           }
-           @keyframes slideOutRight {
-               from { transform: translateX(0); opacity: 1; }
-               to { transform: translateX(100%); opacity: 0; }
-           }
-       `;
-       document.head.appendChild(style);
-
-       // Initialize page - FIXED VERSION
-       document.addEventListener('DOMContentLoaded', async function() {
-           // Check authentication
-           const authToken = localStorage.getItem('aequitas_auth_token');
-           if (!authToken) {
-               showNotification('Please log in to access this page.', 'warning');
-               setTimeout(() => {
-                   window.location.href = 'login.html';
-               }, 2000);
+       // Submit deposit request
+       async function submitDepositRequest() {
+           const amount = document.getElementById('depositAmount').value;
+           const purpose = document.getElementById('depositPurpose').value;
+           
+           if (!amount || !purpose) {
+               showNotification('Please fill in all required fields.', 'error');
                return;
-           }
+          }
+          
+          if (uploadedFiles.length < 2) {
+              showNotification('Please upload at least 2 documents before submitting.', 'error');
+              return;
+          }
+          
+          if (parseFloat(amount) < 1000) {
+              showNotification('Minimum deposit amount is $1,000.', 'error');
+              return;
+          }
+          
+          try {
+              showNotification('Submitting deposit request...', 'info');
+              
+              // Submit deposit to database
+              const response = await fetch('/api/deposits', {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${localStorage.getItem('aequitas_auth_token')}`
+                  },
+                  body: JSON.stringify({
+                      amount: parseFloat(amount),
+                      purpose: purpose,
+                      userId: getCurrentUserId()
+                  })
+              });
+              
+              const result = await response.json();
+              
+              if (!result.success) {
+                  throw new Error(result.error || 'Failed to submit deposit request');
+              }
+              
+              const depositId = result.deposit.id;
+              const reference = result.reference;
+              
+              // Upload all files to the created deposit
+              for (const file of uploadedFiles) {
+                  await fetch('/api/upload', {
+                      method: 'POST',
+                      headers: {
+                          'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({
+                          fileName: file.name,
+                          fileData: file.fileData,
+                          depositId: depositId,
+                          userId: getCurrentUserId()
+                      })
+                  });
+              }
+              
+              // Save to local history
+              const depositRecord = {
+                  id: depositId,
+                  amount: parseFloat(amount),
+                  purpose: purpose,
+                  reference: reference,
+                  status: 'pending',
+                  createdAt: new Date().toISOString(),
+                  userId: getCurrentUserId()
+              };
+              
+              depositHistory.push(depositRecord);
+              saveUserDeposits(depositHistory);
+              
+              // Clear form
+              document.getElementById('depositAmount').value = '';
+              document.getElementById('depositPurpose').value = '';
+              uploadedFiles = [];
+              saveUploadedFiles(uploadedFiles);
+              pendingDeposit = null;
+              
+              renderUploadedFiles();
+              updateSubmitButton();
+              updateProgressSteps();
+              updateDepositTimeline();
+              
+              showNotification(`Deposit request submitted successfully! Reference: ${reference}`, 'success');
+              
+              // Update final step
+              const steps = document.querySelectorAll('.step');
+              steps[2].classList.remove('active');
+              steps[2].classList.add('completed');
+              steps[2].querySelector('.step-circle').innerHTML = '<span class="icon icon-check"></span>';
+              steps[3].classList.add('active');
+              
+          } catch (error) {
+              console.error('Deposit submission error:', error);
+              showNotification(`Failed to submit deposit request: ${error.message}`, 'error');
+          }
+      }
 
-           // Load saved theme
-           const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
-           if (savedTheme === 'dark') {
-               currentTheme = 'dark';
-               document.documentElement.setAttribute('data-theme', 'dark');
-               const themeToggle = document.querySelector('.theme-toggle .icon');
-               if (themeToggle) themeToggle.className = 'icon icon-sun';
-           }
-           
-           // Load user data FIRST
-           const userData = await loadUserData();
-           
-           // Show admin section if user is admin
-           if (userData.role === 'admin') {
-               const adminSection = document.getElementById('adminSection');
-               if (adminSection) adminSection.style.display = 'block';
-           }
-           
-           // Load existing data
-           loadExistingData();
-           
-           // Setup input handlers
-           setupInputHandlers();
-           
-           console.log(`✅ Fixed deposit page initialized for user: ${getCurrentUserId()}`);
-       });
-   </script>
+      // Update deposit timeline
+      function updateDepositTimeline() {
+          const timeline = document.getElementById('depositTimeline');
+          
+          if (depositHistory.length === 0) {
+              timeline.innerHTML = `
+                  <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                      <div style="font-size: 18px; margin-bottom: 8px;">No deposits yet</div>
+                      <div style="font-size: 14px;">Your deposit history will appear here once you submit a request.</div>
+                  </div>
+              `;
+              return;
+          }
+          
+          timeline.innerHTML = depositHistory.map(deposit => `
+              <div class="timeline-item ${deposit.status}">
+                  <div class="timeline-content">
+                      <div class="timeline-header">
+                          <div class="timeline-title">Deposit Request - ${deposit.reference}</div>
+                          <div class="timeline-date">${new Date(deposit.createdAt).toLocaleDateString()}</div>
+                      </div>
+                      <div class="timeline-description">
+                          ${deposit.amount.toLocaleString()} deposit for ${deposit.purpose} - ${getStatusDescription(deposit.status)}
+                      </div>
+                      <div class="timeline-actions">
+                          <span class="status-badge status-${deposit.status}">
+                              <span class="icon icon-${getStatusIcon(deposit.status)}"></span>
+                              ${deposit.status.charAt(0).toUpperCase() + deposit.status.slice(1)}
+                          </span>
+                      </div>
+                  </div>
+              </div>
+          `).join('');
+      }
+
+      // Helper functions
+      function getStatusDescription(status) {
+          switch(status) {
+              case 'pending': return 'Awaiting admin review and approval';
+              case 'approved': return 'Approved - proceed with bank transfer using reference KC5230';
+              case 'completed': return 'Funds received and allocated to your account';
+              case 'rejected': return 'Please contact support for details';
+              default: return 'Status unknown';
+          }
+      }
+
+      function getStatusIcon(status) {
+          switch(status) {
+              case 'completed': return 'check';
+              case 'approved': return 'check';
+              case 'pending': return 'clock';
+              case 'rejected': return 'x';
+              default: return 'clock';
+          }
+      }
+
+      function formatFileSize(bytes) {
+          if (bytes === 0) return '0 Bytes';
+          const k = 1024;
+          const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+          const i = Math.floor(Math.log(bytes) / Math.log(k));
+          return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+      }
+
+      // Notification system
+      function showNotification(message, type = 'info') {
+          const existingNotifications = document.querySelectorAll('.notification');
+          existingNotifications.forEach(n => n.remove());
+
+          const notification = document.createElement('div');
+          notification.className = `notification notification-${type}`;
+          notification.style.cssText = `
+              position: fixed;
+              top: 20px;
+              right: 20px;
+              padding: 16px 20px;
+              border-radius: 8px;
+              color: white;
+              font-weight: 500;
+              z-index: 10001;
+              max-width: 400px;
+              word-wrap: break-word;
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+              animation: slideInRight 0.3s ease-out;
+              ${type === 'success' ? 'background: linear-gradient(135deg, #10b981, #059669);' : ''}
+              ${type === 'error' ? 'background: linear-gradient(135deg, #ef4444, #dc2626);' : ''}
+              ${type === 'warning' ? 'background: linear-gradient(135deg, #f59e0b, #d97706);' : ''}
+              ${type === 'info' ? 'background: linear-gradient(135deg, #3b82f6, #2563eb);' : ''}
+          `;
+          
+          notification.innerHTML = `
+              <div style="display: flex; align-items: flex-start; gap: 8px;">
+                  <span class="icon icon-${type === 'success' ? 'check' : 'clock'}" style="margin-top: 2px;"></span>
+                  <span>${message}</span>
+              </div>
+          `;
+          
+          document.body.appendChild(notification);
+          
+          setTimeout(() => {
+              if (notification.parentNode) {
+                  notification.style.animation = 'slideOutRight 0.3s ease-in';
+                  setTimeout(() => notification.remove(), 300);
+              }
+          }, 5000);
+      }
+
+      // Load existing data
+      function loadExistingData() {
+          uploadedFiles = loadUploadedFiles();
+          depositHistory = loadUserDeposits();
+          
+          // Ensure uploadedFiles is always an array
+          if (!Array.isArray(uploadedFiles)) {
+              uploadedFiles = [];
+              saveUploadedFiles(uploadedFiles);
+          }
+          
+          renderUploadedFiles();
+          updateSubmitButton();
+          updateProgressSteps();
+          updateDepositTimeline();
+          
+          console.log(`📂 Loaded data for user: ${getCurrentUserId()}`);
+          console.log(`📋 Uploaded files:`, uploadedFiles);
+      }
+
+      // Input event handlers
+      function setupInputHandlers() {
+          document.getElementById('depositAmount').addEventListener('input', function() {
+              updateSubmitButton();
+              updateProgressSteps();
+          });
+
+          document.getElementById('depositPurpose').addEventListener('change', function() {
+              updateSubmitButton();
+              updateProgressSteps();
+          });
+      }
+
+      // Add CSS for notification animations
+      const style = document.createElement('style');
+      style.textContent = `
+          @keyframes slideInRight {
+              from { transform: translateX(100%); opacity: 0; }
+              to { transform: translateX(0); opacity: 1; }
+          }
+          @keyframes slideOutRight {
+              from { transform: translateX(0); opacity: 1; }
+              to { transform: translateX(100%); opacity: 0; }
+          }
+      `;
+      document.head.appendChild(style);
+
+      // Initialize page - FIXED VERSION
+      document.addEventListener('DOMContentLoaded', async function() {
+          // Check authentication
+          const authToken = localStorage.getItem('aequitas_auth_token');
+          if (!authToken) {
+              showNotification('Please log in to access this page.', 'warning');
+              setTimeout(() => {
+                  window.location.href = 'login.html';
+              }, 2000);
+              return;
+          }
+
+          // Load saved theme
+          const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
+          if (savedTheme === 'dark') {
+              currentTheme = 'dark';
+              document.documentElement.setAttribute('data-theme', 'dark');
+              const themeToggle = document.querySelector('.theme-toggle .icon');
+              if (themeToggle) themeToggle.className = 'icon icon-sun';
+          }
+          
+          // Load user data FIRST and wait for it to complete
+          const userData = await loadUserData();
+          
+          // Show admin section if user is admin
+          if (userData.role === 'admin') {
+              const adminSection = document.getElementById('adminSection');
+              if (adminSection) adminSection.style.display = 'block';
+          }
+          
+          // Load existing data
+          loadExistingData();
+          
+          // Setup input handlers
+          setupInputHandlers();
+          
+          console.log(`✅ Fixed deposit page initialized for user: ${getCurrentUserId()}`);
+      });
+  </script>
 </body>
 </html>
-
-                
-    
