@@ -1744,6 +1744,7 @@
                 return;
             }
 
+
             // Load saved theme
             const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
             if (savedTheme === 'dark') {
@@ -1752,12 +1753,12 @@
                 const themeToggle = document.querySelector('.theme-toggle .icon');
                 if (themeToggle) themeToggle.className = 'icon icon-sun';
             }
-
+            
             // Load user data and update UI
             const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
             const firstName = userData.firstName || 'User';
             const lastName = userData.lastName || '';
-            const email = userData.email || '';
+            const email = userData.email || 'user@example.com';
             
             // Update user info elements
             const userNameEl = document.getElementById('userName');
@@ -1769,19 +1770,19 @@
             if (userEmailEl) userEmailEl.textContent = email;
             if (topUserNameEl) topUserNameEl.textContent = firstName;
             if (userAvatarEl) userAvatarEl.textContent = firstName.charAt(0).toUpperCase();
-
+            
             // Show admin section if user is admin
             if (userData.role === 'admin') {
                 const adminSection = document.getElementById('adminSection');
                 if (adminSection) adminSection.style.display = 'block';
             }
-
+            
             // Load existing data
             loadExistingData();
             
             // Setup input handlers
             setupInputHandlers();
-
+            
             console.log(`✅ Fixed deposit page initialized for user: ${getCurrentUserId()}`);
         });
     </script>
