@@ -1327,17 +1327,19 @@
         </div>
 
         <nav class="sidebar-nav">
-            <div class="nav-section">
-                <div class="nav-section-title">Account</div>
-                <button class="nav-item" onclick="navigateTo('dashboard')">
-                    <span class="icon icon-dashboard"></span>
-                    <span>Overview</span>
+            <!-- Admin Section -->
+            <div class="nav-section" id="adminSection">
+                <div class="nav-section-title">Admin Panel</div>
+                <button class="nav-item active" onclick="navigateTo('admin')">
+                    <span class="icon icon-users"></span>
+                    <span>Client Management</span>
                 </button>
-                <button class="nav-item" onclick="navigateTo('statements')">
-                    <span class="icon icon-document"></span>
-                    <span>Statements</span>
+                <button class="nav-item" onclick="navigateTo('profile')">
+                    <span class="icon icon-user"></span>
+                    <span>Profile</span>
                 </button>
             </div>
+        </nav>
 
             <div class="nav-section">
                 <div class="nav-section-title">Trading</div>
@@ -3125,51 +3127,59 @@
         }
 
         // Send Admin Reply
-        async function sendAdminReply(ticketId) {
-            const replyInput = document.getElementById(`reply-${ticketId}`);
-            const message = replyInput.value.trim();
+        // Send Admin Reply with REAL ADMIN NAME
+async function sendAdminReply(ticketId) {
+    const replyInput = document.getElementById(`reply-${ticketId}`);
+    const message = replyInput.value.trim();
+    
+    if (!message) {
+        showNotification('Please enter a message', 'warning');
+        return;
+    }
+    
+    try {
+        console.log(`💬 Admin sending reply to ticket: ${ticketId}`);
+        
+        // Get current admin user data for the sender name
+        const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
+        const senderName = `${userData.firstName || 'Admin'} ${userData.lastName || 'User'}`;
+        
+        console.log(`👤 Sending as: ${senderName}`);
+        
+        const response = await fetch('/api/support', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${getAuthToken()}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'send_message',
+                ticketId: ticketId,
+                message: message,
+                senderName: senderName // Pass the real admin name
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            replyInput.value = '';
+            showNotification(`Reply sent as ${senderName}!`, 'success');
             
-            if (!message) {
-                showNotification('Please enter a message', 'warning');
-                return;
-            }
+            // Reload messages
+            await loadTicketMessages(ticketId);
             
-            try {
-                console.log(`💬 Admin sending reply to ticket: ${ticketId}`);
-                
-                const response = await fetch('/api/support', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${getAuthToken()}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        action: 'send_message',
-                        ticketId: ticketId,
-                        message: message
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    replyInput.value = '';
-                    showNotification('Reply sent successfully!', 'success');
-                    
-                    // Reload messages
-                    await loadTicketMessages(ticketId);
-                    
-                    // Reload tickets to update unread counts
-                    await loadSupportTickets();
-                } else {
-                    throw new Error(data.error || 'Failed to send reply');
-                }
-                
-            } catch (error) {
-                console.error('💥 Failed to send admin reply:', error);
-                showNotification('Failed to send reply', 'error');
-            }
+            // Reload tickets to update unread counts
+            await loadSupportTickets();
+        } else {
+            throw new Error(data.error || 'Failed to send reply');
         }
+        
+    } catch (error) {
+        console.error('💥 Failed to send admin reply:', error);
+        showNotification('Failed to send reply', 'error');
+    }
+}
 
         // Close Ticket (Admin Only)
         async function closeTicket(ticketId) {
@@ -3549,14 +3559,8 @@
         function navigateTo(page) {
             console.log(`Navigation to: ${page}`);
             
-            if (page === 'dashboard') {
-                window.location.href = 'dashboard.html';
-            } else if (page === 'deposit') {
-                window.location.href = 'deposit.html';
-            } else if (page === 'withdraw') {
-                window.location.href = 'withdrawal.html';
-            } else if (page === 'support') {
-                window.location.href = 'support.html';
+            if (page === 'profile') {
+                window.location.href = 'profile.html';
             } else if (page !== 'admin') {
                 alert(`${page.charAt(0).toUpperCase() + page.slice(1)} page coming soon!`);
             }
