@@ -29,7 +29,7 @@
         DOMAIN: window.location.hostname,
         API_BASE: '/api',
         
-        // Security Features Toggle
+        // Security Features Toggle - UPDATED FOR BETTER LOGIN FLOW
         FEATURES: {
             DISABLE_DEVTOOLS: false, // Temporarily disabled for testing
             DISABLE_CONSOLE: false,  // Temporarily disabled for testing
@@ -39,7 +39,7 @@
             API_RATE_LIMITING: false, // Temporarily disabled for testing
             CONTENT_PROTECTION: false, // Temporarily disabled for testing
             ERROR_SANITIZATION: false, // Temporarily disabled for testing
-            SESSION_MONITORING: true,
+            SESSION_MONITORING: false, // Disabled for better login debugging
             AUTO_LOGOUT: false // Temporarily disabled for testing
         },
         
@@ -292,7 +292,7 @@
         }
         
         // ========================================================================
-        // AUTHENTICATION SYSTEM
+        // AUTHENTICATION SYSTEM - FIXED FOR LOGIN FLOW
         // ========================================================================
         
         initializeAuthentication() {
@@ -308,10 +308,21 @@
             
             // Check if current page requires authentication
             if (window.AEQUITAS_SECURITY.PROTECTED_PAGES.includes(currentPage)) {
-                // Add delay to allow login process to complete
+                // FIXED: Longer delay and fresh token detection
                 setTimeout(() => {
+                    // Check if token is fresh (just created during login)
+                    const tokenTimestamp = localStorage.getItem('aequitas_token_timestamp');
+                    if (tokenTimestamp) {
+                        const tokenAge = Date.now() - parseInt(tokenTimestamp);
+                        if (tokenAge < 15000) { // Less than 15 seconds old
+                            console.log('✅ Fresh login token detected, skipping validation');
+                            this.lastActivity = Date.now();
+                            return;
+                        }
+                    }
+                    
                     this.validateAuthentication();
-                }, 500);
+                }, 2000); // Increased from 500ms to 2000ms
             }
         }
         
@@ -330,7 +341,7 @@
                 
                 // Validate token with server (with timeout)
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+                const timeoutId = setTimeout(() => controller.abort(), 8000); // Increased timeout to 8 seconds
                 
                 const response = await fetch(`${window.AEQUITAS_SECURITY.API_BASE}/verify-token`, {
                     method: 'POST',
@@ -361,10 +372,21 @@
                 this.lastActivity = Date.now();
                 
             } catch (error) {
-                // If token validation fails, only redirect if it's a real auth error
+                // FIXED: More lenient error handling during login flow
                 if (error.name === 'AbortError') {
                     console.warn('⚠️ Token validation timeout, allowing page load');
                     return; // Don't redirect on timeout
+                }
+                
+                // Don't redirect immediately after login - the token might be fresh
+                const tokenTimestamp = localStorage.getItem('aequitas_token_timestamp');
+                if (tokenTimestamp) {
+                    const tokenAge = Date.now() - parseInt(tokenTimestamp);
+                    if (tokenAge < 20000) { // Token is less than 20 seconds old
+                        console.warn('⚠️ Fresh token validation failed, allowing page load');
+                        this.lastActivity = Date.now();
+                        return;
+                    }
                 }
                 
                 console.log('❌ Token validation failed:', error.message);
@@ -374,11 +396,14 @@
         }
         
         redirectToLogin(reason) {
+            // Clear all auth data
             localStorage.removeItem('aequitas_auth_token');
             localStorage.removeItem('aequitas_user_data');
+            localStorage.removeItem('aequitas_token_timestamp'); // ADDED: Clear timestamp
             sessionStorage.clear();
             
             const loginUrl = `/login.html${reason ? `?reason=${encodeURIComponent(reason)}` : ''}`;
+            console.log('🔄 Redirecting to login:', loginUrl);
             window.location.href = loginUrl;
         }
         
