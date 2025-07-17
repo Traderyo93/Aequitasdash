@@ -1011,7 +1011,6 @@
             </div>
         </div>
     </div>
-
     <script>
         let currentTheme = 'light';
         let tickets = [];
@@ -1076,45 +1075,61 @@
             console.log('✅ User display updated:', { fullName, email });
         }
 
-        // Enhanced notification system
-        function showNotification(message, type = 'info') {
+        // Enhanced notification system - FIXED SYNTAX
+        function showNotification(message, type) {
+            if (!type) type = 'info';
+            
             const existingNotifications = document.querySelectorAll('.notification');
             existingNotifications.forEach(n => n.remove());
 
             const notification = document.createElement('div');
             notification.className = `notification notification-${type}`;
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 16px 20px;
-                border-radius: 8px;
-                color: white;
-                font-weight: 500;
-                z-index: 10001;
-                max-width: 400px;
-                word-wrap: break-word;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-                animation: slideInRight 0.3s ease-out;
-                ${type === 'success' ? 'background: linear-gradient(135deg, #10b981, #059669);' : ''}
-                ${type === 'error' ? 'background: linear-gradient(135deg, #ef4444, #dc2626);' : ''}
-                ${type === 'warning' ? 'background: linear-gradient(135deg, #f59e0b, #d97706);' : ''}
-                ${type === 'info' ? 'background: linear-gradient(135deg, #3b82f6, #2563eb);' : ''}
-            `;
             
-            notification.innerHTML = `
-                <div style="display: flex; align-items: flex-start; gap: 8px;">
-                    <span style="margin-top: 2px;">✓</span>
-                    <span>${message}</span>
-                </div>
-            `;
+            let bgColor = '';
+            switch(type) {
+                case 'success': 
+                    bgColor = 'background: linear-gradient(135deg, #10b981, #059669);'; 
+                    break;
+                case 'error': 
+                    bgColor = 'background: linear-gradient(135deg, #ef4444, #dc2626);'; 
+                    break;
+                case 'warning': 
+                    bgColor = 'background: linear-gradient(135deg, #f59e0b, #d97706);'; 
+                    break;
+                default: 
+                    bgColor = 'background: linear-gradient(135deg, #3b82f6, #2563eb);'; 
+                    break;
+            }
+            
+            notification.style.cssText = 
+                'position: fixed;' +
+                'top: 20px;' +
+                'right: 20px;' +
+                'padding: 16px 20px;' +
+                'border-radius: 8px;' +
+                'color: white;' +
+                'font-weight: 500;' +
+                'z-index: 10001;' +
+                'max-width: 400px;' +
+                'word-wrap: break-word;' +
+                'box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);' +
+                'animation: slideInRight 0.3s ease-out;' +
+                bgColor;
+            
+            notification.innerHTML = 
+                '<div style="display: flex; align-items: flex-start; gap: 8px;">' +
+                '<span style="margin-top: 2px;">✓</span>' +
+                '<span>' + message + '</span>' +
+                '</div>';
             
             document.body.appendChild(notification);
             
-            setTimeout(() => {
+            setTimeout(function() {
                 if (notification.parentNode) {
                     notification.style.animation = 'slideOutRight 0.3s ease-in';
-                    setTimeout(() => notification.remove(), 300);
+                    setTimeout(function() { 
+                        notification.remove(); 
+                    }, 300);
                 }
             }, 5000);
         }
@@ -1143,7 +1158,6 @@
         async function loadSupportTickets() {
             try {
                 console.log('📋 Loading support tickets...');
-                console.log('🔑 Using auth token:', getAuthToken() ? 'Present' : 'Missing');
                 
                 const response = await fetch('/api/support', {
                     method: 'GET',
@@ -1153,36 +1167,31 @@
                     }
                 });
                 
-                console.log('📡 GET Response status:', response.status);
-                console.log('📡 GET Response ok:', response.ok);
-                
                 const data = await response.json();
-                console.log('📡 GET Response data:', data);
+                console.log('📡 Support tickets response:', data);
                 
                 if (data.success) {
                     tickets = data.tickets || [];
                     console.log(`✅ Loaded ${tickets.length} support tickets`);
-                    console.log('🎫 Tickets array:', tickets);
                     
                     // Update unread count and badge
-                    unreadCount = tickets.reduce((sum, ticket) => sum + (ticket.unread_count_user || 0), 0);
-                    console.log('🔔 Unread count:', unreadCount);
+                    unreadCount = tickets.reduce(function(sum, ticket) { 
+                        return sum + (ticket.unread_count_user || 0); 
+                    }, 0);
                     updateSupportBadge();
                     
                     renderSupportTickets();
                 } else {
-                    console.error('❌ Failed to load tickets:', data.error);
                     throw new Error(data.error || 'Failed to load support tickets');
                 }
                 
             } catch (error) {
                 console.error('💥 Failed to load support tickets:', error);
-                document.getElementById('ticketsContainer').innerHTML = `
-                    <div class="empty-state">
-                        <h3>Unable to load tickets</h3>
-                        <p>There was an error loading your support tickets. Please try refreshing the page.</p>
-                    </div>
-                `;
+                document.getElementById('ticketsContainer').innerHTML = 
+                    '<div class="empty-state">' +
+                    '<h3>Unable to load tickets</h3>' +
+                    '<p>There was an error loading your support tickets. Please try refreshing the page.</p>' +
+                    '</div>';
             }
         }
 
@@ -1203,47 +1212,52 @@
             const container = document.getElementById('ticketsContainer');
             
             if (tickets.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <h3>No support tickets yet</h3>
-                        <p>When you submit a support request, it will appear here. Henry Windeler Cohen will respond within 24 hours.</p>
-                    </div>
-                `;
+                container.innerHTML = 
+                    '<div class="empty-state">' +
+                    '<h3>No support tickets yet</h3>' +
+                    '<p>When you submit a support request, it will appear here. Henry Windeler Cohen will respond within 24 hours.</p>' +
+                    '</div>';
                 return;
             }
             
-            container.innerHTML = tickets.map(ticket => `
-                <div class="ticket-item" data-ticket-id="${ticket.id}">
-                    <div class="ticket-header" onclick="toggleTicket('${ticket.id}')">
-                        <div class="ticket-info">
-                            <div class="ticket-title">${ticket.subject}</div>
-                            <div class="ticket-meta">
-                                <span class="ticket-status status-${ticket.status}">
-                                    <span class="icon icon-clock"></span>
-                                    ${getStatusLabel(ticket.status)}
-                                </span>
-                                <span>Priority: ${ticket.priority}</span>
-                                <span>Created: ${new Date(ticket.created_at).toLocaleDateString()}</span>
-                                ${ticket.unread_count_user > 0 ? `<span style="color: var(--error); font-weight: 600;">${ticket.unread_count_user} new message${ticket.unread_count_user > 1 ? 's' : ''}</span>` : ''}
+            container.innerHTML = tickets.map(function(ticket) {
+                const createdDate = new Date(ticket.created_at).toLocaleDateString();
+                const unreadText = ticket.unread_count_user > 0 ? 
+                    `<span style="color: var(--error); font-weight: 600;">${ticket.unread_count_user} new message${ticket.unread_count_user > 1 ? 's' : ''}</span>` : '';
+                
+                return `
+                    <div class="ticket-item" data-ticket-id="${ticket.id}">
+                        <div class="ticket-header" onclick="toggleTicket('${ticket.id}')">
+                            <div class="ticket-info">
+                                <div class="ticket-title">${ticket.subject}</div>
+                                <div class="ticket-meta">
+                                    <span class="ticket-status status-${ticket.status}">
+                                        <span class="icon icon-clock"></span>
+                                        ${getStatusLabel(ticket.status)}
+                                    </span>
+                                    <span>Priority: ${ticket.priority}</span>
+                                    <span>Created: ${createdDate}</span>
+                                    ${unreadText}
+                                </div>
                             </div>
-                        </div>
-                        <button class="ticket-toggle" id="toggle-${ticket.id}">
-                            <span class="icon icon-chevron-down"></span>
-                        </button>
-                    </div>
-                    <div class="ticket-content" id="content-${ticket.id}">
-                        <div class="messages-container" id="messages-${ticket.id}">
-                            <!-- Messages will be loaded here -->
-                        </div>
-                        <div class="reply-form">
-                            <textarea class="reply-input" id="reply-${ticket.id}" placeholder="Type your reply..." rows="1"></textarea>
-                            <button class="reply-btn" onclick="sendReply('${ticket.id}')">
-                                <span class="icon icon-send"></span>
+                            <button class="ticket-toggle" id="toggle-${ticket.id}">
+                                <span class="icon icon-chevron-down"></span>
                             </button>
                         </div>
+                        <div class="ticket-content" id="content-${ticket.id}">
+                            <div class="messages-container" id="messages-${ticket.id}">
+                                <!-- Messages will be loaded here -->
+                            </div>
+                            <div class="reply-form">
+                                <textarea class="reply-input" id="reply-${ticket.id}" placeholder="Type your reply..." rows="1"></textarea>
+                                <button class="reply-btn" onclick="sendReply('${ticket.id}')">
+                                    <span class="icon icon-send"></span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         // Get Status Label
@@ -1258,8 +1272,6 @@
 
         // Toggle Ticket Expansion
         async function toggleTicket(ticketId) {
-            console.log('🎫 Toggling ticket:', ticketId);
-            
             const content = document.getElementById(`content-${ticketId}`);
             const toggle = document.getElementById(`toggle-${ticketId}`);
             
@@ -1268,30 +1280,18 @@
                 return;
             }
             
-            console.log('🎫 Current expanded state:', content.classList.contains('expanded'));
-            
             if (content.classList.contains('expanded')) {
-                // Close the ticket
                 content.classList.remove('expanded');
                 toggle.innerHTML = '<span class="icon icon-chevron-down"></span>';
-                console.log('🎫 Ticket closed');
             } else {
-                // Open the ticket
                 content.classList.add('expanded');
                 toggle.innerHTML = '<span class="icon icon-chevron-up"></span>';
-                console.log('🎫 Ticket opened, loading messages...');
                 
                 try {
-                    // Load messages for this ticket
                     await loadTicketMessages(ticketId);
-                    
-                    // Mark as read
                     await markTicketRead(ticketId);
-                    
-                    console.log('🎫 Messages loaded and marked as read');
                 } catch (error) {
                     console.error('❌ Error loading messages:', error);
-                    // Don't close the ticket if there's an error
                 }
             }
         }
@@ -1299,8 +1299,6 @@
         // Load Messages for Ticket
         async function loadTicketMessages(ticketId) {
             try {
-                console.log(`📨 Loading messages for ticket: ${ticketId}`);
-                
                 const response = await fetch(`/api/support-messages?ticketId=${ticketId}`, {
                     method: 'GET',
                     headers: {
@@ -1309,14 +1307,10 @@
                     }
                 });
                 
-                console.log(`📨 Messages response status: ${response.status}`);
-                
                 const data = await response.json();
-                console.log(`📨 Messages response data:`, data);
                 
                 if (data.success) {
                     renderTicketMessages(ticketId, data.messages);
-                    console.log(`📨 Rendered ${data.messages.length} messages`);
                 } else {
                     throw new Error(data.error || 'Failed to load messages');
                 }
@@ -1325,11 +1319,10 @@
                 console.error('💥 Failed to load ticket messages:', error);
                 const messagesContainer = document.getElementById(`messages-${ticketId}`);
                 if (messagesContainer) {
-                    messagesContainer.innerHTML = `
-                        <div style="text-align: center; padding: 20px; color: var(--text-secondary);">
-                            <div style="font-size: 14px;">Failed to load messages. Please try again.</div>
-                        </div>
-                    `;
+                    messagesContainer.innerHTML = 
+                        '<div style="text-align: center; padding: 20px; color: var(--text-secondary);">' +
+                        '<div style="font-size: 14px;">Failed to load messages. Please try again.</div>' +
+                        '</div>';
                 }
             }
         }
@@ -1339,29 +1332,35 @@
             const container = document.getElementById(`messages-${ticketId}`);
             
             if (messages.length === 0) {
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 20px; color: var(--text-secondary);">
-                        <div style="font-size: 14px;">No messages in this ticket yet.</div>
-                    </div>
-                `;
+                container.innerHTML = 
+                    '<div style="text-align: center; padding: 20px; color: var(--text-secondary);">' +
+                    '<div style="font-size: 14px;">No messages in this ticket yet.</div>' +
+                    '</div>';
                 return;
             }
             
-            container.innerHTML = messages.map(message => `
-                <div class="message ${message.sender_type}">
-                    <div class="message-avatar">
-                        ${message.sender_type === 'admin' ? 'HC' : (message.sender_name ? message.sender_name.split(' ').map(n => n[0]).join('') : 'U')}
-                    </div>
-                    <div class="message-bubble">
-                        <div class="message-content">${message.message}</div>
-                        <div class="message-time">
-                            ${message.sender_name} • ${new Date(message.created_at).toLocaleDateString()} ${new Date(message.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+            container.innerHTML = messages.map(function(message) {
+                const messageDate = new Date(message.created_at);
+                const dateStr = messageDate.toLocaleDateString();
+                const timeStr = messageDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                const initials = message.sender_type === 'admin' ? 'HC' : 
+                    (message.sender_name ? message.sender_name.split(' ').map(function(n) { return n[0]; }).join('') : 'U');
+                
+                return `
+                    <div class="message ${message.sender_type}">
+                        <div class="message-avatar">
+                            ${initials}
+                        </div>
+                        <div class="message-bubble">
+                            <div class="message-content">${message.message}</div>
+                            <div class="message-time">
+                                ${message.sender_name} • ${dateStr} ${timeStr}
+                            </div>
                         </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
             
-            // Scroll to bottom
             container.scrollTop = container.scrollHeight;
         }
 
@@ -1376,8 +1375,6 @@
             }
             
             try {
-                console.log(`💬 Sending reply to ticket: ${ticketId}`);
-                
                 const response = await fetch('/api/support', {
                     method: 'POST',
                     headers: {
@@ -1397,10 +1394,7 @@
                     replyInput.value = '';
                     showNotification('Reply sent successfully!', 'success');
                     
-                    // Reload messages
                     await loadTicketMessages(ticketId);
-                    
-                    // Reload tickets to update counts
                     await loadSupportTickets();
                 } else {
                     throw new Error(data.error || 'Failed to send reply');
@@ -1415,8 +1409,6 @@
         // Mark Ticket as Read
         async function markTicketRead(ticketId) {
             try {
-                console.log(`🔔 Marking ticket ${ticketId} as read`);
-                
                 const response = await fetch('/api/support', {
                     method: 'PUT',
                     headers: {
@@ -1430,159 +1422,138 @@
                 });
                 
                 if (response.ok) {
-                    // Update local ticket unread count
-                    const ticket = tickets.find(t => t.id === ticketId);
+                    const ticket = tickets.find(function(t) { return t.id === ticketId; });
                     if (ticket) {
                         ticket.unread_count_user = 0;
-                        unreadCount = tickets.reduce((sum, t) => sum + (t.unread_count_user || 0), 0);
+                        unreadCount = tickets.reduce(function(sum, t) { 
+                            return sum + (t.unread_count_user || 0); 
+                        }, 0);
                         updateSupportBadge();
-                        console.log(`🔔 Ticket ${ticketId} marked as read, new unread count: ${unreadCount}`);
                     }
-                } else {
-                    console.warn('⚠️ Failed to mark ticket as read, but continuing...');
                 }
                 
             } catch (error) {
                 console.error('Failed to mark ticket as read:', error);
-                // Don't throw error, just log it
             }
         }
 
+        // Add CSS for notification animations
+        if (!document.getElementById('notification-styles')) {
+            const notificationStyles = document.createElement('style');
+            notificationStyles.id = 'notification-styles';
+            notificationStyles.textContent = 
+                '@keyframes slideInRight {' +
+                    'from { transform: translateX(100%); opacity: 0; }' +
+                    'to { transform: translateX(0); opacity: 1; }' +
+                '}' +
+                '@keyframes slideOutRight {' +
+                    'from { transform: translateX(0); opacity: 1; }' +
+                    'to { transform: translateX(100%); opacity: 0; }' +
+                '}';
+            document.head.appendChild(notificationStyles);
+        }
+
+        // Initialize page - FIXED VERSION
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🚀 Support page initializing...');
+            window.supportPageInitialized = true;
+            
+            // Check authentication
+            const authToken = localStorage.getItem('aequitas_auth_token');
+            if (!authToken) {
+                showNotification('Please log in to access this page.', 'warning');
+                setTimeout(function() {
+                    window.location.href = 'login.html';
+                }, 2000);
+                return;
+            }
+
+            // Load saved theme
+            const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
+            if (savedTheme === 'dark') {
+                currentTheme = 'dark';
+                document.documentElement.setAttribute('data-theme', 'dark');
+                const themeToggle = document.querySelector('.theme-toggle .icon');
+                if (themeToggle) themeToggle.className = 'icon icon-sun';
+            }
+
+            // Load user data FIRST and wait for it to complete
+            console.log('👤 Loading user data...');
+            const userData = await loadUserData();
+            console.log('✅ User data loaded:', userData);
+
+            // Show admin section if user is admin
+            if (userData && userData.role === 'admin') {
+                const adminSection = document.getElementById('adminSection');
+                if (adminSection) adminSection.style.display = 'block';
+            }
+
+            // Load support tickets
+            console.log('🎫 Loading support tickets...');
+            await loadSupportTickets();
+            
+            console.log('✅ Support page initialized successfully');
+        });
+
         // Submit Support Form
-        document.getElementById('supportForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const submitBtn = document.getElementById('submitBtn');
-            const originalText = submitBtn.innerHTML;
-            
-            try {
-                // Show loading state
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<span class="icon icon-clock"></span> Submitting...';
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('supportForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
                 
-                // Get form values directly from elements
-                const subject = document.getElementById('subject').value.trim();
-                const priority = document.getElementById('priority').value;
-                const message = document.getElementById('message').value.trim();
+                const submitBtn = document.getElementById('submitBtn');
+                const originalText = submitBtn.innerHTML;
                 
-                // Validate form data
-                if (!subject) {
-                    throw new Error('Subject is required');
+                try {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="icon icon-clock"></span> Submitting...';
+                    
+                    const subject = document.getElementById('subject').value.trim();
+                    const priority = document.getElementById('priority').value;
+                    const message = document.getElementById('message').value.trim();
+                    
+                    if (!subject) {
+                        throw new Error('Subject is required');
+                    }
+                    if (!message) {
+                        throw new Error('Message is required');
+                    }
+                    
+                    const ticketData = {
+                        action: 'create_ticket',
+                        subject: subject,
+                        priority: priority,
+                        message: message
+                    };
+                    
+                    const response = await fetch('/api/support', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${getAuthToken()}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(ticketData)
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        e.target.reset();
+                        showNotification('Support ticket submitted successfully! Henry Windeler Cohen will respond within 24 hours.', 'success');
+                        await loadSupportTickets();
+                    } else {
+                        throw new Error(data.error || 'Failed to create support ticket');
+                    }
+                    
+                } catch (error) {
+                    console.error('💥 Failed to create support ticket:', error);
+                    showNotification('Failed to submit support request: ' + error.message, 'error');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
                 }
-                if (!message) {
-                    throw new Error('Message is required');
-                }
-                
-                const ticketData = {
-                    action: 'create_ticket',
-                    subject: subject,
-                    priority: priority,
-                    message: message
-                };
-                
-                console.log('📝 Form values:', { subject, priority, message });
-                console.log('📤 Sending ticket data:', ticketData);
-                console.log('🔑 Auth token:', getAuthToken() ? 'Present' : 'Missing');
-                console.log('📝 Creating support ticket:', ticketData);
-                
-                const response = await fetch('/api/support', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${getAuthToken()}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(ticketData)
-                });
-                
-                console.log('📡 Response status:', response.status);
-                console.log('📡 Response ok:', response.ok);
-                
-                const data = await response.json();
-                console.log('📡 Response data:', data);
-                
-                if (data.success) {
-                    console.log('✅ Support ticket created successfully:',
-                                console.log('✅ Support ticket created successfully:', data.ticket);
-                   
-                   // Reset form
-                   e.target.reset();
-                   
-                   // Show success message
-                   showNotification('Support ticket submitted successfully! Henry Windeler Cohen will respond within 24 hours.', 'success');
-                   
-                   // Reload tickets immediately
-                   console.log('🔄 Reloading support tickets...');
-                   await loadSupportTickets();
-               } else {
-                   console.error('❌ API returned error:', data.error);
-                   throw new Error(data.error || 'Failed to create support ticket');
-               }
-               
-           } catch (error) {
-               console.error('💥 Failed to create support ticket:', error);
-               showNotification(`Failed to submit support request: ${error.message}`, 'error');
-           } finally {
-               // Reset button state
-               submitBtn.disabled = false;
-               submitBtn.innerHTML = originalText;
-           }
-       });
-
-       // Add CSS for notification animations - PREVENT DUPLICATE STYLE DECLARATION
-       if (!document.getElementById('notification-styles')) {
-           const notificationStyles = document.createElement('style');
-           notificationStyles.id = 'notification-styles';
-           notificationStyles.textContent = `
-               @keyframes slideInRight {
-                   from { transform: translateX(100%); opacity: 0; }
-                   to { transform: translateX(0); opacity: 1; }
-               }
-               @keyframes slideOutRight {
-                   from { transform: translateX(0); opacity: 1; }
-                   to { transform: translateX(100%); opacity: 0; }
-               }
-           `;
-           document.head.appendChild(notificationStyles);
-       }
-
-       // Initialize page - FIXED VERSION
-       document.addEventListener('DOMContentLoaded', async function() {
-           // Check authentication
-           const authToken = localStorage.getItem('aequitas_auth_token');
-           if (!authToken) {
-               showNotification('Please log in to access this page.', 'warning');
-               setTimeout(() => {
-                   window.location.href = 'login.html';
-               }, 2000);
-               return;
-           }
-
-           // Load saved theme
-           const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
-           if (savedTheme === 'dark') {
-               currentTheme = 'dark';
-               document.documentElement.setAttribute('data-theme', 'dark');
-               const themeToggle = document.querySelector('.theme-toggle .icon');
-               if (themeToggle) themeToggle.className = 'icon icon-sun';
-           }
-
-           // Load user data FIRST and wait for it to complete
-           console.log('🚀 Starting user data loading...');
-           const userData = await loadUserData();
-           console.log('👤 User data loaded:', userData);
-
-           // Show admin section if user is admin
-           if (userData && userData.role === 'admin') {
-               const adminSection = document.getElementById('adminSection');
-               if (adminSection) adminSection.style.display = 'block';
-           }
-
-           // Load support tickets
-           await loadSupportTickets();
-           
-           console.log('✅ Fixed support page initialized');
-       });
-   </script>
+            });
+        });
+    </script>
 </body>
 </html>
-                                
+    
