@@ -1,4 +1,4 @@
-// api/support-messages.js - FIXED VERSION WITH DYNAMIC ADMIN NAMES
+// api/support-messages.js - UPDATED WITH IMAGE SUPPORT
 const { sql } = require('@vercel/postgres');
 const jwt = require('jsonwebtoken');
 
@@ -41,6 +41,8 @@ module.exports = async function handler(req, res) {
       });
     }
     
+    console.log('📋 Loading messages for ticket:', ticketId, 'User:', user.id);
+    
     // Verify ticket exists and user has access
     const ticketCheck = await sql`
       SELECT * FROM support_tickets WHERE id = ${ticketId}
@@ -56,17 +58,23 @@ module.exports = async function handler(req, res) {
     const ticket = ticketCheck.rows[0];
     
     // Check permissions
-    if (user.role !== 'admin' && ticket.user_id !== user.id) {
+    if (user.role !== 'admin' && user.role !== 'superadmin' && ticket.user_id !== user.id) {
       return res.status(403).json({
         success: false,
         error: 'Access denied'
       });
     }
     
-    // FIXED: Get all messages with DYNAMIC admin names based on sender_name field
+    // UPDATED: Get all messages with IMAGE SUPPORT and dynamic admin names
     const messages = await sql`
       SELECT 
-        m.*,
+        m.id,
+        m.ticket_id,
+        m.sender_id,
+        m.sender_type,
+        m.message,
+        m.image_url,
+        m.created_at,
         CASE 
           WHEN m.sender_type = 'admin' AND m.sender_name IS NOT NULL THEN m.sender_name
           WHEN m.sender_type = 'admin' THEN 'Admin User'
@@ -82,19 +90,32 @@ module.exports = async function handler(req, res) {
       ORDER BY m.created_at ASC
     `;
     
+    console.log(`✅ Loaded ${messages.rows.length} messages for ticket ${ticketId}`);
+    
+    // Log image URLs for debugging
+    const messagesWithImages = messages.rows.filter(m => m.image_url);
+    if (messagesWithImages.length > 0) {
+      console.log('🖼️ Messages with images:', messagesWithImages.map(m => ({
+        id: m.id,
+        image_url: m.image_url
+      })));
+    }
+    
     // Mark as read for the requesting user
-    if (user.role === 'admin') {
+    if (user.role === 'admin' || user.role === 'superadmin') {
       await sql`
         UPDATE support_tickets 
         SET unread_count_admin = 0
         WHERE id = ${ticketId}
       `;
+      console.log('✅ Marked ticket as read for admin');
     } else {
       await sql`
         UPDATE support_tickets 
         SET unread_count_user = 0
         WHERE id = ${ticketId}
       `;
+      console.log('✅ Marked ticket as read for user');
     }
     
     return res.status(200).json({
@@ -105,11 +126,12 @@ module.exports = async function handler(req, res) {
     
   } catch (error) {
     console.error('💥 Support messages API error:', error);
+    console.error('💥 Error stack:', error.stack);
     
     return res.status(500).json({
       success: false,
       error: 'Internal server error',
-      details: error.message
+      details: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
     });
   }
 };
