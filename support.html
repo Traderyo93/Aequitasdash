@@ -131,6 +131,18 @@
             mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m22 0v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75M13 7a4 4 0 11-8 0 4 4 0 018 0z'/%3E%3C/svg%3E");
         }
 
+        .icon-image {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z'/%3E%3C/svg%3E");
+        }
+
+        .icon-paperclip {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m21.44 11.05-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66L9.64 16.2a2 2 0 01-2.83-2.83l8.49-8.48'/%3E%3C/svg%3E");
+        }
+
+        .icon-x {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M18 6L6 18M6 6l12 12'/%3E%3C/svg%3E");
+        }
+
         /* Sidebar Styles */
         .sidebar {
             position: fixed;
@@ -534,6 +546,102 @@
             cursor: pointer;
         }
 
+        /* Image Upload Styles */
+        .image-upload-container {
+            display: flex;
+            align-items: flex-end;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .image-upload-wrapper {
+            flex: 1;
+        }
+
+        .image-upload {
+            position: relative;
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            background: var(--bg-secondary);
+        }
+
+        .image-upload:hover {
+            border-color: var(--accent);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .image-upload.drag-over {
+            border-color: var(--accent);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .image-upload input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .upload-icon {
+            width: 32px;
+            height: 32px;
+            color: var(--text-tertiary);
+            margin: 0 auto 8px;
+        }
+
+        .upload-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .upload-hint {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        /* Image Preview */
+        .image-preview {
+            display: none;
+            margin-top: 12px;
+            position: relative;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .remove-image {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--error);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .remove-image:hover {
+            background: #dc2626;
+        }
+
         /* Buttons */
         .btn {
             display: inline-flex;
@@ -572,6 +680,13 @@
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+        }
+
+        /* Form Actions */
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
         }
 
         /* Support Tickets */
@@ -726,6 +841,27 @@
             opacity: 0.7;
         }
 
+        /* Message Image */
+        .message-image {
+            margin-top: 8px;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .message-image img {
+            max-width: 100%;
+            max-height: 200px;
+            width: auto;
+            height: auto;
+            display: block;
+        }
+
+        .message-image:hover {
+            transform: scale(1.02);
+        }
+
         .reply-form {
             display: flex;
             gap: 8px;
@@ -793,6 +929,47 @@
             font-size: 14px;
         }
 
+        /* Image Modal */
+        .image-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .image-modal.active {
+            display: flex;
+        }
+
+        .image-modal img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 8px;
+        }
+
+        .image-modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
         /* Responsive */
         @media (max-width: 1024px) {
             .sidebar {
@@ -831,6 +1008,15 @@
 
             .ticket-meta {
                 flex-wrap: wrap;
+            }
+
+            .form-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .image-upload-container {
+                flex-direction: column;
             }
         }
     </style>
@@ -958,10 +1144,29 @@
                             <textarea id="message" class="form-input form-textarea" placeholder="Please describe your issue in detail..." required></textarea>
                         </div>
 
-                        <button type="submit" class="btn btn-primary" id="submitBtn">
-                            <span class="icon icon-send"></span>
-                            Submit Support Request
-                        </button>
+                        <!-- Image Upload Section -->
+                        <div class="form-group">
+                            <label class="form-label">Attachment (Optional)</label>
+                            <div class="image-upload" id="imageUpload">
+                                <input type="file" id="imageFile" accept="image/*" multiple="false">
+                                <span class="icon icon-image upload-icon"></span>
+                                <div class="upload-text">Click to upload an image or drag and drop</div>
+                                <div class="upload-hint">PNG, JPG, GIF up to 5MB</div>
+                            </div>
+                            <div class="image-preview" id="imagePreview">
+                                <img id="previewImage" class="preview-image" alt="Preview">
+                                <button type="button" class="remove-image" id="removeImage">
+                                    <span class="icon icon-x"></span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                <span class="icon icon-send"></span>
+                                Submit Support Request
+                            </button>
+                        </div>
                     </form>
                 </div>
 
@@ -1011,10 +1216,20 @@
             </div>
         </div>
     </div>
+
+    <!-- Image Modal -->
+    <div class="image-modal" id="imageModal">
+        <button class="image-modal-close" onclick="closeImageModal()">
+            <span class="icon icon-x"></span>
+        </button>
+        <img id="modalImage" alt="Full size image">
+    </div>
+
     <script>
         let currentTheme = 'light';
         let tickets = [];
         let unreadCount = 0;
+        let selectedImage = null;
 
         // Get auth token
         function getAuthToken() {
@@ -1154,6 +1369,123 @@
             }
         }
 
+        // Image Upload Functions
+        function setupImageUpload() {
+            const imageUpload = document.getElementById('imageUpload');
+            const imageFile = document.getElementById('imageFile');
+            const imagePreview = document.getElementById('imagePreview');
+            const previewImage = document.getElementById('previewImage');
+            const removeImage = document.getElementById('removeImage');
+
+            // Click to upload
+            imageUpload.addEventListener('click', function() {
+                imageFile.click();
+            });
+
+            // File selection
+            imageFile.addEventListener('change', handleFileSelect);
+
+            // Drag and drop
+            imageUpload.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                imageUpload.classList.add('drag-over');
+            });
+
+            imageUpload.addEventListener('dragleave', function() {
+                imageUpload.classList.remove('drag-over');
+            });
+
+            imageUpload.addEventListener('drop', function(e) {
+                e.preventDefault();
+                imageUpload.classList.remove('drag-over');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFile(files[0]);
+                }
+            });
+
+            // Remove image
+            removeImage.addEventListener('click', function() {
+                clearImagePreview();
+            });
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        }
+
+        function handleFile(file) {
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                showNotification('Please select an image file (PNG, JPG, GIF)', 'error');
+                return;
+            }
+
+            // Validate file size (5MB limit)
+            if (file.size > 5 * 1024 * 1024) {
+                showNotification('Image size must be less than 5MB', 'error');
+                return;
+            }
+
+            selectedImage = file;
+            
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('previewImage').src = e.target.result;
+                document.getElementById('imagePreview').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function clearImagePreview() {
+            selectedImage = null;
+            document.getElementById('imageFile').value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('previewImage').src = '';
+        }
+
+        // Upload image to server
+        async function uploadImage(file) {
+            const formData = new FormData();
+            formData.append('image', file);
+
+            try {
+                const response = await fetch('/api/upload-image', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    return data.imageUrl;
+                } else {
+                    throw new Error(data.error || 'Failed to upload image');
+                }
+            } catch (error) {
+                console.error('Image upload failed:', error);
+                throw error;
+            }
+        }
+
+        // Image Modal Functions
+        function openImageModal(imageSrc) {
+            document.getElementById('modalImage').src = imageSrc;
+            document.getElementById('imageModal').classList.add('active');
+        }
+
+        function closeImageModal() {
+            document.getElementById('imageModal').classList.remove('active');
+        }
+
         // Load Support Tickets
         async function loadSupportTickets() {
             try {
@@ -1205,355 +1537,3 @@
             } else {
                 supportBadge.style.display = 'none';
             }
-        }
-
-        // Render Support Tickets
-        function renderSupportTickets() {
-            const container = document.getElementById('ticketsContainer');
-            
-            if (tickets.length === 0) {
-                container.innerHTML = 
-                    '<div class="empty-state">' +
-                    '<h3>No support tickets yet</h3>' +
-                    '<p>When you submit a support request, it will appear here. Henry Windeler Cohen will respond within 24 hours.</p>' +
-                    '</div>';
-                return;
-            }
-            
-            container.innerHTML = tickets.map(function(ticket) {
-                const createdDate = new Date(ticket.created_at).toLocaleDateString();
-                const unreadText = ticket.unread_count_user > 0 ? 
-                    `<span style="color: var(--error); font-weight: 600;">${ticket.unread_count_user} new message${ticket.unread_count_user > 1 ? 's' : ''}</span>` : '';
-                
-                return `
-                    <div class="ticket-item" data-ticket-id="${ticket.id}">
-                        <div class="ticket-header" onclick="toggleTicket('${ticket.id}')">
-                            <div class="ticket-info">
-                                <div class="ticket-title">${ticket.subject}</div>
-                                <div class="ticket-meta">
-                                    <span class="ticket-status status-${ticket.status}">
-                                        <span class="icon icon-clock"></span>
-                                        ${getStatusLabel(ticket.status)}
-                                    </span>
-                                    <span>Priority: ${ticket.priority}</span>
-                                    <span>Created: ${createdDate}</span>
-                                    ${unreadText}
-                                </div>
-                            </div>
-                            <button class="ticket-toggle" id="toggle-${ticket.id}">
-                                <span class="icon icon-chevron-down"></span>
-                            </button>
-                        </div>
-                        <div class="ticket-content" id="content-${ticket.id}">
-                            <div class="messages-container" id="messages-${ticket.id}">
-                                <!-- Messages will be loaded here -->
-                            </div>
-                            <div class="reply-form">
-                                <textarea class="reply-input" id="reply-${ticket.id}" placeholder="Type your reply..." rows="1"></textarea>
-                                <button class="reply-btn" onclick="sendReply('${ticket.id}')">
-                                    <span class="icon icon-send"></span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // Get Status Label
-        function getStatusLabel(status) {
-            switch(status) {
-                case 'open': return 'Open';
-                case 'responded': return 'Responded';
-                case 'closed': return 'Closed';
-                default: return 'Unknown';
-            }
-        }
-
-        // Toggle Ticket Expansion
-        async function toggleTicket(ticketId) {
-            const content = document.getElementById(`content-${ticketId}`);
-            const toggle = document.getElementById(`toggle-${ticketId}`);
-            
-            if (!content || !toggle) {
-                console.error('❌ Could not find content or toggle elements for ticket:', ticketId);
-                return;
-            }
-            
-            if (content.classList.contains('expanded')) {
-                content.classList.remove('expanded');
-                toggle.innerHTML = '<span class="icon icon-chevron-down"></span>';
-            } else {
-                content.classList.add('expanded');
-                toggle.innerHTML = '<span class="icon icon-chevron-up"></span>';
-                
-                try {
-                    await loadTicketMessages(ticketId);
-                    await markTicketRead(ticketId);
-                } catch (error) {
-                    console.error('❌ Error loading messages:', error);
-                }
-            }
-        }
-
-        // Load Messages for Ticket
-        async function loadTicketMessages(ticketId) {
-            try {
-                const response = await fetch(`/api/support-messages?ticketId=${ticketId}`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${getAuthToken()}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    renderTicketMessages(ticketId, data.messages);
-                } else {
-                    throw new Error(data.error || 'Failed to load messages');
-                }
-                
-            } catch (error) {
-                console.error('💥 Failed to load ticket messages:', error);
-                const messagesContainer = document.getElementById(`messages-${ticketId}`);
-                if (messagesContainer) {
-                    messagesContainer.innerHTML = 
-                        '<div style="text-align: center; padding: 20px; color: var(--text-secondary);">' +
-                        '<div style="font-size: 14px;">Failed to load messages. Please try again.</div>' +
-                        '</div>';
-                }
-            }
-        }
-
-        // Render Messages
-        function renderTicketMessages(ticketId, messages) {
-            const container = document.getElementById(`messages-${ticketId}`);
-            
-            if (messages.length === 0) {
-                container.innerHTML = 
-                    '<div style="text-align: center; padding: 20px; color: var(--text-secondary);">' +
-                    '<div style="font-size: 14px;">No messages in this ticket yet.</div>' +
-                    '</div>';
-                return;
-            }
-            
-            container.innerHTML = messages.map(function(message) {
-                const messageDate = new Date(message.created_at);
-                const dateStr = messageDate.toLocaleDateString();
-                const timeStr = messageDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                const initials = message.sender_type === 'admin' ? 'HC' : 
-                    (message.sender_name ? message.sender_name.split(' ').map(function(n) { return n[0]; }).join('') : 'U');
-                
-                return `
-                    <div class="message ${message.sender_type}">
-                        <div class="message-avatar">
-                            ${initials}
-                        </div>
-                        <div class="message-bubble">
-                            <div class="message-content">${message.message}</div>
-                            <div class="message-time">
-                                ${message.sender_name} • ${dateStr} ${timeStr}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            
-            container.scrollTop = container.scrollHeight;
-        }
-
-        // Send Reply
-        async function sendReply(ticketId) {
-            const replyInput = document.getElementById(`reply-${ticketId}`);
-            const message = replyInput.value.trim();
-            
-            if (!message) {
-                showNotification('Please enter a message', 'warning');
-                return;
-            }
-            
-            try {
-                const response = await fetch('/api/support', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${getAuthToken()}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        action: 'send_message',
-                        ticketId: ticketId,
-                        message: message
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    replyInput.value = '';
-                    showNotification('Reply sent successfully!', 'success');
-                    
-                    await loadTicketMessages(ticketId);
-                    await loadSupportTickets();
-                } else {
-                    throw new Error(data.error || 'Failed to send reply');
-                }
-                
-            } catch (error) {
-                console.error('💥 Failed to send reply:', error);
-                showNotification('Failed to send reply', 'error');
-            }
-        }
-
-        // Mark Ticket as Read
-        async function markTicketRead(ticketId) {
-            try {
-                const response = await fetch('/api/support', {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `Bearer ${getAuthToken()}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        action: 'mark_read',
-                        ticketId: ticketId
-                    })
-                });
-                
-                if (response.ok) {
-                    const ticket = tickets.find(function(t) { return t.id === ticketId; });
-                    if (ticket) {
-                        ticket.unread_count_user = 0;
-                        unreadCount = tickets.reduce(function(sum, t) { 
-                            return sum + (t.unread_count_user || 0); 
-                        }, 0);
-                        updateSupportBadge();
-                    }
-                }
-                
-            } catch (error) {
-                console.error('Failed to mark ticket as read:', error);
-            }
-        }
-
-        // Add CSS for notification animations
-        if (!document.getElementById('notification-styles')) {
-            const notificationStyles = document.createElement('style');
-            notificationStyles.id = 'notification-styles';
-            notificationStyles.textContent = 
-                '@keyframes slideInRight {' +
-                    'from { transform: translateX(100%); opacity: 0; }' +
-                    'to { transform: translateX(0); opacity: 1; }' +
-                '}' +
-                '@keyframes slideOutRight {' +
-                    'from { transform: translateX(0); opacity: 1; }' +
-                    'to { transform: translateX(100%); opacity: 0; }' +
-                '}';
-            document.head.appendChild(notificationStyles);
-        }
-
-        // Initialize page - FIXED VERSION
-        document.addEventListener('DOMContentLoaded', async function() {
-            console.log('🚀 Support page initializing...');
-            window.supportPageInitialized = true;
-            
-            // Check authentication
-            const authToken = localStorage.getItem('aequitas_auth_token');
-            if (!authToken) {
-                showNotification('Please log in to access this page.', 'warning');
-                setTimeout(function() {
-                    window.location.href = 'login.html';
-                }, 2000);
-                return;
-            }
-
-            // Load saved theme
-            const savedTheme = localStorage.getItem('aequitas_theme') || 'light';
-            if (savedTheme === 'dark') {
-                currentTheme = 'dark';
-                document.documentElement.setAttribute('data-theme', 'dark');
-                const themeToggle = document.querySelector('.theme-toggle .icon');
-                if (themeToggle) themeToggle.className = 'icon icon-sun';
-            }
-
-            // Load user data FIRST and wait for it to complete
-            console.log('👤 Loading user data...');
-            const userData = await loadUserData();
-            console.log('✅ User data loaded:', userData);
-
-            // Show admin section if user is admin
-            if (userData && userData.role === 'admin') {
-                const adminSection = document.getElementById('adminSection');
-                if (adminSection) adminSection.style.display = 'block';
-            }
-
-            // Load support tickets
-            console.log('🎫 Loading support tickets...');
-            await loadSupportTickets();
-            
-            console.log('✅ Support page initialized successfully');
-        });
-
-        // Submit Support Form
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('supportForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                const submitBtn = document.getElementById('submitBtn');
-                const originalText = submitBtn.innerHTML;
-                
-                try {
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<span class="icon icon-clock"></span> Submitting...';
-                    
-                    const subject = document.getElementById('subject').value.trim();
-                    const priority = document.getElementById('priority').value;
-                    const message = document.getElementById('message').value.trim();
-                    
-                    if (!subject) {
-                        throw new Error('Subject is required');
-                    }
-                    if (!message) {
-                        throw new Error('Message is required');
-                    }
-                    
-                    const ticketData = {
-                        action: 'create_ticket',
-                        subject: subject,
-                        priority: priority,
-                        message: message
-                    };
-                    
-                    const response = await fetch('/api/support', {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${getAuthToken()}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(ticketData)
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                        e.target.reset();
-                        showNotification('Support ticket submitted successfully! Henry Windeler Cohen will respond within 24 hours.', 'success');
-                        await loadSupportTickets();
-                    } else {
-                        throw new Error(data.error || 'Failed to create support ticket');
-                    }
-                    
-                } catch (error) {
-                    console.error('💥 Failed to create support ticket:', error);
-                    showNotification('Failed to submit support request: ' + error.message, 'error');
-                } finally {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalText;
-                }
-            });
-        });
-    </script>
-</body>
-</html>
-    
