@@ -1,4 +1,4 @@
-// api/support.js - FIXED SUPPORT SYSTEM WITH PROPER DATABASE MIGRATION
+// api/support.js - UPDATED WITH IMAGE SUPPORT
 const { sql } = require('@vercel/postgres');
 const jwt = require('jsonwebtoken');
 
@@ -28,7 +28,7 @@ module.exports = async function handler(req, res) {
       return res.status(401).json({ success: false, error: 'Invalid token' });
     }
     
-    // Create and update support tables with proper migration
+    // Create and update support tables with proper migration INCLUDING IMAGE SUPPORT
     console.log('🔧 Checking and updating database schema...');
     
     // Create support_tickets table
@@ -39,6 +39,7 @@ module.exports = async function handler(req, res) {
         subject VARCHAR(255) NOT NULL,
         priority VARCHAR(20) DEFAULT 'medium',
         status VARCHAR(20) DEFAULT 'open',
+        image_url VARCHAR(500),
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         last_message_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -55,6 +56,7 @@ module.exports = async function handler(req, res) {
         sender_id UUID NOT NULL,
         sender_type VARCHAR(10) NOT NULL,
         message TEXT NOT NULL,
+        image_url VARCHAR(500),
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       )
     `;
@@ -68,6 +70,28 @@ module.exports = async function handler(req, res) {
       console.log('✅ Added sender_name column to support_messages');
     } catch (alterError) {
       console.log('ℹ️ sender_name column already exists or cannot be added:', alterError.message);
+    }
+    
+    // Add image_url column to support_messages if it doesn't exist
+    try {
+      await sql`
+        ALTER TABLE support_messages 
+        ADD COLUMN IF NOT EXISTS image_url VARCHAR(500)
+      `;
+      console.log('✅ Added image_url column to support_messages');
+    } catch (alterError) {
+      console.log('ℹ️ image_url column already exists in support_messages:', alterError.message);
+    }
+    
+    // Add image_url column to support_tickets if it doesn't exist
+    try {
+      await sql`
+        ALTER TABLE support_tickets 
+        ADD COLUMN IF NOT EXISTS image_url VARCHAR(500)
+      `;
+      console.log('✅ Added image_url column to support_tickets');
+    } catch (alterError) {
+      console.log('ℹ️ image_url column already exists in support_tickets:', alterError.message);
     }
     
     // Add constraint if it doesn't exist
@@ -94,7 +118,7 @@ module.exports = async function handler(req, res) {
       console.log('ℹ️ Foreign key already exists or cannot be added:', fkError.message);
     }
     
-    console.log('✅ Database schema updated successfully');
+    console.log('✅ Database schema updated successfully with image support');
     
     if (req.method === 'GET') {
       if (user.role === 'admin' || user.role === 'superadmin') {
@@ -118,7 +142,14 @@ module.exports = async function handler(req, res) {
               WHERE ticket_id = t.id 
               ORDER BY created_at DESC 
               LIMIT 1
-            ) as latest_sender
+            ) as latest_sender,
+            (
+              SELECT image_url 
+              FROM support_messages 
+              WHERE ticket_id = t.id AND image_url IS NOT NULL
+              ORDER BY created_at DESC 
+              LIMIT 1
+            ) as latest_image
           FROM support_tickets t
           LEFT JOIN users u ON t.user_id = u.id
           ORDER BY t.last_message_at DESC
@@ -138,10 +169,16 @@ module.exports = async function handler(req, res) {
         });
         
       } else {
-        // USER: Get their tickets only
+        // USER: Get their tickets only WITH IMAGE SUPPORT
         const tickets = await sql`
-          SELECT *
-          FROM support_tickets
+          SELECT 
+            t.*,
+            (
+              SELECT COUNT(*)
+              FROM support_messages 
+              WHERE ticket_id = t.id AND image_url IS NOT NULL
+            ) as image_count
+          FROM support_tickets t
           WHERE user_id = ${user.id}
           ORDER BY last_message_at DESC
         `;
@@ -154,10 +191,10 @@ module.exports = async function handler(req, res) {
     }
     
     if (req.method === 'POST') {
-      const { action, ticketId, subject, priority, message, senderName } = req.body;
+      const { action, ticketId, subject, priority, message, imageUrl, senderName } = req.body;
       
       if (action === 'create_ticket') {
-        // Create new support ticket
+        // Create new support ticket WITH IMAGE SUPPORT
         if (!subject || !message) {
           return res.status(400).json({
             success: false,
@@ -166,31 +203,31 @@ module.exports = async function handler(req, res) {
         }
         
         console.log('🎫 Creating new support ticket for user:', user.id);
-        console.log('📝 Ticket details:', { subject, priority, message });
+        console.log('📝 Ticket details:', { subject, priority, message, imageUrl: !!imageUrl });
         
-        // Create ticket
+        // Create ticket WITH IMAGE SUPPORT
         const ticketResult = await sql`
-          INSERT INTO support_tickets (user_id, subject, priority, status)
-          VALUES (${user.id}, ${subject}, ${priority || 'medium'}, 'open')
+          INSERT INTO support_tickets (user_id, subject, priority, status, image_url)
+          VALUES (${user.id}, ${subject}, ${priority || 'medium'}, 'open', ${imageUrl || null})
           RETURNING *
         `;
         
         const newTicket = ticketResult.rows[0];
-        console.log('✅ Ticket created with ID:', newTicket.id);
+        console.log('✅ Ticket created with ID:', newTicket.id, 'Has image:', !!newTicket.image_url);
         
-        // Create first message with user's name
+        // Create first message with user's name AND IMAGE SUPPORT
         const userSenderName = user.firstName && user.lastName 
           ? `${user.firstName} ${user.lastName}`.trim()
           : user.email || 'User';
         
-        console.log('💬 Adding initial message from:', userSenderName);
+        console.log('💬 Adding initial message from:', userSenderName, 'With image:', !!imageUrl);
         
         await sql`
-          INSERT INTO support_messages (ticket_id, sender_id, sender_type, sender_name, message)
-          VALUES (${newTicket.id}, ${user.id}, 'user', ${userSenderName}, ${message})
+          INSERT INTO support_messages (ticket_id, sender_id, sender_type, sender_name, message, image_url)
+          VALUES (${newTicket.id}, ${user.id}, 'user', ${userSenderName}, ${message}, ${imageUrl || null})
         `;
         
-        console.log('✅ Initial message added to ticket');
+        console.log('✅ Initial message added to ticket with image support');
         
         return res.status(200).json({
           success: true,
@@ -199,13 +236,15 @@ module.exports = async function handler(req, res) {
         });
         
       } else if (action === 'send_message') {
-        // Send message to existing ticket
+        // Send message to existing ticket WITH IMAGE SUPPORT
         if (!ticketId || !message) {
           return res.status(400).json({
             success: false,
             error: 'Ticket ID and message are required'
           });
         }
+        
+        console.log('💬 Sending message to ticket:', ticketId, 'With image:', !!imageUrl);
         
         // Verify ticket exists and user has access
         const ticketCheck = await sql`
@@ -238,10 +277,10 @@ module.exports = async function handler(req, res) {
         
         console.log(`💬 Adding message as ${senderType}: ${finalSenderName}`);
         
-        // Insert message with sender name
+        // Insert message with sender name AND IMAGE SUPPORT
         await sql`
-          INSERT INTO support_messages (ticket_id, sender_id, sender_type, sender_name, message)
-          VALUES (${ticketId}, ${user.id}, ${senderType}, ${finalSenderName}, ${message})
+          INSERT INTO support_messages (ticket_id, sender_id, sender_type, sender_name, message, image_url)
+          VALUES (${ticketId}, ${user.id}, ${senderType}, ${finalSenderName}, ${message}, ${imageUrl || null})
         `;
         
         // Update ticket timestamp and unread counts
@@ -271,7 +310,7 @@ module.exports = async function handler(req, res) {
           `;
         }
         
-        console.log(`✅ Message sent to ticket ${ticketId} by ${finalSenderName}`);
+        console.log(`✅ Message sent to ticket ${ticketId} by ${finalSenderName} with image: ${!!imageUrl}`);
         
         return res.status(200).json({
           success: true,
@@ -349,7 +388,7 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({
       success: false,
       error: 'Internal server error',
-      details: error.message
+      details: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
     });
   }
 };
