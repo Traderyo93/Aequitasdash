@@ -684,7 +684,6 @@
         .data-table tbody tr:last-child td {
             border-bottom: none;
         }
-
         /* Status Badges */
         .status {
             display: inline-flex;
@@ -865,6 +864,29 @@
         .message-time {
             font-size: 11px;
             opacity: 0.7;
+        }
+
+        /* Image Support Styles for Admin Messages */
+        .message-image {
+            margin-top: 8px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .message-image:hover {
+            transform: scale(1.02);
+        }
+
+        .message-image img {
+            max-width: 200px;
+            max-height: 150px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            transition: border-color 0.2s ease;
+        }
+
+        .message-image img:hover {
+            border-color: var(--accent);
         }
 
         .reply-form {
@@ -1314,7 +1336,7 @@
         }
     </style>
 </head>
-    <body>
+<body>
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -1459,7 +1481,6 @@
                     </button>
                     <button class="tab" data-tab="reports" onclick="switchTab('reports')">Reports</button>
                 </div>
-
                 <!-- Support Tab -->
                 <div class="tab-content" id="support-tab">
                     <!-- Support Tickets Management -->
@@ -1691,7 +1712,7 @@
             </div>
         </div>
     </div>
-        <!-- Add/Edit Client Modal -->
+    <!-- Add/Edit Client Modal -->
     <div class="modal" id="clientModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -1809,7 +1830,7 @@
             </div>
         </div>
     </div>
-        <!-- Complete Working JavaScript with TRADING INTEGRATION -->
+    <!-- Complete Working JavaScript with TRADING INTEGRATION -->
     <script>
         // === ADMIN SUPPORT SYSTEM VARIABLES ===
         let currentTheme = 'light';
@@ -2134,7 +2155,6 @@
                 modal.remove();
             }
         };
-
         // ===== DEBUGGING FUNCTIONS =====
 
         // Test the integration
@@ -2394,7 +2414,6 @@
                 throw error;
             }
         }
-
         // === WITHDRAWAL MANAGEMENT FUNCTIONS ===
 
         // Load withdrawals from API
@@ -2888,7 +2907,6 @@
             
             showNotification('Withdrawals exported successfully!', 'success');
         }
-        
         // === SUPPORT SYSTEM INTEGRATION ===
 
         // Load Support Tickets (ADMIN VIEW - ALL TICKETS FROM ALL USERS)
@@ -3071,7 +3089,7 @@
             }
         }
 
-        // Render Messages in Admin View
+        // Render Messages in Admin View WITH IMAGE SUPPORT
         function renderTicketMessages(ticketId, messages) {
             const container = document.getElementById(`messages-${ticketId}`);
             
@@ -3084,78 +3102,128 @@
                 return;
             }
             
-            container.innerHTML = messages.map(message => `
-                <div class="message ${message.sender_type}">
-                    <div class="message-avatar">
-                        ${message.sender_type === 'admin' ? 'HC' : (message.sender_name ? message.sender_name.split(' ').map(n => n[0]).join('') : 'U')}
-                    </div>
-                    <div class="message-bubble">
-                        <div class="message-content">${message.message}</div>
-                        <div class="message-time">
-                            ${message.sender_name} • ${new Date(message.created_at).toLocaleDateString()} ${new Date(message.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+            container.innerHTML = messages.map(message => {
+                // Add image display support for admin
+                const imageHtml = message.image_url ? 
+                    `<div class="message-image" onclick="openImageModal('${message.image_url}')" style="margin-top: 8px; cursor: pointer;">
+                        <img src="${message.image_url}" alt="Attachment" style="max-width: 200px; max-height: 150px; border-radius: 8px; border: 1px solid #e2e8f0;" loading="lazy">
+                    </div>` : '';
+                
+                return `
+                    <div class="message ${message.sender_type}">
+                        <div class="message-avatar">
+                            ${message.sender_type === 'admin' ? 'HC' : (message.sender_name ? message.sender_name.split(' ').map(n => n[0]).join('') : 'U')}
+                        </div>
+                        <div class="message-bubble">
+                            <div class="message-content">${message.message}</div>
+                            ${imageHtml}
+                            <div class="message-time">
+                                ${message.sender_name} • ${new Date(message.created_at).toLocaleDateString()} ${new Date(message.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                            </div>
                         </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
             
             // Scroll to bottom
             container.scrollTop = container.scrollHeight;
         }
 
-        // Send Admin Reply
-        // Send Admin Reply with REAL ADMIN NAME
-async function sendAdminReply(ticketId) {
-    const replyInput = document.getElementById(`reply-${ticketId}`);
-    const message = replyInput.value.trim();
-    
-    if (!message) {
-        showNotification('Please enter a message', 'warning');
-        return;
-    }
-    
-    try {
-        console.log(`💬 Admin sending reply to ticket: ${ticketId}`);
-        
-        // Get current admin user data for the sender name
-        const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
-        const senderName = `${userData.firstName || 'Admin'} ${userData.lastName || 'User'}`;
-        
-        console.log(`👤 Sending as: ${senderName}`);
-        
-        const response = await fetch('/api/support', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${getAuthToken()}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                action: 'send_message',
-                ticketId: ticketId,
-                message: message,
-                senderName: senderName // Pass the real admin name
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            replyInput.value = '';
-            showNotification(`Reply sent as ${senderName}!`, 'success');
+        // Image Modal Functions for Admin
+        function openImageModal(imageSrc) {
+            // Remove existing modal if any
+            const existingModal = document.getElementById('imageModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
             
-            // Reload messages
-            await loadTicketMessages(ticketId);
+            // Create image modal
+            const modal = document.createElement('div');
+            modal.className = 'modal show';
+            modal.id = 'imageModal';
+            modal.style.cssText = `
+                position: fixed; 
+                top: 0; 
+                left: 0; 
+                width: 100%; 
+                height: 100%; 
+                background: rgba(0,0,0,0.9); 
+                display: flex; 
+                align-items: center; 
+                justify-content: center; 
+                z-index: 10000;
+            `;
             
-            // Reload tickets to update unread counts
-            await loadSupportTickets();
-        } else {
-            throw new Error(data.error || 'Failed to send reply');
+            modal.innerHTML = `
+                <button onclick="closeImageModal()" style="position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; font-size: 20px;">
+                    ×
+                </button>
+                <img src="${imageSrc}" style="max-width: 90%; max-height: 90%; border-radius: 8px;" alt="Full size image">
+            `;
+            
+            document.body.appendChild(modal);
         }
-        
-    } catch (error) {
-        console.error('💥 Failed to send admin reply:', error);
-        showNotification('Failed to send reply', 'error');
-    }
-}
+
+        function closeImageModal() {
+            const modal = document.getElementById('imageModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        // Send Admin Reply with REAL ADMIN NAME
+        async function sendAdminReply(ticketId) {
+            const replyInput = document.getElementById(`reply-${ticketId}`);
+            const message = replyInput.value.trim();
+            
+            if (!message) {
+                showNotification('Please enter a message', 'warning');
+                return;
+            }
+            
+            try {
+                console.log(`💬 Admin sending reply to ticket: ${ticketId}`);
+                
+                // Get current admin user data for the sender name
+                const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
+                const senderName = `${userData.firstName || 'Admin'} ${userData.lastName || 'User'}`;
+                
+                console.log(`👤 Sending as: ${senderName}`);
+                
+                const response = await fetch('/api/support', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'send_message',
+                        ticketId: ticketId,
+                        message: message,
+                        senderName: senderName // Pass the real admin name
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    replyInput.value = '';
+                    showNotification(`Reply sent as ${senderName}!`, 'success');
+                    
+                    // Reload messages
+                    await loadTicketMessages(ticketId);
+                    
+                    // Reload tickets to update unread counts
+                    await loadSupportTickets();
+                } else {
+                    throw new Error(data.error || 'Failed to send reply');
+                }
+                
+            } catch (error) {
+                console.error('💥 Failed to send admin reply:', error);
+                showNotification('Failed to send reply', 'error');
+            }
+        }
 
         // Close Ticket (Admin Only)
         async function closeTicket(ticketId) {
@@ -3248,7 +3316,6 @@ async function sendAdminReply(ticketId) {
         }
 
         // === END SUPPORT SYSTEM INTEGRATION ===
-        
         // === DATABASE INTEGRATION FUNCTIONS ===
 
         // Fetch real admin statistics from database
@@ -3584,7 +3651,6 @@ async function sendAdminReply(ticketId) {
                 });
             }
         }
-
         // === PENDING USERS MANAGEMENT ===
 
         // Render pending users table
@@ -3949,7 +4015,6 @@ async function sendAdminReply(ticketId) {
         }
 
         // View deposit details
-        // View deposit details
         async function viewDeposit(depositId) {
             const deposit = deposits.find(d => d.id === depositId);
             if (!deposit) {
@@ -4095,7 +4160,6 @@ async function sendAdminReply(ticketId) {
                 showNotification('Deposit approved!', 'success');
             }
         }
-
         // Update pagination
         function updatePagination(totalItems) {
             const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -4520,13 +4584,24 @@ For questions, contact: admin@aequitascap.com`;
             }
         });
 
+        // Close image modal when clicking outside
+        document.addEventListener('click', function(e) {
+            if (e.target.id === 'imageModal') {
+                closeImageModal();
+            }
+        });
+
         // Keyboard shortcuts
         document.addEventListener('keydown', function(e) {
             // ESC to close modals
             if (e.key === 'Escape') {
                 const openModal = document.querySelector('.modal.show');
                 if (openModal) {
-                    closeModal(openModal.id);
+                    if (openModal.id === 'imageModal') {
+                        closeImageModal();
+                    } else {
+                        closeModal(openModal.id);
+                    }
                 }
             }
             
@@ -4600,301 +4675,26 @@ For questions, contact: admin@aequitascap.com`;
             });
         });
 
+        // Helper function for file size formatting
+        function formatFileSize(bytes) {
+            if (!bytes) return 'Unknown';
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
         console.log('✅ Admin.html trading integration updates loaded!');
         console.log('🧪 Available functions:');
         console.log('  - addClientDeposit(clientId) - Enhanced with trading');
         console.log('  - viewClientPerformance(clientId) - View trading performance');
         console.log('  - testTradingIntegration() - Test the integration');
-// === ADMIN DEBUG CONSOLE COMMANDS ===
-
-window.debugDeposits = function() {
-    console.log('🔍 === DEPOSIT DEBUG ===');
-    console.log('📊 Current deposits array:', deposits);
-    console.log('📊 Deposits count:', deposits.length);
-    console.log('🎯 Current tab:', currentTab);
-    console.log('🎯 Is deposits tab active?', document.getElementById('deposits-tab').classList.contains('active'));
-    
-    if (deposits.length > 0) {
-        console.log('📋 Deposits details:');
-        deposits.forEach((d, i) => {
-            console.log(`  ${i+1}. ${d.reference}: $${d.amount} (${d.status}) - ${d.clientName}`);
-        });
-    }
-};
-
-window.checkAPIs = async function() {
-    console.log('🔍 === API CHECK ===');
-    
-    // Check admin-stats
-    try {
-        const statsResponse = await fetch('/api/admin-stats', {
-            headers: { 'Authorization': `Bearer ${getAuthToken()}` }
-        });
-        const statsData = await statsResponse.json();
-        console.log('📊 Admin-stats API:', statsData.success ? '✅ OK' : '❌ FAILED');
-        console.log('📊 Admin-stats deposits:', statsData.deposits?.length || 0);
-    } catch (e) {
-        console.log('📊 Admin-stats API: ❌ ERROR', e.message);
-    }
-    
-    // Check deposits API
-    try {
-        const depositsResponse = await fetch('/api/deposits', {
-            headers: { 'Authorization': `Bearer ${getAuthToken()}` }
-        });
-        const depositsData = await depositsResponse.json();
-        console.log('💰 Deposits API:', depositsData.success ? '✅ OK' : '❌ FAILED');
-        console.log('💰 Deposits API deposits:', depositsData.deposits?.length || 0);
-        
-        if (depositsData.deposits?.length > 0) {
-            console.log('💰 Raw deposits from API:');
-            depositsData.deposits.forEach((d, i) => {
-                console.log(`  ${i+1}. ${d.reference || d.id}: $${d.amount} (${d.status}) - ${d.first_name} ${d.last_name}`);
-            });
-        }
-    } catch (e) {
-        console.log('💰 Deposits API: ❌ ERROR', e.message);
-    }
-};
-
-window.forceRefresh = async function() {
-    console.log('🔄 === FORCE REFRESH ===');
-    await fetchAdminStats();
-    console.log('🔄 After refresh - deposits count:', deposits.length);
-    switchTab('deposits');
-    console.log('🔄 Switched to deposits tab');
-};
-
-window.showTable = function() {
-    console.log('🎨 === TABLE DEBUG ===');
-    const tbody = document.getElementById('depositsTableBody');
-    console.log('🎨 Table HTML length:', tbody.innerHTML.length);
-    console.log('🎨 Table HTML preview:', tbody.innerHTML.substring(0, 500));
-};
-
-        // === ADVANCED ADMIN DEPOSIT DEBUGGING ===
-// Add these debug functions to your admin.html console
-
-// 1. Check what deposits are in the database vs what we're showing
-window.debugDepositFlow = async function() {
-    console.log('🔍 === DEPOSIT FLOW DEBUG ===');
-    
-    try {
-        // Check raw database via admin-stats
-        const statsResponse = await fetch('/api/admin-stats', {
-            headers: { 'Authorization': `Bearer ${getAuthToken()}` }
-        });
-        const statsData = await statsResponse.json();
-        
-        console.log('📊 Raw deposits from admin-stats:', statsData.deposits);
-        
-        // Check if there are pending deposits
-        const pendingDeposits = statsData.deposits.filter(d => d.status === 'pending');
-        const completedDeposits = statsData.deposits.filter(d => d.status === 'completed');
-        
-        console.log('⏳ Pending deposits:', pendingDeposits);
-        console.log('✅ Completed deposits:', completedDeposits);
-        
-        // Check what's in our local array
-        console.log('💾 Local deposits array:', deposits);
-        
-        // Check the difference
-        if (pendingDeposits.length === 0) {
-            console.log('❌ NO PENDING DEPOSITS FOUND IN DATABASE');
-            console.log('💡 This means:');
-            console.log('   1. Client never submitted a pending request, OR');
-            console.log('   2. The request was already approved/completed, OR');
-            console.log('   3. There\'s an issue with the deposit.html submission');
-        } else {
-            console.log('✅ Found pending deposits, checking why they\'re not showing...');
-        }
-        
-    } catch (error) {
-        console.error('💥 Debug error:', error);
-    }
-};
-
-// 2. Check the actual database query that admin-stats is using
-window.debugDatabaseQuery = async function() {
-    console.log('🔍 === DATABASE QUERY DEBUG ===');
-    
-    try {
-        // Make a direct call to see what the admin-stats query returns
-        const response = await fetch('/api/admin-stats', {
-            headers: { 'Authorization': `Bearer ${getAuthToken()}` }
-        });
-        const data = await response.json();
-        
-        console.log('🗃️ Full admin-stats response:', data);
-        
-        // Check the query logic by examining the deposits
-        if (data.deposits) {
-            console.log('📋 All deposits returned:');
-            data.deposits.forEach((deposit, i) => {
-                console.log(`  ${i+1}. ID: ${deposit.id}`);
-                console.log(`     Reference: ${deposit.reference}`);
-                console.log(`     Amount: $${deposit.amount}`);
-                console.log(`     Status: ${deposit.status}`);
-                console.log(`     Client: ${deposit.clientName}`);
-                console.log(`     Date: ${deposit.date}`);
-                console.log(`     User ID: ${deposit.userId}`);
-                console.log('     ---');
-            });
-        }
-        
-        // Check if the issue is in the WHERE clause
-        console.log('🔍 Checking if admin-stats is filtering out pending deposits...');
-        
-    } catch (error) {
-        console.error('💥 Database debug error:', error);
-    }
-};
-
-// 3. Check if Mihkel actually submitted a pending request
-window.debugMihkelDeposits = async function() {
-    console.log('🔍 === MIHKEL DEPOSIT DEBUG ===');
-    
-    try {
-        // Check what deposits exist for Mihkel specifically
-        const response = await fetch('/api/admin-stats', {
-            headers: { 'Authorization': `Bearer ${getAuthToken()}` }
-        });
-        const data = await response.json();
-        
-        // Filter Mihkel's deposits
-        const mihkelDeposits = data.deposits.filter(d => 
-            d.clientName.includes('Mihkel') || 
-            (d.clientEmail && d.clientEmail.includes('mihkel'))
-        );
-        
-        console.log('👤 Mihkel\'s deposits:');
-        mihkelDeposits.forEach((deposit, i) => {
-            console.log(`  ${i+1}. ${deposit.reference} - $${deposit.amount} (${deposit.status})`);
-            console.log(`     Created: ${deposit.date}`);
-            console.log(`     Purpose: ${deposit.purpose || 'Not specified'}`);
-        });
-        
-        // Check if there should be a pending one
-        const today = new Date().toISOString().split('T')[0];
-        const recentDeposits = mihkelDeposits.filter(d => 
-            new Date(d.date).toISOString().split('T')[0] === today
-        );
-        
-        console.log('📅 Today\'s deposits from Mihkel:', recentDeposits);
-        
-        if (recentDeposits.length === 0) {
-            console.log('❌ No deposits from Mihkel today');
-            console.log('💡 Possible reasons:');
-            console.log('   1. Mihkel hasn\'t submitted a deposit request yet');
-            console.log('   2. The deposit was submitted but failed to save');
-            console.log('   3. The deposit was submitted with a different status');
-        }
-        
-    } catch (error) {
-        console.error('💥 Mihkel debug error:', error);
-    }
-};
-
-// 4. Check the deposits API directly (not through admin-stats)
-window.debugDepositsAPI = async function() {
-    console.log('🔍 === DEPOSITS API DEBUG ===');
-    
-    try {
-        const response = await fetch('/api/deposits', {
-            headers: { 'Authorization': `Bearer ${getAuthToken()}` }
-        });
-        const data = await response.json();
-        
-        console.log('💰 Direct deposits API response:', data);
-        
-        if (data.deposits) {
-            console.log('📋 All deposits from deposits API:');
-            data.deposits.forEach((deposit, i) => {
-                console.log(`  ${i+1}. ${deposit.reference || deposit.id} - $${deposit.amount} (${deposit.status})`);
-                console.log(`     Client: ${deposit.first_name} ${deposit.last_name}`);
-                console.log(`     Email: ${deposit.email || 'Not provided'}`);
-                console.log('     ---');
-            });
-            
-            // Check for pending
-            const pending = data.deposits.filter(d => d.status === 'pending');
-            console.log('⏳ Pending deposits from API:', pending);
-        }
-        
-    } catch (error) {
-        console.error('💥 Deposits API debug error:', error);
-    }
-};
-
-// 5. Simulate what happens when Mihkel submits a deposit request
-window.simulateMihkelDeposit = async function() {
-    console.log('🧪 === SIMULATE MIHKEL DEPOSIT ===');
-    
-    const testDeposit = {
-        userId: 'mihkel_user_id', // This should be Mihkel's actual user ID
-        amount: 75000,
-        purpose: 'additional',
-        status: 'pending' // This should start as pending!
-    };
-    
-    console.log('📤 Simulating deposit submission:', testDeposit);
-    
-    try {
-        const response = await fetch('/api/deposits', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${getAuthToken()}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(testDeposit)
-        });
-        
-        const result = await response.json();
-        console.log('📥 Simulation result:', result);
-        
-        if (result.success) {
-            console.log('✅ Test deposit created successfully!');
-            console.log('🔄 Now refresh admin to see if it appears...');
-        } else {
-            console.log('❌ Test deposit failed:', result.error);
-        }
-        
-    } catch (error) {
-        console.error('💥 Simulation error:', error);
-    }
-};
-
-// 6. Full comprehensive debug - run everything
-window.fullDepositDebug = async function() {
-    console.log('🚀 === FULL DEPOSIT DEBUG ===');
-    
-    await debugDepositFlow();
-    console.log('\n');
-    await debugDatabaseQuery();
-    console.log('\n');
-    await debugMihkelDeposits();
-    console.log('\n');
-    await debugDepositsAPI();
-    
-    console.log('🏁 === DEBUG COMPLETE ===');
-    console.log('💡 Next steps:');
-    console.log('   1. Check if you see any pending deposits above');
-    console.log('   2. If no pending deposits, Mihkel needs to submit a request');
-    console.log('   3. If pending deposits exist but not showing, check admin-stats.js filtering');
-    console.log('   4. Run simulateMihkelDeposit() to test the flow');
-};
-
-    function formatFileSize(bytes) {
-        if (!bytes) return 'Unknown';
-        if (bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    }
         
     </script>
 </body>
 </html>
-    
         
+        
+    
+                
