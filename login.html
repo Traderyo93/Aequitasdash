@@ -662,6 +662,61 @@
             codeInput.focus();
         }
 
+        // FIXED ADMIN REDIRECT FUNCTION
+        function redirectUser(userData) {
+            // Clear any existing auth data first
+            localStorage.removeItem('aequitas_auth_token');
+            localStorage.removeItem('aequitas_user_data');
+            localStorage.removeItem('aequitas_token_timestamp');
+            
+            console.log('🎯 ADMIN REDIRECT DEBUG: Full user data:', userData);
+            console.log('🎯 ADMIN REDIRECT DEBUG: User role raw:', userData.role);
+            console.log('🎯 ADMIN REDIRECT DEBUG: User role type:', typeof userData.role);
+            
+            // Normalize the role for comparison - handle any case variations
+            const userRole = (userData.role || '').toString().toLowerCase().trim();
+            console.log('🎯 ADMIN REDIRECT DEBUG: Normalized role:', userRole);
+            console.log('🎯 ADMIN REDIRECT DEBUG: Is admin?:', userRole === 'admin');
+            
+            // Store auth data properly
+            const authToken = userData.token || tempAuthData?.token;
+            if (authToken) {
+                localStorage.setItem('aequitas_auth_token', authToken);
+                localStorage.setItem('aequitas_token_timestamp', Date.now().toString());
+                console.log('🎯 ADMIN REDIRECT DEBUG: Token stored:', authToken.substring(0, 20) + '...');
+            }
+            
+            // Store user data
+            const userDataToStore = {
+                id: userData.id,
+                email: userData.email,
+                role: userData.role, // Keep original case for storage
+                firstName: userData.firstName,
+                lastName: userData.lastName,
+                accountValue: userData.accountValue || 0,
+                startingBalance: userData.startingBalance || 0,
+                setupStatus: userData.setupStatus,
+                setupStep: userData.setupStep,
+                setupRequired: userData.setupRequired
+            };
+            
+            localStorage.setItem('aequitas_user_data', JSON.stringify(userDataToStore));
+            console.log('🎯 ADMIN REDIRECT DEBUG: User data stored:', userDataToStore);
+            
+            // Redirect based on role
+            if (userRole === 'admin') {
+                console.log('🎯 ADMIN REDIRECT DEBUG: Redirecting to admin.html');
+                setTimeout(() => {
+                    window.location.href = 'admin.html';
+                }, 100);
+            } else {
+                console.log('🎯 ADMIN REDIRECT DEBUG: Redirecting to dashboard.html');
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 100);
+            }
+        }
+
         // Step 1: Email/Password submission
         document.getElementById('credentialsForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -672,7 +727,7 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             
-            console.log('🚀 Step 1: Credentials submission');
+            console.log('🚀 Step 1: Credentials submission for:', email);
             
             if (!validateEmail(email)) {
                 errorMessage.textContent = 'Please enter a valid email address.';
@@ -703,12 +758,12 @@
                 });
 
                 const data = await response.json();
-                console.log('📊 Step 1 response:', data);
+                console.log('📊 Step 1 API response:', data);
 
                 if (response.ok && data.success) {
                     // Check if password change is required
                     if (data.passwordChangeRequired) {
-                        console.log('🔐 Password change required');
+                        console.log('🔐 Password change required for:', email);
                         localStorage.setItem('aequitas_temp_user', JSON.stringify(data.user));
                         localStorage.setItem('aequitas_password_change_required', 'true');
                         
@@ -724,7 +779,7 @@
                     
                     // Check if 2FA setup is required
                     if (data.twoFactorSetupRequired) {
-                        console.log('🔐 2FA setup required');
+                        console.log('🔐 2FA setup required for:', email);
                         localStorage.setItem('aequitas_auth_token', data.token);
                         localStorage.setItem('aequitas_user_data', JSON.stringify(data.user));
                         localStorage.setItem('aequitas_token_timestamp', Date.now().toString());
@@ -741,7 +796,7 @@
                     
                     // Check if 2FA is required
                     if (data.twoFactorRequired) {
-                        console.log('🔐 2FA verification required');
+                        console.log('🔐 2FA verification required for:', email);
                         tempAuthData = data;
                         
                         credentialsBtn.querySelector('.btn-text').textContent = 'Verified!';
@@ -755,23 +810,20 @@
                         return;
                     }
                     
-                    // No 2FA required - direct login
-                    console.log('✅ Direct login successful');
-                    localStorage.setItem('aequitas_auth_token', data.token);
-                    localStorage.setItem('aequitas_user_data', JSON.stringify(data.user));
-                    localStorage.setItem('aequitas_token_timestamp', Date.now().toString());
+                    // No 2FA required - direct login with FIXED REDIRECT
+                    console.log('✅ Direct login successful for:', email, 'Role:', data.user.role);
                     
                     credentialsBtn.querySelector('.btn-text').textContent = 'Success!';
                     successMessage.textContent = 'Login successful! Redirecting...';
                     successMessage.style.display = 'block';
                     
+                    // Use the fixed redirect function
                     setTimeout(() => {
-                        if (data.user.role === 'admin') {
-                            window.location.href = 'admin.html';
-                        } else {
-                            window.location.href = 'dashboard.html';
-                        }
-                    }, 1500);
+                        redirectUser({
+                            ...data.user,
+                            token: data.token
+                        });
+                    }, 1000);
                     
                 } else {
                     throw new Error(data.error || 'Login failed');
@@ -842,23 +894,22 @@
                 });
 
                 const data = await response.json();
-                console.log('📊 Step 2 response:', data);
+                console.log('📊 Step 2 API response:', data);
 
                 if (response.ok && data.success) {
-                    localStorage.setItem('aequitas_auth_token', data.token);
-                    localStorage.setItem('aequitas_user_data', JSON.stringify(data.user));
+                    console.log('✅ 2FA login successful for:', tempAuthData.email, 'Role:', data.user.role);
                     
                     twoFactorBtn.querySelector('.btn-text').textContent = 'Success!';
                     successMessage.textContent = 'Login successful! Redirecting...';
                     successMessage.style.display = 'block';
                     
+                    // Use the fixed redirect function
                     setTimeout(() => {
-                        if (data.user.role === 'admin') {
-                            window.location.href = 'admin.html';
-                        } else {
-                            window.location.href = 'dashboard.html';
-                        }
-                    }, 1500);
+                        redirectUser({
+                            ...data.user,
+                            token: data.token
+                        });
+                    }, 1000);
                     
                 } else {
                     throw new Error(data.error || 'Invalid 2FA code');
@@ -897,6 +948,34 @@
         document.getElementById('twoFactorCode').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 document.getElementById('twoFactorForm').dispatchEvent(new Event('submit'));
+            }
+        });
+
+        // Check if user is already logged in on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const existingToken = localStorage.getItem('aequitas_auth_token');
+            const existingUserData = localStorage.getItem('aequitas_user_data');
+            
+            if (existingToken && existingUserData) {
+                try {
+                    const userData = JSON.parse(existingUserData);
+                    console.log('🔄 User already logged in, checking redirect:', userData.role);
+                    
+                    // Check if they're trying to access login page while already logged in
+                    const userRole = (userData.role || '').toLowerCase().trim();
+                    if (userRole === 'admin') {
+                        console.log('🔄 Already logged in admin, redirecting to admin.html');
+                        window.location.href = 'admin.html';
+                    } else {
+                        console.log('🔄 Already logged in client, redirecting to dashboard.html');
+                        window.location.href = 'dashboard.html';
+                    }
+                } catch (error) {
+                    console.log('🔄 Invalid stored user data, clearing...');
+                    localStorage.removeItem('aequitas_auth_token');
+                    localStorage.removeItem('aequitas_user_data');
+                    localStorage.removeItem('aequitas_token_timestamp');
+                }
             }
         });
     </script>
