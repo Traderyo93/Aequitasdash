@@ -1451,27 +1451,42 @@
 
         // Upload image to server
         async function uploadImage(file) {
-            const formData = new FormData();
-            formData.append('image', file);
-
             try {
+                console.log('📤 Uploading image:', file.name, 'Size:', file.size);
+                
+                // Convert file to base64
+                const base64Data = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+
+                console.log('🔄 Converted to base64, uploading...');
+
+                // Send as JSON with base64 data
                 const response = await fetch('/api/upload-image', {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${getAuthToken()}`
+                        'Authorization': `Bearer ${getAuthToken()}`,
+                        'Content-Type': 'application/json'
                     },
-                    body: formData
+                    body: JSON.stringify({
+                        image: base64Data
+                    })
                 });
 
                 const data = await response.json();
+                console.log('📡 Upload response:', data);
                 
                 if (data.success) {
+                    console.log('✅ Image uploaded successfully:', data.imageUrl);
                     return data.imageUrl;
                 } else {
                     throw new Error(data.error || 'Failed to upload image');
                 }
             } catch (error) {
-                console.error('Image upload failed:', error);
+                console.error('💥 Image upload failed:', error);
                 throw error;
             }
         }
