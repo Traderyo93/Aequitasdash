@@ -128,6 +128,10 @@
             mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4'/%3E%3C/svg%3E");
         }
 
+        .icon-clock {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'/%3E%3C/svg%3E");
+        }
+
         /* Sidebar Styles */
         .sidebar {
             position: fixed;
@@ -989,7 +993,6 @@
                     </div>
                 </form>
             </div>
-
             <!-- Main Setup Form -->
             <div class="card">
                 <div class="card-header">
@@ -1154,7 +1157,7 @@
             }
         }
 
-        // FIXED: Download memorandum function - downloads the actual file
+        // Download memorandum function
         function downloadMemorandum() {
             console.log('📄 Downloading Aequitas memorandum...');
             
@@ -1241,10 +1244,10 @@
                         body: JSON.stringify({
                             fileName: file.name,
                             fileData: fileData,
-                            depositId: setupId, // Use setup ID instead of depositId
+                            depositId: setupId,
                             userId: getCurrentUserId(),
-                            documentType: type, // Add document type for categorization
-                            isSetupDocument: true // Flag to indicate this is for setup, not deposit
+                            documentType: type,
+                            isSetupDocument: true
                         })
                     });
                     
@@ -1288,31 +1291,57 @@
             }
         }
 
-        // Update progress
+        // FIXED updateProgress function
         function updateProgress() {
             let progress = 0;
             const progressCircle = document.getElementById('progressCircle');
             const progressText = document.getElementById('progressText');
             const submitBtn = document.getElementById('submitBtn');
             
-            // Password change (20%)
-            if (!passwordChangeRequired) progress += 20;
+            // Password change step (20% only if completed)
+            if (!passwordChangeRequired) {
+                progress += 20;
+                console.log('✅ Password change complete: +20% progress');
+            } else {
+                console.log('🔐 Password change still required: 0% progress');
+            }
             
             // Personal info (30%)
             const requiredFields = ['firstName', 'lastName', 'dateOfBirth', 'phone', 'address'];
             let personalCompleted = 0;
             
-            requiredFields.forEach(fieldId => {
-                const field = document.getElementById(fieldId);
-                if (field && field.value.trim()) personalCompleted++;
-            });
-            
-            if (personalCompleted === requiredFields.length) progress += 30;
+            // Only count personal info if password change is complete
+            if (!passwordChangeRequired) {
+                requiredFields.forEach(fieldId => {
+                    const field = document.getElementById(fieldId);
+                    if (field && field.value.trim()) personalCompleted++;
+                });
+                
+                if (personalCompleted === requiredFields.length) {
+                    progress += 30;
+                    console.log('✅ Personal info complete: +30% progress');
+                } else {
+                    console.log(`📋 Personal info: ${personalCompleted}/${requiredFields.length} fields complete`);
+                }
+            }
             
             // Documents (50% total - 16.67% each)
-            if (uploadedFiles.id) progress += 17;
-            if (uploadedFiles.address) progress += 16;
-            if (uploadedFiles.memorandum) progress += 17;
+            if (!passwordChangeRequired) {
+                if (uploadedFiles.id) {
+                    progress += 17;
+                    console.log('✅ ID document uploaded: +17% progress');
+                }
+                if (uploadedFiles.address) {
+                    progress += 16;
+                    console.log('✅ Address proof uploaded: +16% progress');
+                }
+                if (uploadedFiles.memorandum) {
+                    progress += 17;
+                    console.log('✅ Memorandum uploaded: +17% progress');
+                }
+            }
+            
+            console.log(`📊 Total progress calculated: ${progress}%`);
             
             // Update circular progress
             const angle = (progress / 100) * 360;
@@ -1321,7 +1350,42 @@
             
             // Update submit button
             if (submitBtn) {
-                submitBtn.disabled = progress < 100;
+                if (passwordChangeRequired) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="icon icon-lock"></span>Change Password First';
+                    submitBtn.style.opacity = '0.5';
+                } else if (progress >= 80) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<span class="icon icon-upload"></span>Submit for Admin Review';
+                    submitBtn.style.opacity = '1';
+                } else {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="icon icon-upload"></span>Complete Setup First';
+                    submitBtn.style.opacity = '0.5';
+                }
+            }
+            
+            // Update page elements based on password requirement
+            if (passwordChangeRequired) {
+                const mainSetupForm = document.getElementById('completeSetupForm');
+                if (mainSetupForm) {
+                    const inputs = mainSetupForm.querySelectorAll('input, textarea, button');
+                    inputs.forEach(input => {
+                        if (!input.closest('#passwordChangeSection')) {
+                            input.disabled = true;
+                            input.style.opacity = '0.5';
+                        }
+                    });
+                }
+            } else {
+                const mainSetupForm = document.getElementById('completeSetupForm');
+                if (mainSetupForm) {
+                    const inputs = mainSetupForm.querySelectorAll('input, textarea, button');
+                    inputs.forEach(input => {
+                        input.disabled = false;
+                        input.style.opacity = '1';
+                    });
+                }
             }
         }
 
@@ -1380,6 +1444,10 @@
                     passwordChangeRequired = false;
                     document.getElementById('passwordChangeSection').style.display = 'none';
                     
+                    // Update page title
+                    document.querySelector('.page-title').textContent = 'Complete Your Account Setup';
+                    document.querySelector('.setup-badge').innerHTML = '<span class="icon icon-lock"></span>Setup Required';
+                    
                     showNotification('Password changed successfully!', 'success');
                     updateProgress();
                 } else {
@@ -1432,17 +1500,14 @@
                 });
                 
                 if (response.ok) {
-                    // Mark setup as submitted
                     localStorage.setItem('setup_submitted', 'true');
                     
-                    // Update user data to reflect submission
                     const currentUserData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
                     currentUserData.setupStatus = 'review_pending';
                     localStorage.setItem('aequitas_user_data', JSON.stringify(currentUserData));
                     
                     showNotification('Setup submitted successfully! You will receive an email notification once approved.', 'success');
                     
-                    // Show success state briefly, then redirect to status page
                     submitBtn.innerHTML = '<span class="icon icon-check"></span>Submitted Successfully!';
                     
                     setTimeout(() => {
@@ -1507,8 +1572,8 @@
         }
 
         // Add CSS for notification animations
-        const style = document.createElement('style');
-        style.textContent = `
+        const notificationStyle = document.createElement('style');
+        notificationStyle.textContent = `
             @keyframes slideInRight {
                 from { transform: translateX(100%); opacity: 0; }
                 to { transform: translateX(0); opacity: 1; }
@@ -1530,9 +1595,9 @@
                 to { transform: rotate(360deg); }
             }
         `;
-        document.head.appendChild(style);
+        document.head.appendChild(notificationStyle);
 
-        // Initialize
+        // FIXED INITIALIZATION - Enhanced password change detection
         document.addEventListener('DOMContentLoaded', function() {
             // Check authentication
             const authToken = localStorage.getItem('aequitas_auth_token');
@@ -1554,16 +1619,12 @@
                 if (themeToggle) themeToggle.className = 'icon icon-sun';
             }
 
-            // Check if password change is required
-            passwordChangeRequired = localStorage.getItem('aequitas_password_change_required') === 'true';
-            
             // Load user data and update UI
             const userData = JSON.parse(localStorage.getItem('aequitas_user_data') || '{}');
             const tempUserData = JSON.parse(localStorage.getItem('aequitas_temp_user') || '{}');
             const user = userData.id ? userData : tempUserData;
             
             // CHECK SETUP STATUS - If already submitted, show status page
-            // FIXED: Only show status page if user has ACTUALLY completed setup and submitted for review
             const actualSetupStatus = user.setup_status || user.setupStatus;
             console.log('🔍 Setup page - checking user status:', {
                 setup_status: user.setup_status,
@@ -1580,34 +1641,36 @@
                 return;
             }
             
-            // CRITICAL: For users with setup_status = "setup_pending", they need to complete setup!
-            if (actualSetupStatus === 'setup_pending' || !actualSetupStatus) {
-                console.log('📋 User needs to complete setup - showing setup form');
-                // Continue with normal setup flow - DON'T return here
-            }
-            
-            // FIXED: Check password change requirement from BOTH sources
+            // FIXED: Enhanced password change requirement detection
             const localStorageFlag = localStorage.getItem('aequitas_password_change_required');
             const userDataFlag = user.password_must_change;
             
             // Convert string "true" to boolean true for comparison
             passwordChangeRequired = (localStorageFlag === 'true') || (userDataFlag === true);
             
-            console.log('🔐 Password change analysis:', {
+            console.log('🔐 ENHANCED Password change analysis:', {
                 fromLocalStorage: localStorageFlag,
                 fromUserData: userDataFlag,
                 localStorageFlag_equals_true: localStorageFlag === 'true',
                 userDataFlag_equals_true: userDataFlag === true,
-                finalDecision: passwordChangeRequired
+                finalDecision: passwordChangeRequired,
+                userObject: user
             });
             
-            // CRITICAL FIX: Actually show/hide the password section based on requirement
+            // FIXED: Force show password section when required
             const passwordSection = document.getElementById('passwordChangeSection');
             if (passwordChangeRequired) {
-                console.log('🔐 Password change required - showing password section');
+                console.log('🔐 Password change required - FORCING password section to show');
                 if (passwordSection) {
                     passwordSection.style.display = 'block';
+                    passwordSection.style.visibility = 'visible';
+                    passwordSection.style.opacity = '1';
                     console.log('✅ Password section made visible');
+                    
+                    // Also update the page title to reflect password change requirement
+                    document.querySelector('.page-title').textContent = 'Change Password & Complete Setup';
+                    document.querySelector('.setup-badge').innerHTML = '<span class="icon icon-lock"></span>Password Change Required';
+                    
                 } else {
                     console.error('❌ Password section element not found!');
                 }
@@ -1629,11 +1692,11 @@
             const userAvatarEl = document.getElementById('userAvatar');
             
             if (userNameEl) userNameEl.textContent = passwordChangeRequired ? 'Setting Up...' : `${firstName} ${lastName}`;
-            if (userEmailEl) userEmailEl.textContent = passwordChangeRequired ? 'Complete password change' : email;
+            if (userEmailEl) userEmailEl.textContent = passwordChangeRequired ? 'Complete password change first' : email;
             if (userAvatarEl) userAvatarEl.textContent = firstName.charAt(0).toUpperCase();
 
-            // Pre-fill form if user data exists
-            if (user.firstName || user.first_name) {
+            // Pre-fill form if user data exists (but only if password change is NOT required)
+            if (!passwordChangeRequired && (user.firstName || user.first_name)) {
                 document.getElementById('firstName').value = user.firstName || user.first_name || '';
                 document.getElementById('lastName').value = user.lastName || user.last_name || '';
                 document.getElementById('phone').value = user.phone || '';
@@ -1643,10 +1706,19 @@
             // Initial progress update
             updateProgress();
             
-            console.log('✅ Setup page initialized');
+            console.log('✅ Setup page initialized with password change requirement:', passwordChangeRequired);
             
             if (!passwordChangeRequired) {
                 showNotification('Welcome! Please complete your account setup to access all features.', 'info');
+            } else {
+                showNotification('Please change your temporary password to continue.', 'warning');
+                // Focus on the current password field
+                setTimeout(() => {
+                    const currentPasswordField = document.getElementById('currentPassword');
+                    if (currentPasswordField) {
+                        currentPasswordField.focus();
+                    }
+                }, 1000);
             }
         });
 
@@ -1735,3 +1807,5 @@
     </script>
 </body>
 </html>
+        
+            
