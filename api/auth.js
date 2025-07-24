@@ -1,4 +1,4 @@
-// api/auth.js - COMPLETE AUTHENTICATION API WITH 2FA INTEGRATION
+// api/auth.js - COMPLETE FIXED VERSION
 const { sql } = require('@vercel/postgres');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -27,7 +27,7 @@ module.exports = async function handler(req, res) {
 
     console.log('🔐 Auth attempt for:', email, 'with newPassword:', !!newPassword);
 
-    // Get user from database with 2FA fields
+    // Get user from database with ALL required fields
     const result = await sql`
       SELECT 
         id, email, password_hash, role, first_name, last_name, 
@@ -62,7 +62,7 @@ module.exports = async function handler(req, res) {
 
     console.log('✅ Password verified for:', email);
 
-    // HANDLE PASSWORD CHANGE REQUEST - FIXED VERSION
+    // HANDLE PASSWORD CHANGE REQUEST
     if (newPassword) {
       console.log('🔄 Processing password change for user:', email);
       
@@ -140,7 +140,9 @@ module.exports = async function handler(req, res) {
             startingBalance: parseFloat(user.starting_balance || 0),
             setupStatus: user.setup_status,
             setupStep: user.setup_step,
-            setupRequired: user.setup_status !== 'approved'
+            setupRequired: user.setup_status !== 'approved',
+            password_must_change: false, // ✅ NOW FALSE after change
+            two_factor_setup_required: user.two_factor_setup_required // ✅ INCLUDE THIS
           },
           message: 'Password changed successfully'
         });
@@ -154,9 +156,9 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    // CHECK IF PASSWORD CHANGE IS REQUIRED (first login scenario)
+    // 🔥 FIXED: CHECK IF PASSWORD CHANGE IS REQUIRED (with complete user data)
     if (user.password_must_change && !newPassword) {
-      console.log('⚠️ Password change required for user:', email);
+      console.log('⚠️ Password change MANDATORY for user:', email);
       return res.status(200).json({
         success: true,
         passwordChangeRequired: true,
@@ -169,18 +171,20 @@ module.exports = async function handler(req, res) {
           lastName: user.last_name,
           setupStatus: user.setup_status,
           setupStep: user.setup_step,
-          setupRequired: user.setup_status !== 'approved'
+          setupRequired: user.setup_status !== 'approved',
+          password_must_change: user.password_must_change, // ✅ FIXED: Include this field!
+          two_factor_setup_required: user.two_factor_setup_required // ✅ FIXED: Include this field!
         }
       });
     }
 
     // ===================================================================
-    // 2FA CHECKS - NEW ADDITION
+    // 2FA CHECKS - ENHANCED VERSION
     // ===================================================================
 
-    // Check if 2FA setup is required (new users or users who haven't set up 2FA)
-    if (!user.two_factor_enabled && user.two_factor_setup_required !== false) {
-      console.log('🔐 2FA setup required for user:', email);
+    // 🔥 FIXED: Check if 2FA setup is required (more explicit check)
+    if (!user.two_factor_enabled && user.two_factor_setup_required === true) {
+      console.log('🔐 2FA setup MANDATORY for user:', email);
       
       const token = jwt.sign(
         { userId: user.id, id: user.id, email: user.email, role: user.role },
@@ -200,7 +204,9 @@ module.exports = async function handler(req, res) {
           lastName: user.last_name,
           setupStatus: user.setup_status,
           setupStep: user.setup_step,
-          setupRequired: user.setup_status !== 'approved'
+          setupRequired: user.setup_status !== 'approved',
+          password_must_change: user.password_must_change,
+          two_factor_setup_required: user.two_factor_setup_required
         },
         message: '2FA setup required - redirecting to setup'
       });
@@ -246,6 +252,7 @@ module.exports = async function handler(req, res) {
     console.log('🎫 JWT token generated for normal login:', email);
     console.log('✅ Normal auth successful for:', email, 'Role:', user.role);
 
+    // 🔥 FIXED: Include ALL user fields in normal login response
     return res.status(200).json({
       success: true,
       token: token,
@@ -259,7 +266,10 @@ module.exports = async function handler(req, res) {
         startingBalance: parseFloat(user.starting_balance || 0),
         setupStatus: user.setup_status,
         setupStep: user.setup_step,
-        setupRequired: user.setup_status !== 'approved'
+        setupRequired: user.setup_status !== 'approved',
+        password_must_change: user.password_must_change, // ✅ FIXED: Always include
+        two_factor_setup_required: user.two_factor_setup_required, // ✅ FIXED: Always include
+        two_factor_enabled: user.two_factor_enabled // ✅ FIXED: Always include
       }
     });
 
