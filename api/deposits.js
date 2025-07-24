@@ -1,4 +1,4 @@
-// api/deposits.js - COMPLETE FIXED VERSION
+// api/deposits.js - FIXED VERSION WITHOUT PURPOSE REQUIREMENT
 const { sql } = require('@vercel/postgres');
 const jwt = require('jsonwebtoken');
 
@@ -96,14 +96,14 @@ module.exports = async function handler(req, res) {
           });
         }
         
-        return await addCompletedDeposit(userId, amount, depositDate, purpose, user.id, res);
+        return await addCompletedDeposit(userId, amount, depositDate, purpose || 'additional', user.id, res);
         
       } else {
         // CLIENT FLOW: Submitting deposit request (pending approval)
         console.log('📋 CLIENT FLOW: Creating pending deposit request');
         
         // Client requests don't need depositDate
-        return await createDepositRequest(user.id, amount, purpose, res);
+        return await createDepositRequest(user.id, amount, purpose || 'additional', res);
       }
     }
     
@@ -188,13 +188,13 @@ async function createDepositRequest(userId, amount, purpose, res) {
     const user = userCheck.rows[0];
     const reference = 'ACP' + Date.now().toString().slice(-6);
     
-    // Create PENDING deposit request
+    // Create PENDING deposit request - purpose is optional
     const depositResult = await sql`
       INSERT INTO deposits (
         id, user_id, reference, amount, purpose,
         status, created_at, client_name, client_email
       ) VALUES (
-        gen_random_uuid(), ${userId}, ${reference}, ${parseFloat(amount)}, ${purpose || 'additional'},
+        gen_random_uuid(), ${userId}, ${reference}, ${parseFloat(amount)}, ${purpose},
         'pending', NOW(), 
         ${user.first_name + ' ' + user.last_name},
         ${user.email}
@@ -268,7 +268,7 @@ async function addDepositWithPerformance(targetUserId, amount, depositDate, purp
     
     const reference = 'DEP' + Date.now().toString().slice(-8);
     
-    // Insert deposit record - USES YOUR UPDATED SCHEMA WITH deposit_date COLUMN
+    // Insert deposit record - purpose is optional with default
     const depositResult = await sql`
       INSERT INTO deposits (
         id, user_id, reference, amount, purpose,
@@ -340,53 +340,49 @@ async function addDepositWithPerformance(targetUserId, amount, depositDate, purp
   }
 }
 
-// ===== LOAD CSV DATA =====
+// ===== LOAD CSV DATA - FIXED FOR VERCEL =====
 async function loadCSVData() {
   try {
-    const fs = require('fs');
-    const path = require('path');
+    console.log('📊 Loading CSV data for performance calculation...');
     
-    // Try to read from file system first
-    const csvPath = path.join(process.cwd(), 'data', 'daily_returns_simple.csv');
+    // Always use the public URL for consistency in Vercel
+    const csvUrl = 'https://aequitasdash.vercel.app/data/daily_returns_simple.csv';
     
-    let csvContent;
-    if (fs.existsSync(csvPath)) {
-      csvContent = fs.readFileSync(csvPath, 'utf8');
-      console.log('📊 CSV loaded from local file system');
-    } else {
-      // Try to fetch from public URL (for Vercel deployment)
-      console.log('📊 CSV not found locally, trying public URL...');
-      const response = await fetch(`${process.env.VERCEL_URL || 'http://localhost:3000'}/data/daily_returns_simple.csv`);
-      
-      if (response.ok) {
-        csvContent = await response.text();
-        console.log('📊 CSV loaded from public URL');
-      } else {
-        throw new Error('CSV file not accessible');
-      }
+    const response = await fetch(csvUrl);
+    if (!response.ok) {
+      throw new Error(`CSV fetch failed: ${response.status} ${response.statusText}`);
     }
     
-    // Parse CSV content
+    const csvContent = await response.text();
     const lines = csvContent.split('\n');
     const csvData = {};
     
-    // Skip header row, parse date and daily return
+    // Parse CSV content - use CUMULATIVE returns (column 3)
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i].trim();
       if (!line) continue;
       
       const values = line.split(',');
-      if (values.length >= 2) {
+      if (values.length >= 3) {
         const date = values[0].trim();
-        const dailyReturn = parseFloat(values[1].trim());
+        const cumulativeReturn = parseFloat(values[2].trim()); // Column 3: Cumulative return
         
-        if (!isNaN(dailyReturn)) {
-          csvData[date] = dailyReturn / 100; // Convert percentage to decimal
+        if (!isNaN(cumulativeReturn)) {
+          csvData[date] = cumulativeReturn; // Store as percentage
         }
       }
     }
     
-    console.log(`📊 Parsed ${Object.keys(csvData).length} trading days from CSV`);
+    console.log(`📊 Parsed ${Object.keys(csvData).length} trading days from CSV (cumulative returns)`);
+    
+    // Show sample data for verification
+    const sampleDates = ['2024-06-03', '2024-12-31', '2025-01-24'];
+    sampleDates.forEach(date => {
+      if (csvData[date]) {
+        console.log(`📅 ${date}: ${csvData[date].toFixed(2)}% cumulative`);
+      }
+    });
+    
     return csvData;
     
   } catch (error) {
@@ -396,56 +392,86 @@ async function loadCSVData() {
   }
 }
 
-// ===== CALCULATE USER PERFORMANCE =====
+// ===== CALCULATE USER PERFORMANCE USING CUMULATIVE RETURNS =====
 function calculateUserPerformance(deposits, csvData) {
-  console.log('🧮 Calculating user performance from deposits + CSV data');
+  console.log('🧮 Calculating user performance from deposits + CSV data (CUMULATIVE METHOD)');
   
   let totalBalance = 0;
   let totalDeposits = 0;
-  let tradingDays = 0;
+  
+  // Filter out deposits with null dates and only use completed ones
+  const validDeposits = deposits.filter(deposit => {
+    const hasValidDate = deposit.deposit_date && deposit.deposit_date !== null;
+    if (!hasValidDate) {
+      console.log(`⚠️ Skipping deposit with null date: $${deposit.amount}`);
+    }
+    return hasValidDate;
+  });
+  
+  console.log(`📊 Processing ${validDeposits.length} valid deposits (filtered from ${deposits.length} total)`);
   
   // Sort deposits by date
-  const sortedDeposits = deposits.sort((a, b) => new Date(a.deposit_date) - new Date(b.deposit_date));
+  const sortedDeposits = validDeposits.sort((a, b) => new Date(a.deposit_date) - new Date(b.deposit_date));
   
-  // Process each deposit and apply performance from deposit date to today
+  // Get the latest date in CSV for "end" calculation
+  const csvDates = Object.keys(csvData).sort();
+  const latestCsvDate = csvDates[csvDates.length - 1];
+  const latestCumulativeReturn = csvData[latestCsvDate];
+  
+  console.log(`📅 Using latest CSV date: ${latestCsvDate} (${latestCumulativeReturn?.toFixed(2)}% cumulative)`);
+  
+  // Process each deposit using cumulative returns
   for (const deposit of sortedDeposits) {
     const depositAmount = parseFloat(deposit.amount);
     const depositDate = new Date(deposit.deposit_date);
-    const today = new Date();
+    const depositDateStr = depositDate.toISOString().split('T')[0];
     
-    console.log(`💵 Processing deposit: $${depositAmount.toLocaleString()} on ${depositDate.toISOString().split('T')[0]}`);
+    console.log(`💵 Processing deposit: $${depositAmount.toLocaleString()} on ${depositDateStr}`);
     
     totalDeposits += depositAmount;
-    let currentDepositValue = depositAmount;
-    let daysForThisDeposit = 0;
     
-    // Apply daily returns from deposit date to today
-    for (let date = new Date(depositDate); date <= today; date.setDate(date.getDate() + 1)) {
-      const dateStr = date.toISOString().split('T')[0];
-      
-      // Skip weekends (Saturday = 6, Sunday = 0)
-      if (date.getDay() === 0 || date.getDay() === 6) continue;
-      
-      const dailyReturn = csvData[dateStr] || 0;
-      
-      if (dailyReturn !== 0) {
-        currentDepositValue *= (1 + dailyReturn);
-        daysForThisDeposit++;
-      }
+    // Get cumulative return at deposit date (baseline)
+    const depositCumulativeReturn = csvData[depositDateStr];
+    
+    if (!depositCumulativeReturn && depositCumulativeReturn !== 0) {
+      console.log(`⚠️ No CSV data for deposit date ${depositDateStr}, using deposit amount as-is`);
+      totalBalance += depositAmount;
+      continue;
     }
     
-    totalBalance += currentDepositValue;
-    tradingDays = Math.max(tradingDays, daysForThisDeposit);
+    // Use latest cumulative return if available
+    if (!latestCumulativeReturn && latestCumulativeReturn !== 0) {
+      console.log(`⚠️ No latest CSV data, using deposit amount as-is`);
+      totalBalance += depositAmount;
+      continue;
+    }
     
-    console.log(`   → Grew to: $${currentDepositValue.toLocaleString()} over ${daysForThisDeposit} trading days`);
+    // Calculate performance using cumulative returns
+    // Performance = (latest_cumulative - deposit_cumulative) / 100
+    const performancePercent = latestCumulativeReturn - depositCumulativeReturn;
+    const performanceMultiplier = 1 + (performancePercent / 100);
+    const currentDepositValue = depositAmount * performanceMultiplier;
+    
+    console.log(`   📊 Deposit date cumulative: ${depositCumulativeReturn.toFixed(2)}%`);
+    console.log(`   📊 Latest cumulative: ${latestCumulativeReturn.toFixed(2)}%`);
+    console.log(`   📊 Performance: ${performancePercent.toFixed(2)}%`);
+    console.log(`   📊 Multiplier: ${performanceMultiplier.toFixed(4)}x`);
+    console.log(`   💰 Current value: $${currentDepositValue.toLocaleString()}`);
+    
+    totalBalance += currentDepositValue;
   }
   
   const totalReturnPercent = totalDeposits > 0 ? ((totalBalance - totalDeposits) / totalDeposits) * 100 : 0;
+  
+  console.log(`✅ FINAL CALCULATION:`);
+  console.log(`   💰 Total deposits: $${totalDeposits.toLocaleString()}`);
+  console.log(`   💰 Total balance: $${totalBalance.toLocaleString()}`);
+  console.log(`   📈 Total return: ${totalReturnPercent.toFixed(2)}%`);
   
   return {
     totalDeposits,
     currentBalance: totalBalance,
     totalReturnPercent,
-    daysTrading: tradingDays
+    daysTrading: 0 // Not used in this calculation
   };
 }
