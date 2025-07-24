@@ -1,4 +1,4 @@
-// api/users.js - FIXED WITH COMMONJS
+// api/users.js - COMPLETE FIXED VERSION
 const { sql } = require('@vercel/postgres');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -44,10 +44,10 @@ module.exports = async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
-      // Create new user with setup requirement
+      // Create new user with MANDATORY setup requirements
       const { firstName, lastName, email, phone, address, initialDeposit = 0 } = req.body;
       
-      console.log('👤 Creating user:', { firstName, lastName, email });
+      console.log('👤 Creating NEW user with mandatory setup:', { firstName, lastName, email });
       
       if (!firstName || !lastName || !email) {
         return res.status(400).json({
@@ -79,50 +79,53 @@ module.exports = async function handler(req, res) {
         });
       }
       
-// Create user - let PostgreSQL generate UUID, use 'pending' role
-const insertResult = await sql`
-    INSERT INTO users (
-        email, password_hash, role, first_name, last_name, phone, address,
-        account_value, starting_balance, setup_status, setup_step, password_must_change
-    )
-    VALUES (
-        ${email}, ${hashedPassword}, 'pending', ${firstName}, ${lastName}, 
-        ${phone || ''}, ${address || ''}, ${parseFloat(initialDeposit)}, ${parseFloat(initialDeposit)}, 
-        'setup_pending', 1, true
-    )
-    RETURNING id, email, first_name, last_name
-`;
+      // 🔥 FIXED: Create user WITH ALL REQUIRED SETUP FLAGS
+      const insertResult = await sql`
+        INSERT INTO users (
+          email, password_hash, role, first_name, last_name, phone, address,
+          account_value, starting_balance, setup_status, setup_step, 
+          password_must_change, two_factor_enabled, two_factor_setup_required,
+          personal_info_completed, documents_uploaded, legal_agreements_signed
+        )
+        VALUES (
+          ${email}, ${hashedPassword}, 'pending', ${firstName}, ${lastName}, 
+          ${phone || ''}, ${address || ''}, ${parseFloat(initialDeposit)}, ${parseFloat(initialDeposit)}, 
+          'setup_pending', 1, true, false, true, false, 0, false
+        )
+        RETURNING id, email, first_name, last_name
+      `;
       
       const newUser = insertResult.rows[0];
       
-      // Create user_setup record if table exists
-      try {
-        await sql`
-          INSERT INTO user_setup (user_id, setup_status, setup_progress)
-          VALUES (${userId}, 'setup_pending', 0)
-          ON CONFLICT DO NOTHING
-        `;
-      } catch (setupError) {
-        console.log('No user_setup table, skipping...');
-      }
-      
-      console.log('✅ User created:', newUser);
+      console.log('✅ NEW USER CREATED with mandatory setup flags:', {
+        id: newUser.id,
+        email: newUser.email,
+        password_must_change: true,
+        two_factor_setup_required: true,
+        setup_status: 'setup_pending'
+      });
       
       return res.status(201).json({
         success: true,
-        message: 'User created - setup required',
+        message: 'User created - MANDATORY password change and 2FA setup required',
         user: newUser,
         tempPassword: defaultPassword,
+        setupRequirements: {
+          passwordChangeRequired: true,
+          twoFactorSetupRequired: true,
+          accountSetupRequired: true
+        },
         setupInstructions: `
-New user created: ${email}
+NEW USER CREATED: ${email}
 Temporary password: ${defaultPassword}
 
-User must:
-1. Login and change password
-2. Complete account setup  
-3. Wait for admin approval
+MANDATORY SETUP FLOW:
+1. Login → Password change required (setup.html)
+2. After password change → 2FA setup required (2fa-setup.html)  
+3. After 2FA → Complete account setup (setup.html)
+4. Admin approval required
 
-The user will be redirected to setup.html after login.
+User CANNOT skip any steps in this flow.
         `
       });
     }
