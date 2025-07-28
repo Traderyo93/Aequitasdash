@@ -631,20 +631,20 @@
             background: rgba(15, 44, 130, 0.2);
         }
 
-        .footer-divider {
-            width: 100%;
-            height: 1px;
-            background: rgba(255, 255, 255, 0.50);
-            margin-bottom: 40px;
-        }
-
         .footer-text {
-            max-width: 652px;
+            width: 100%;
             color: #FFF;
             font-family: "Open Sans";
             font-size: 16px;
             font-weight: 400;
             line-height: normal;
+            margin-bottom: 40px;
+        }
+
+        .footer-divider {
+            width: 100%;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.50);
         }
 
         /* Responsive Design */
@@ -694,28 +694,15 @@
                 padding: 40px 24px;
             }
 
-            .footer-nav-links {
+            .nav-links, .footer-nav-links {
                 display: none;
             }
 
-            .footer-nav-menu {
+            .nav-menu, .footer-nav-menu {
                 gap: 0;
             }
 
-            .footer-logo {
-                width: 120px;
-                height: 38px;
-            }
-
-            .nav-links {
-                display: none;
-            }
-
-            .nav-menu {
-                gap: 0;
-            }
-
-            .logo {
+            .logo, .footer-logo {
                 width: 120px;
                 height: 38px;
             }
@@ -774,35 +761,6 @@
             </div>
         </div>
     </section>
-
-    <!-- Footer Section -->
-    <footer class="footer-section">
-        <div class="footer-nav-container">
-            <div class="logo-container">
-                <img src="assets/images/Aequitas Logo.png" alt="Aequitas Capital Partners" class="footer-logo">
-            </div>
-            <div class="footer-nav-menu">
-                <ul class="footer-nav-links">
-                    <li><a href="#about">About Us</a></li>
-                    <li><a href="#investment">Investment Strategies</a></li>
-                    <li><a href="#contact">Contact Us</a></li>
-                </ul>
-                <a href="login.html" class="footer-login-button">
-                    Login
-                    <div class="footer-login-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none">
-                            <path d="M6.8687 9.2414C6.7341 9.2414 6.5996 9.1927 6.4934 9.0884C6.288 8.8867 6.288 8.553 6.4934 8.3513L9.9165 4.4991L6.4934 0.64691C6.288 0.44526 6.288 0.11149 6.4934 -0.09016C6.6987 -0.29181 7.0387 -0.29181 7.244 -0.09016L11.0425 4.1306C11.2478 4.3322 11.2478 4.666 11.0425 4.8676L7.244 9.0884C7.1378 9.1927 7.0032 9.2414 6.8687 9.2414Z" fill="currentColor"/>
-                            <path d="M10.6486 4.931H1.3517C1.05213 4.931 0.803711 4.7356 0.803711 4.5C0.803711 4.2644 1.05213 4.069 1.3517 4.069H10.6486C10.9481 4.069 11.1966 4.2644 11.1966 4.5C11.1966 4.7356 10.9481 4.931 10.6486 4.931Z" fill="currentColor"/>
-                        </svg>
-                    </div>
-                </a>
-            </div>
-        </div>
-        <div class="footer-divider"></div>
-        <p class="footer-text">
-            Aequitas Capital Partners LLP (Company No. OC457483) is registered in England and Wales with its registered office at 85 Great Portland Street, First Floor, London, W1W 7LT. Aequitas Capital Partners LLP acts as the management entity for the Aequitas Capital Partners sub-fund, a sub-fund of Carbon Capital Fund Usaldusfond, a limited partnership fund registered in Estonia (registry code 16383718). Fund administration services are provided by P11 Management. This website and its contents are intended for informational purposes only and do not constitute an offer to the public or a solicitation to invest.
-        </p>
-    </footer>
 
     <!-- About Us Section -->
     <section id="about" class="about-section">
@@ -881,6 +839,35 @@
             </div>
         </div>
     </section>
+
+    <!-- Footer Section -->
+    <footer class="footer-section">
+        <div class="footer-nav-container">
+            <div class="logo-container">
+                <img src="assets/images/Aequitas Logo.png" alt="Aequitas Capital Partners" class="footer-logo">
+            </div>
+            <div class="footer-nav-menu">
+                <ul class="footer-nav-links">
+                    <li><a href="#about">About Us</a></li>
+                    <li><a href="#investment">Investment Strategies</a></li>
+                    <li><a href="#contact">Contact Us</a></li>
+                </ul>
+                <a href="login.html" class="footer-login-button">
+                    Login
+                    <div class="footer-login-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                            <path d="M6.8687 9.2414C6.7341 9.2414 6.5996 9.1927 6.4934 9.0884C6.288 8.8867 6.288 8.553 6.4934 8.3513L9.9165 4.4991L6.4934 0.64691C6.288 0.44526 6.288 0.11149 6.4934 -0.09016C6.6987 -0.29181 7.0387 -0.29181 7.244 -0.09016L11.0425 4.1306C11.2478 4.3322 11.2478 4.666 11.0425 4.8676L7.244 9.0884C7.1378 9.1927 7.0032 9.2414 6.8687 9.2414Z" fill="currentColor"/>
+                            <path d="M10.6486 4.931H1.3517C1.05213 4.931 0.803711 4.7356 0.803711 4.5C0.803711 4.2644 1.05213 4.069 1.3517 4.069H10.6486C10.9481 4.069 11.1966 4.2644 11.1966 4.5C11.1966 4.7356 10.9481 4.931 10.6486 4.931Z" fill="currentColor"/>
+                        </svg>
+                    </div>
+                </a>
+            </div>
+        </div>
+        <p class="footer-text">
+            Aequitas Capital Partners LLP (Company No. OC457483) is registered in England and Wales with its registered office at 85 Great Portland Street, First Floor, London, W1W 7LT. Aequitas Capital Partners LLP acts as the management entity for the Aequitas Capital Partners sub-fund, a sub-fund of Carbon Capital Fund Usaldusfond, a limited partnership fund registered in Estonia (registry code 16383718). Fund administration services are provided by P11 Management. This website and its contents are intended for informational purposes only and do not constitute an offer to the public or a solicitation to invest.
+        </p>
+        <div class="footer-divider"></div>
+    </footer>
 
     <script>
         // Smooth scrolling for navigation links
