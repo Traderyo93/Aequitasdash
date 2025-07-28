@@ -226,24 +226,25 @@
         /* Investment Strategy Section */
         .investment-section {
             width: 100%;
-            background: url('assets/images/Blue Background.png');
+            background: linear-gradient(0deg, rgba(0, 0, 0, 0.50) 0%, rgba(0, 0, 0, 0.50) 100%), 
+                        linear-gradient(0deg, rgba(15, 44, 130, 0.59) 0%, rgba(15, 44, 130, 0.59) 100%), 
+                        url('assets/images/Blue Background.png') lightgray;
             background-size: cover;
             background-position: center;
-            background-repeat: no-repeat;
-            padding: 80px 77px;
+            padding: 80px 0;
         }
 
         .investment-container {
-            max-width: 1440px;
-            margin: 0 auto;
             display: flex;
-            gap: 80px;
             align-items: flex-start;
+            min-height: 500px;
         }
 
         .investment-left {
             flex: 0 0 auto;
-            width: 400px;
+            width: 50%;
+            padding-left: 77px;
+            padding-right: 40px;
         }
 
         .investment-title {
@@ -267,7 +268,11 @@
 
         .investment-right {
             flex: 1;
-            max-width: 635px;
+            padding-right: 77px;
+            padding-left: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
         }
 
         .investment-paragraph {
@@ -326,18 +331,17 @@
             }
 
             .investment-section {
-                padding: 60px 40px;
-                background-size: cover;
-                background-position: center;
+                padding: 60px 0;
             }
 
             .investment-container {
                 flex-direction: column;
-                gap: 60px;
+                min-height: auto;
             }
             
             .investment-left {
                 width: 100%;
+                padding: 0 40px 60px 40px;
             }
 
             .investment-title {
@@ -349,11 +353,7 @@
             }
             
             .investment-right {
-                max-width: 100%;
-            }
-            
-            .investment-divider {
-                width: 100%;
+                padding: 0 40px;
             }
         }
 
@@ -406,13 +406,15 @@
             }
 
             .investment-section {
-                padding: 40px 24px;
-                background-size: cover;
-                background-position: center;
+                padding: 40px 0;
             }
 
             .investment-container {
                 gap: 40px;
+            }
+
+            .investment-left {
+                padding: 0 24px 40px 24px;
             }
 
             .investment-title {
@@ -421,6 +423,10 @@
             
             .investment-subtitle {
                 font-size: 20px;
+            }
+            
+            .investment-right {
+                padding: 0 24px;
             }
             
             .investment-text {
