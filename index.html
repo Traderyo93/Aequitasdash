@@ -430,7 +430,7 @@
         }
 
         .contact-description {
-            width: 479px;
+            max-width: 479px;
             color: #A1A1A1;
             text-align: justify;
             font-family: "Open Sans";
@@ -442,6 +442,22 @@
         .contact-right {
             flex: 1;
             max-width: 500px;
+        }
+
+        .thank-you-message {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            color: #0D1B28;
+            font-family: "Open Sans";
+            font-size: 16px;
+            display: none;
+        }
+
+        .thank-you-message.show {
+            display: block;
         }
 
         .contact-form {
@@ -761,11 +777,9 @@
                 message: formData.get('message')
             };
 
-            // Send email to henry.cohen@aequitascap.com
-            // Note: This requires a backend service to actually send emails
-            // For now, we'll show a success message
-            alert('Thank you for your message! A member of our team will be in contact shortly.');
-            this.reset();
+            // Hide the form and show thank you message
+            this.style.display = 'none';
+            document.getElementById('thankYouMessage').classList.add('show');
         });
     </script>
 </body>
