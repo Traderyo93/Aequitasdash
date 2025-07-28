@@ -206,7 +206,7 @@
             font-family: "Open Sans";
             font-size: 16px;
             font-weight: 400;
-            line-height: 1.5;
+            line-height: normal;
             opacity: 0.6;
             margin-bottom: 48px;
             max-width: 700px;
@@ -262,6 +262,7 @@
         .about-section {
             background: #FFFFFF;
             padding: 80px 77px;
+            animation: fadeIn 1s ease-out;
         }
 
         .about-title {
@@ -271,6 +272,7 @@
             font-weight: 400;
             line-height: normal;
             margin-bottom: 40px;
+            animation: slideInLeft 1s ease-out;
         }
 
         .about-divider {
@@ -278,11 +280,14 @@
             height: 1px;
             background: #0D1B28;
             margin-bottom: 60px;
+            transform: scaleX(0);
+            animation: scaleX 1s ease-out 0.3s both;
         }
 
         .about-content {
             display: flex;
             gap: 60px;
+            animation: slideInUp 1s ease-out 0.6s both;
         }
 
         .about-text {
@@ -302,12 +307,14 @@
                 linear-gradient(0deg, rgba(15, 44, 130, 0.59) 0%, rgba(15, 44, 130, 0.59) 100%), 
                 url('assets/images/Blue Background.png') lightgray 50% / cover no-repeat;
             padding: 80px 0;
+            animation: fadeIn 1s ease-out;
         }
 
         .investment-container {
             max-width: 1440px;
             margin: 0 auto;
             display: flex;
+            animation: slideInUp 1s ease-out 0.3s both;
         }
 
         .investment-left {
@@ -323,6 +330,7 @@
             font-weight: 400;
             line-height: normal;
             margin-bottom: 40px;
+            animation: slideInLeft 1s ease-out 0.6s both;
         }
 
         .investment-subtitle {
@@ -331,11 +339,13 @@
             font-size: 32px;
             font-weight: 400;
             line-height: normal;
+            animation: slideInLeft 1s ease-out 0.9s both;
         }
 
         .investment-right {
             flex: 1;
             padding-right: 77px;
+            animation: slideInRight 1s ease-out 0.6s both;
         }
 
         .investment-paragraph {
@@ -355,6 +365,8 @@
             height: 1px;
             background: rgba(255, 255, 255, 0.50);
             margin-top: 43px;
+            transform: scaleX(0);
+            animation: scaleX 0.8s ease-out 1.2s both;
         }
 
         /* Responsive Design */
