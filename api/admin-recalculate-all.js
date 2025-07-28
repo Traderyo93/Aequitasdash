@@ -266,13 +266,18 @@ function calculateUserPerformance(deposits, csvData) {
             continue;
         }
         
-        // Calculate performance using cumulative returns
-        const performanceMultiplier = latestCumulativeReturn / depositCumulativeReturn;
+        // ===== FIXED CALCULATION =====
+        // Convert percentages to actual multipliers
+        const depositMultiplier = (100 + depositCumulativeReturn) / 100;  // e.g., 147.84/100 = 1.4784
+        const currentMultiplier = (100 + latestCumulativeReturn) / 100;   // e.g., 265.82/100 = 2.6582
+        const performanceMultiplier = currentMultiplier / depositMultiplier; // e.g., 2.6582/1.4784 = 1.798
         const currentDepositValue = depositAmount * performanceMultiplier;
         
         console.log(`   📊 Deposit date cumulative: ${depositCumulativeReturn.toFixed(2)}%`);
         console.log(`   📊 Latest cumulative: ${latestCumulativeReturn.toFixed(2)}%`);
-        console.log(`   📊 Multiplier: ${performanceMultiplier.toFixed(4)}x`);
+        console.log(`   📊 Deposit multiplier: ${depositMultiplier.toFixed(4)}x`);
+        console.log(`   📊 Current multiplier: ${currentMultiplier.toFixed(4)}x`);
+        console.log(`   📊 Performance multiplier: ${performanceMultiplier.toFixed(4)}x`);
         console.log(`   💰 Current value: $${currentDepositValue.toLocaleString()}`);
         
         totalBalance += currentDepositValue;
