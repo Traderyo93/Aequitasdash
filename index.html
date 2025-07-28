@@ -3,13 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aequitas Capital Partners - Stronger Foundations, Greater Heights</title>
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Karla:wght@400;500;600;700&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+    <title>Aequitas Capital Partners</title>
+    <link href="https://fonts.googleapis.com/css2?family=Karla:wght@400&family=Open+Sans:wght@400&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -19,65 +14,120 @@
 
         body {
             font-family: 'Open Sans', sans-serif;
-            line-height: 1.6;
         }
 
-        /* Header Section */
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideInDown {
+            from { 
+                opacity: 0; 
+                transform: translateY(-30px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+
+        @keyframes slideInUp {
+            from { 
+                opacity: 0; 
+                transform: translateY(30px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+
+        @keyframes slideInLeft {
+            from { 
+                opacity: 0; 
+                transform: translateX(-50px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateX(0); 
+            }
+        }
+
+        @keyframes slideInRight {
+            from { 
+                opacity: 0; 
+                transform: translateX(50px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateX(0); 
+            }
+        }
+
+        /* Hero Section */
         .hero-section {
-            display: flex;
-            width: 100%;
             min-height: 100vh;
-            padding: 34px 77px 60px 77px;
+            background: 
+                linear-gradient(0deg, rgba(0, 0, 0, 0.50) 0%, rgba(0, 0, 0, 0.50) 100%), 
+                linear-gradient(0deg, rgba(15, 44, 130, 0.59) 0%, rgba(15, 44, 130, 0.59) 100%), 
+                url('assets/images/Aequitas Background.png') lightgray 50% / cover no-repeat;
+            padding: 34px 77px;
+            display: flex;
             flex-direction: column;
-            align-items: flex-start;
             justify-content: space-between;
-            background: linear-gradient(0deg, rgba(0, 0, 0, 0.50) 0%, rgba(0, 0, 0, 0.50) 100%), 
-                        linear-gradient(0deg, rgba(15, 44, 130, 0.59) 0%, rgba(15, 44, 130, 0.59) 100%), 
-                        url('assets/images/Aequitas Background.png') lightgray;
-            background-size: cover;
-            background-position: center;
-            position: relative;
+            animation: fadeIn 1.5s ease-out;
         }
 
-        /* Navigation */
         .nav-container {
             display: flex;
-            width: 100%;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 27px;
-            flex-shrink: 0;
+            animation: slideInDown 1s ease-out 0.3s both;
         }
 
         .logo-container {
             display: flex;
             align-items: center;
-            gap: 12px;
         }
 
         .logo {
             width: 160px;
             height: 50px;
+            transition: transform 0.3s ease;
         }
 
-        .nav-links {
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .nav-menu {
             display: flex;
             align-items: center;
             gap: 40px;
         }
 
-        .nav-link {
+        .nav-links {
+            display: flex;
+            gap: 40px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-links a {
             color: #FFF;
-            font-family: "Open Sans", sans-serif;
+            font-family: "Open Sans";
             font-size: 16px;
-            font-style: normal;
             font-weight: 400;
             line-height: 126%;
             text-decoration: none;
             transition: opacity 0.3s ease;
         }
 
-        .nav-link:hover {
+        .nav-links a:hover {
             opacity: 0.8;
         }
 
@@ -92,9 +142,9 @@
             border: 0.5px solid #FFF;
             background: transparent;
             color: #FFF;
-            text-decoration: none;
-            font-family: "Open Sans", sans-serif;
+            font-family: "Open Sans";
             font-size: 14px;
+            text-decoration: none;
             transition: all 0.3s ease;
         }
 
@@ -106,44 +156,48 @@
         .login-icon {
             width: 25px;
             height: 25px;
-            flex-shrink: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
         }
 
-        /* White divider line */
-        .divider-container {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.50);
-            margin: 0 0 60px 0;
-            padding: 0;
+        .login-button:hover .login-icon {
+            background: rgba(15, 44, 130, 0.2);
+        }
+
+        .divider-line {
             width: 100%;
-            flex-shrink: 0;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.50);
+            margin-bottom: 60px;
         }
 
-        /* Hero Content */
         .hero-content {
-            max-width: 700px;
-            z-index: 1;
             flex: 1;
             display: flex;
             flex-direction: column;
             justify-content: center;
+            max-width: 700px;
+            animation: slideInUp 1s ease-out 0.6s both;
         }
 
         .hero-title {
-            max-width: 700px;
             color: #FFF;
-            font-family: 'Karla', sans-serif;
+            font-family: Karla;
             font-size: 66px;
-            font-style: normal;
             font-weight: 400;
             line-height: 1.1;
             margin-bottom: 32px;
+            max-width: 700px;
         }
 
         .hero-description {
             color: #FFF;
-            font-family: "Open Sans", sans-serif;
+            font-family: "Open Sans";
             font-size: 16px;
-            font-style: normal;
             font-weight: 400;
             line-height: 1.5;
             opacity: 0.6;
@@ -152,50 +206,66 @@
             width: 100%;
         }
 
-        .start-now-button {
-            display: inline-flex;
-            width: auto;
-            height: 32px;
-            padding: 4px 4px 4px 15px;
-            align-items: center;
-            gap: 8px;
-            border-radius: 100px;
-            border: 1px solid #FFF;
-            background: transparent;
-            color: #FFF;
-            font-family: "Open Sans", sans-serif;
-            font-size: 14px;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            white-space: nowrap;
+        .button-container {
+            align-self: flex-start;
         }
 
-        .start-now-button:hover {
+        .start-button {
+            display: flex;
+            height: 32px;
+            padding: 4px 4px 4px 15px;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 100px;
+            border: 0.5px solid #FFF;
+            background: transparent;
+            color: #FFF;
+            font-family: "Open Sans";
+            font-size: 14px;
+            text-decoration: none;
+            width: auto;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+            transform: translateY(0);
+        }
+
+        .start-button:hover {
             background: #FFF;
             color: #0F2C82;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
 
         .start-now-icon {
             width: 25px;
             height: 25px;
-            flex-shrink: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .start-button:hover .start-now-icon {
+            background: rgba(15, 44, 130, 0.2);
         }
 
         /* About Us Section */
         .about-section {
-            width: 100%;
             background: #FFFFFF;
             padding: 80px 77px;
+            animation: fadeIn 1s ease-out;
         }
 
         .about-title {
             color: #0C161F;
-            font-family: 'Karla', sans-serif;
+            font-family: Karla;
             font-size: 66px;
-            font-style: normal;
             font-weight: 400;
             line-height: normal;
             margin-bottom: 40px;
+            animation: slideInLeft 1s ease-out;
         }
 
         .about-divider {
@@ -203,344 +273,304 @@
             height: 1px;
             background: #0D1B28;
             margin-bottom: 60px;
+            transform: scaleX(0);
+            animation: scaleX 1s ease-out 0.3s both;
+        }
+
+        @keyframes scaleX {
+            from { transform: scaleX(0); }
+            to { transform: scaleX(1); }
         }
 
         .about-content {
             display: flex;
             gap: 60px;
-            align-items: flex-start;
-            width: 100%;
+            animation: slideInUp 1s ease-out 0.6s both;
         }
 
         .about-text {
             flex: 1;
             color: #171717;
             text-align: justify;
-            font-family: "Open Sans", sans-serif;
+            font-family: "Open Sans";
             font-size: 16px;
-            font-style: normal;
             font-weight: 400;
             line-height: normal;
+            max-width: 520px;
         }
 
         /* Investment Strategy Section */
         .investment-section {
-            width: 100%;
-            background: linear-gradient(0deg, rgba(0, 0, 0, 0.50) 0%, rgba(0, 0, 0, 0.50) 100%), 
-                        linear-gradient(0deg, rgba(15, 44, 130, 0.59) 0%, rgba(15, 44, 130, 0.59) 100%), 
-                        url('assets/images/Blue Background.png') lightgray;
-            background-size: cover;
-            background-position: center;
+            background: url('assets/images/Blue Background.png') lightgray 50% / cover no-repeat;
             padding: 80px 0;
+            animation: fadeIn 1s ease-out;
         }
 
         .investment-container {
+            max-width: 1440px;
+            margin: 0 auto;
             display: flex;
-            align-items: flex-start;
-            min-height: 500px;
+            animation: slideInUp 1s ease-out 0.3s both;
         }
 
         .investment-left {
-            flex: 0 0 auto;
-            width: 50%;
+            flex: 0 0 50%;
             padding-left: 77px;
             padding-right: 40px;
         }
 
         .investment-title {
             color: #FFF;
-            font-family: 'Karla', sans-serif;
+            font-family: Karla;
             font-size: 66px;
-            font-style: normal;
             font-weight: 400;
             line-height: normal;
-            margin-bottom: 60px;
+            margin-bottom: 40px;
+            animation: slideInLeft 1s ease-out 0.6s both;
         }
 
         .investment-subtitle {
             color: #FFF;
-            font-family: 'Karla', sans-serif;
+            font-family: Karla;
             font-size: 32px;
-            font-style: normal;
             font-weight: 400;
             line-height: normal;
+            animation: slideInLeft 1s ease-out 0.9s both;
         }
 
         .investment-right {
             flex: 1;
             padding-right: 77px;
-            padding-left: 40px;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
+            animation: slideInRight 1s ease-out 0.6s both;
         }
 
         .investment-paragraph {
-            margin-bottom: 43px;
-        }
-
-        .investment-paragraph:last-child {
-            margin-bottom: 0;
-        }
-
-        .investment-text {
             color: #FFF;
             text-align: justify;
-            font-family: "Open Sans", sans-serif;
+            font-family: "Open Sans";
             font-size: 16px;
-            font-style: normal;
             font-weight: 400;
             line-height: normal;
             margin-bottom: 43px;
         }
 
-        .investment-divider {
+        .investment-paragraph:not(:last-child)::after {
+            content: "";
+            display: block;
             width: 100%;
             height: 1px;
             background: rgba(255, 255, 255, 0.50);
-            margin-bottom: 43px;
+            margin-top: 43px;
+            transform: scaleX(0);
+            animation: scaleX 0.8s ease-out 1.2s both;
         }
 
         /* Responsive Design */
         @media (max-width: 1024px) {
             .hero-section {
-                padding: 24px 40px 60px 40px;
-                min-height: 100vh;
+                padding: 40px;
             }
             
-            .hero-title {
-                font-size: 48px;
-                max-width: 100%;
-            }
-            
-            .nav-links {
-                gap: 24px;
-            }
-
             .about-section {
                 padding: 60px 40px;
             }
-            
-            .about-title {
-                font-size: 48px;
-            }
-            
+
             .about-content {
                 flex-direction: column;
                 gap: 40px;
             }
 
-            .investment-section {
-                padding: 60px 0;
-            }
-
             .investment-container {
                 flex-direction: column;
-                min-height: auto;
-            }
-            
-            .investment-left {
-                width: 100%;
-                padding: 0 40px 60px 40px;
             }
 
-            .investment-title {
+            .investment-left, .investment-right {
+                padding: 0 40px;
+            }
+
+            .investment-left {
+                margin-bottom: 40px;
+            }
+
+            .hero-title, .about-title, .investment-title {
                 font-size: 48px;
             }
-            
+
             .investment-subtitle {
                 font-size: 24px;
-            }
-            
-            .investment-right {
-                padding: 0 40px;
             }
         }
 
         @media (max-width: 768px) {
             .hero-section {
-                padding: 20px 24px 40px 24px;
-                min-height: 100vh;
-            }
-            
-            .nav-container {
-                flex-direction: column;
-                gap: 20px;
-                margin-bottom: 40px;
-            }
-            
-            .nav-links {
-                flex-wrap: wrap;
-                justify-content: center;
-                gap: 16px;
-            }
-            
-            .hero-title {
-                font-size: 36px;
-                max-width: 100%;
-            }
-            
-            .hero-description {
-                font-size: 14px;
-            }
-            
-            .divider-container {
-                margin: 15px 0 40px 0;
+                padding: 24px;
             }
 
             .about-section {
                 padding: 40px 24px;
             }
-            
-            .about-title {
+
+            .nav-links {
+                display: none;
+            }
+
+            .nav-menu {
+                gap: 0;
+            }
+
+            .logo {
+                width: 120px;
+                height: 38px;
+            }
+
+            .hero-title, .about-title, .investment-title {
                 font-size: 36px;
             }
-            
-            .about-content {
-                gap: 30px;
-            }
-            
-            .about-text {
-                font-size: 14px;
-                text-align: left;
-            }
 
-            .investment-section {
-                padding: 40px 0;
-            }
-
-            .investment-container {
-                gap: 40px;
-            }
-
-            .investment-left {
-                padding: 0 24px 40px 24px;
-            }
-
-            .investment-title {
-                font-size: 36px;
-            }
-            
             .investment-subtitle {
                 font-size: 20px;
             }
-            
-            .investment-right {
+
+            .investment-left, .investment-right {
                 padding: 0 24px;
             }
-            
-            .investment-text {
-                font-size: 14px;
-                text-align: left;
-            }
+        }
+
+        /* Scroll animations */
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+
+        .animate-on-scroll.animated {
+            opacity: 1;
+            transform: translateY(0);
         }
     </style>
 </head>
 <body>
     <!-- Hero Section -->
     <section class="hero-section">
-        <!-- Navigation -->
-        <nav class="nav-container">
+        <div class="nav-container">
             <div class="logo-container">
-                <img class="logo" src="assets/images/Aequitas Logo.png" alt="Aequitas Capital Partners" />
+                <img src="assets/images/Aequitas Logo.png" alt="Aequitas Capital Partners" class="logo">
             </div>
-            
-            <div class="nav-links">
-                <a href="#about" class="nav-link">About</a>
-                <a href="#investment-strategies" class="nav-link">Investment Strategies</a>
-                <a href="#contact" class="nav-link">Contact Us</a>
-                
+            <div class="nav-menu">
+                <ul class="nav-links">
+                    <li><a href="#about">About Us</a></li>
+                    <li><a href="#investment">Investment Strategies</a></li>
+                    <li><a href="#contact">Contact Us</a></li>
+                </ul>
                 <a href="login.html" class="login-button">
                     Login
-                    <svg class="login-icon" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25" fill="none">
-                        <rect width="25" height="25" rx="12.5" fill="white" fill-opacity="0.2"/>
-                        <path d="M14.3687 17.2414C14.2341 17.2414 14.0996 17.1927 13.9934 17.0884C13.788 16.8867 13.788 16.553 13.9934 16.3513L17.9165 12.4991L13.9934 8.64691C13.788 8.44526 13.788 8.11149 13.9934 7.90984C14.1987 7.70819 14.5387 7.70819 14.744 7.90984L19.0425 12.1306C19.2478 12.3322 19.2478 12.666 19.0425 12.8676L14.744 17.0884C14.6378 17.1927 14.5032 17.2414 14.3687 17.2414Z" fill="white"/>
-                        <path d="M18.6486 12.931H6.3517C6.05213 12.931 5.80371 12.7356 5.80371 12.5C5.80371 12.2644 6.05213 12.069 6.3517 12.069H18.6486C18.9481 12.069 19.1966 12.2644 19.1966 12.5C19.1966 12.7356 18.9481 12.931 18.6486 12.931Z" fill="white"/>
-                    </svg>
+                    <div class="login-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                            <path d="M6.8687 9.2414C6.7341 9.2414 6.5996 9.1927 6.4934 9.0884C6.288 8.8867 6.288 8.553 6.4934 8.3513L9.9165 4.4991L6.4934 0.64691C6.288 0.44526 6.288 0.11149 6.4934 -0.09016C6.6987 -0.29181 7.0387 -0.29181 7.244 -0.09016L11.0425 4.1306C11.2478 4.3322 11.2478 4.666 11.0425 4.8676L7.244 9.0884C7.1378 9.1927 7.0032 9.2414 6.8687 9.2414Z" fill="currentColor"/>
+                            <path d="M10.6486 4.931H1.3517C1.05213 4.931 0.803711 4.7356 0.803711 4.5C0.803711 4.2644 1.05213 4.069 1.3517 4.069H10.6486C10.9481 4.069 11.1966 4.2644 11.1966 4.5C11.1966 4.7356 10.9481 4.931 10.6486 4.931Z" fill="currentColor"/>
+                        </svg>
+                    </div>
                 </a>
             </div>
-        </nav>
-
-        <!-- White divider line -->
-        <div class="divider-container"></div>
-
-        <!-- Hero Content -->
+        </div>
+        <div class="divider-line"></div>
         <div class="hero-content">
-            <h1 class="hero-title">Stronger Foundations Greater Heights</h1>
-            
-            <div class="hero-description">
-                <p style="margin-bottom: 24px;">Aequitas Capital Partners is an algorithmic trading firm leveraging proprietary software and data-driven insights to generate sustainable capital growth.</p>
-                
-                <p>Our team is comprised of skilled professionals with expertise in trading, risk management, and data analysis, supported by advanced algorithms that optimise performance and control risk effectively.</p>
-            </div>
-            
-            <div style="align-self: flex-start;">
-                <a href="#contact" class="start-now-button">
+            <h1 class="hero-title">Stronger Foundations, Greater Heights</h1>
+            <p class="hero-description">Aequitas Capital Partners is an algorithmic trading firm leveraging proprietary software and data-driven insights to generate sustainable capital growth. Our team is comprised of skilled professionals with expertise in trading, risk management, and data analysis, supported by advanced algorithms that optimise performance and control risk effectively.</p>
+            <div class="button-container">
+                <a href="#about" class="start-button">
                     Start now
-                    <svg class="start-now-icon" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25" fill="none">
-                        <rect width="25" height="25" rx="12.5" fill="white" fill-opacity="0.2"/>
-                        <path d="M14.3687 17.2414C14.2341 17.2414 14.0996 17.1927 13.9934 17.0884C13.788 16.8867 13.788 16.553 13.9934 16.3513L17.9165 12.4991L13.9934 8.64691C13.788 8.44526 13.788 8.11149 13.9934 7.90984C14.1987 7.70819 14.5387 7.70819 14.744 7.90984L19.0425 12.1306C19.2478 12.3322 19.2478 12.666 19.0425 12.8676L14.744 17.0884C14.6378 17.1927 14.5032 17.2414 14.3687 17.2414Z" fill="currentColor"/>
-                        <path d="M18.6486 12.931H6.3517C6.05213 12.931 5.80371 12.7356 5.80371 12.5C5.80371 12.2644 6.05213 12.069 6.3517 12.069H18.6486C18.9481 12.069 19.1966 12.2644 19.1966 12.5C19.1966 12.7356 18.9481 12.931 18.6486 12.931Z" fill="currentColor"/>
-                    </svg>
+                    <div class="start-now-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                            <path d="M6.8687 9.2414C6.7341 9.2414 6.5996 9.1927 6.4934 9.0884C6.288 8.8867 6.288 8.553 6.4934 8.3513L9.9165 4.4991L6.4934 0.64691C6.288 0.44526 6.288 0.11149 6.4934 -0.09016C6.6987 -0.29181 7.0387 -0.29181 7.244 -0.09016L11.0425 4.1306C11.2478 4.3322 11.2478 4.666 11.0425 4.8676L7.244 9.0884C7.1378 9.1927 7.0032 9.2414 6.8687 9.2414Z" fill="currentColor"/>
+                            <path d="M10.6486 4.931H1.3517C1.05213 4.931 0.803711 4.7356 0.803711 4.5C0.803711 4.2644 1.05213 4.069 1.3517 4.069H10.6486C10.9481 4.069 11.1966 4.2644 11.1966 4.5C11.1966 4.7356 10.9481 4.931 10.6486 4.931Z" fill="currentColor"/>
+                        </svg>
+                    </div>
                 </a>
             </div>
         </div>
     </section>
 
     <!-- About Us Section -->
-    <section class="about-section" id="about">
+    <section id="about" class="about-section">
         <h2 class="about-title">About Us</h2>
-        
         <div class="about-divider"></div>
-        
         <div class="about-content">
             <div class="about-text">
-                <p>Aequitas Capital Partners is an investment management firm specialising in algorithmic trading strategies that seek to deliver consistent, risk-adjusted returns. Our focus is on leveraging data-driven insights and proprietary trading models to capitalise on market inefficiencies, predominantly in equity and fixed-income markets.</p>
+                Aequitas Capital Partners is an investment management firm specialising in algorithmic trading strategies that seek to deliver consistent, risk-adjusted returns. Our focus is on leveraging data-driven insights and proprietary trading models to capitalise on market inefficiencies, predominantly in equity and fixed-income markets.
             </div>
-            
             <div class="about-text">
-                <p>Aequitas employs a sophisticated, short-only strategy that combines quantitative models, advanced statistical techniques, and real-time data analysis to generate sustainable capital growth. By utilising machine learning and data-intensive methodologies, we are able to identify price deviations and capitalise on short-term trading opportunities with precision.</p>
+                Aequitas employs a sophisticated, short-only strategy that combines quantitative models, advanced statistical techniques, and real-time data analysis to generate sustainable capital growth. By utilising machine learning and data-intensive methodologies, we are able to identify price deviations and capitalise on short-term trading opportunities with precision.
             </div>
         </div>
     </section>
 
     <!-- Investment Strategy Section -->
-    <section class="investment-section" id="investment-strategies">
+    <section id="investment" class="investment-section">
         <div class="investment-container">
             <div class="investment-left">
                 <h2 class="investment-title">Investment Strategy</h2>
                 <h3 class="investment-subtitle">Investment Strategy Overview</h3>
             </div>
-            
             <div class="investment-right">
-                <div class="investment-paragraph">
-                    <p class="investment-text">Aequitas Capital Partners employs a short-only mean reversion strategy targeting NASDAQ and NYSE-listed stocks. We focus on equities experiencing significant pre-market price gaps—often driven by promotional news releases preceding the issuance of dilutive instruments. By analysing SEC filings and historical price patterns, we identify overvalued stocks likely to revert to fundamental levels, allowing us to capture rapid price corrections with controlled risk exposure.</p>
-                    <div class="investment-divider"></div>
-                </div>
-                
-                <div class="investment-paragraph">
-                    <p class="investment-text">Our approach is refined by monitoring institutional ownership to avoid crowded trades and enhance liquidity alignment. Proprietary algorithms integrated with NASDAQ APIs enable real-time analysis and adaptive trade execution, maintaining strict risk/reward thresholds.</p>
-                    <div class="investment-divider"></div>
-                </div>
-                
-                <div class="investment-paragraph">
-                    <p class="investment-text">We ensure capital efficiency by trading only a portion of AUM on margin, while allocating unused capital to short-term, fixed-rate instruments such as Treasury bonds. This dual strategy generates passive yield and supports portfolio resilience.</p>
-                    <div class="investment-divider"></div>
-                </div>
-                
-                <div class="investment-paragraph">
-                    <p class="investment-text">A robust risk management framework underpins all operations, including automated stop-losses, statistical confidence models, and real-time monitoring. This disciplined structure enables consistent, risk-adjusted returns while mitigating drawdowns across varying market conditions.</p>
-                </div>
+                <p class="investment-paragraph">
+                    Aequitas Capital Partners employs a short-only mean reversion strategy targeting NASDAQ and NYSE-listed stocks. We focus on equities experiencing significant pre-market price gaps—often driven by promotional news releases preceding the issuance of dilutive instruments. By analysing SEC filings and historical price patterns, we identify overvalued stocks likely to revert to fundamental levels, allowing us to capture rapid price corrections with controlled risk exposure.
+                </p>
+                <p class="investment-paragraph">
+                    Our approach is refined by monitoring institutional ownership to avoid crowded trades and enhance liquidity alignment. Proprietary algorithms integrated with NASDAQ APIs enable real-time analysis and adaptive trade execution, maintaining strict risk/reward thresholds.
+                </p>
+                <p class="investment-paragraph">
+                    We ensure capital efficiency by trading only a portion of AUM on margin, while allocating unused capital to short-term, fixed-rate instruments such as Treasury bonds. This dual strategy generates passive yield and supports portfolio resilience.
+                </p>
+                <p class="investment-paragraph">
+                    A robust risk management framework underpins all operations, including automated stop-losses, statistical confidence models, and real-time monitoring. This disciplined structure enables consistent, risk-adjusted returns while mitigating drawdowns across varying market conditions.
+                </p>
             </div>
         </div>
     </section>
 
-    <!-- Placeholder for Contact Us Section -->
-    <div style="padding: 80px 77px; background: #f8f9fa;">        
-        <div style="background: #ffffff; padding: 60px 40px; text-align: center; border-radius: 8px; border: 2px dashed #dee2e6;" id="contact">
-            <h2 style="color: #6c757d; font-family: 'Karla', sans-serif; margin-bottom: 16px;">Contact Us Section</h2>
-            <p style="color: #6c757d; font-size: 14px;">This section will be added next. Please provide the Contact Us form content and styling specifications.</p>
-        </div>
-    </div>
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Intersection Observer for scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animated');
+                }
+            });
+        }, observerOptions);
+
+        // Observe elements with scroll animation
+        document.querySelectorAll('.animate-on-scroll').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Add parallax effect to hero background
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const hero = document.querySelector('.hero-section');
+            if (hero) {
+                hero.style.transform = `translateY(${scrolled * 0.5}px)`;
+            }
+        });
+    </script>
 </body>
 </html>
