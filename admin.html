@@ -1460,7 +1460,7 @@
                     <div style="display: flex; gap: 12px;">
                         <button class="btn btn-primary" onclick="openAddClientModal()">
                             <span class="icon icon-plus"></span>
-                            Add New Client
+                            Add Client/User
                         </button>
                         <button class="btn btn-warning" onclick="triggerDailyUpdate()">
                             <span class="icon icon-refresh"></span>
@@ -1716,7 +1716,7 @@
     <div class="modal" id="clientModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title" id="modalTitle">Add New Client</h3>
+                <h3 class="modal-title" id="modalTitle">Add New Client/User</h3>
                 <button class="modal-close" onclick="closeModal('clientModal')">
                     <span class="icon icon-x"></span>
                 </button>
@@ -1752,13 +1752,18 @@
 
                     <div class="form-row">
                         <div class="form-field">
-                            <label for="clientStatus">Status</label>
+                            <label for="clientStatus">Client Type</label>
                             <select id="clientStatus" name="status">
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
-                                <option value="pending">Pending</option>
+                                <option value="active">Active Client (Skip setup - admin verified)</option>
+                                <option value="pending">Pending User (Full setup required)</option>
                             </select>
                         </div>
+                    </div>
+                    
+                    <div class="form-field full-width" style="background: #f8fafc; padding: 12px; border-radius: 6px; font-size: 13px; color: #475569;">
+                        <strong>Setup Flow Difference:</strong><br>
+                        • <strong>Active Client:</strong> Password change + 2FA setup only (you have their docs)<br>
+                        • <strong>Pending User:</strong> Password + 2FA + document upload + admin approval
                     </div>
 
                     <input type="hidden" id="clientId" name="id">
@@ -2195,30 +2200,24 @@
         };
 
         // Create basic client (no live trading setup)
+        // Create basic client (no live trading setup)
         async function createBasicClient(clientData) {
             try {
-                console.log('👤 Creating basic client:', clientData);
+                console.log('👤 Creating client/user:', clientData);
                 
-                // FIXED: Properly handle pending vs active user creation
                 const requestData = {
                     firstName: clientData.firstName,
                     lastName: clientData.lastName,
                     email: clientData.email,
                     phone: clientData.phone,
-                    address: clientData.address
+                    address: clientData.address,
+                    status: clientData.status // Pass the status directly to the API
                 };
                 
-                // Set role and status based on what admin selected
-                if (clientData.status === 'pending') {
-                    // Create pending user who needs to complete setup
-                    requestData.role = 'pending';
-                    requestData.status = 'setup_pending';
-                    console.log('📋 Creating PENDING user who needs setup completion');
+                if (clientData.status === 'active') {
+                    console.log('✅ Creating ACTIVE client (admin pre-verified - skip setup)');
                 } else {
-                    // Create active client (already verified)
-                    requestData.role = 'client';
-                    requestData.status = 'active';
-                    console.log('✅ Creating ACTIVE client (pre-verified)');
+                    console.log('📋 Creating PENDING user (needs full setup + approval)');
                 }
                 
                 const userResponse = await fetch('/api/users', {
@@ -2239,20 +2238,14 @@
                 console.log('✅ Basic client created:', userData.user);
                 
                 // Display temp password if this is a pending user
-                if (clientData.status === 'pending' && userData.tempPassword) {
+                // Always display temp password modal for new users
+                if (userData.tempPassword) {
                     showTempPasswordModal(
                         clientData.firstName, 
                         clientData.lastName, 
                         clientData.email, 
-                        userData.tempPassword
-                    );
-                } else if (userData.tempPassword) {
-                    // Even active users get temp passwords
-                    showTempPasswordModal(
-                        clientData.firstName, 
-                        clientData.lastName, 
-                        clientData.email, 
-                        userData.tempPassword
+                        userData.tempPassword,
+                        clientData.status // Pass status to show different instructions
                     );
                 }
                 
@@ -2279,8 +2272,8 @@
             }
         }
 
-        // Show temp password modal for new users
-        function showTempPasswordModal(firstName, lastName, email, tempPassword) {
+            // Show temp password modal for new users
+            function showTempPasswordModal(firstName, lastName, email, tempPassword, userStatus = 'pending') {
             const modal = document.createElement('div');
             modal.className = 'modal show';
             modal.id = 'tempPasswordModal';
@@ -2319,15 +2312,28 @@
                                 </button>
                             </div>
                             
-                            <div style="font-size: 13px; color: var(--text-secondary); text-align: left; background: rgba(245, 158, 11, 0.1); padding: 16px; border-radius: 8px; border-left: 4px solid var(--warning);">
-                                <strong>📋 Next Steps:</strong><br>
-                                1. Share login credentials with user securely<br>
-                                2. User logs in with email: <code>${email}</code><br>
-                                3. User enters temp password: <code>${tempPassword}</code><br>
-                                4. User will be prompted to change password<br>
-                                5. User completes document upload and verification<br>
-                                6. You approve them in "Pending Users" tab
-                            </div>
+                ${userStatus === 'active' ? `
+                    <div style="font-size: 13px; color: var(--text-secondary); text-align: left; background: rgba(16, 185, 129, 0.1); padding: 16px; border-radius: 8px; border-left: 4px solid var(--success);">
+                        <strong>✅ Active Client Setup (Simplified):</strong><br>
+                        1. Share login credentials with user securely<br>
+                        2. User logs in with email: <code>${email}</code><br>
+                        3. User enters temp password: <code>${tempPassword}</code><br>
+                        4. User changes password<br>
+                        5. User sets up 2FA<br>
+                        6. <strong>Direct access to dashboard (no document upload needed)</strong>
+                    </div>
+                ` : `
+                    <div style="font-size: 13px; color: var(--text-secondary); text-align: left; background: rgba(245, 158, 11, 0.1); padding: 16px; border-radius: 8px; border-left: 4px solid var(--warning);">
+                        <strong>📋 Pending User Setup (Full Process):</strong><br>
+                        1. Share login credentials with user securely<br>
+                        2. User logs in with email: <code>${email}</code><br>
+                        3. User enters temp password: <code>${tempPassword}</code><br>
+                        4. User changes password<br>
+                        5. User sets up 2FA<br>
+                        6. User completes document upload and verification<br>
+                        7. You approve them in "Pending Users" tab
+                    </div>
+                `}
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -2489,7 +2495,7 @@
                             <td>${client.phone || 'Not provided'}</td>
                             <td>${hasDeposits ? parseFloat(client.totalDeposits).toLocaleString() : '0'}</td>
                             <td style="color: ${hasDeposits ? 'var(--success)' : 'var(--text-secondary)'}; font-weight: 600;">${balanceDisplay}</td>
-                            <td><span class="status ${client.status}">${client.status}</span></td>
+                            <td><span class="status ${client.status}">${client.status === 'active' ? 'Active Client' : client.status}</span></td>
                             <td>${new Date(client.joinDate).toLocaleDateString()}</td>
                             <td>
                                 <div class="action-buttons">
