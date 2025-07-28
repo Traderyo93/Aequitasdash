@@ -226,22 +226,24 @@
         /* Investment Strategy Section */
         .investment-section {
             width: 100%;
-            background: linear-gradient(0deg, rgba(15, 44, 130, 0.20) 0%, rgba(15, 44, 130, 0.20) 100%), 
-                        url('assets/images/Blue Background.png') lightgray;
-            background-position: -779.435px -0.148px;
-            background-size: 207.252% 286.345%;
+            background: url('assets/images/Blue Background.png');
+            background-size: cover;
+            background-position: center;
             background-repeat: no-repeat;
-            background-color: #0F2C8233;
             padding: 80px 77px;
+        }
+
+        .investment-container {
+            max-width: 1440px;
+            margin: 0 auto;
             display: flex;
             gap: 80px;
             align-items: flex-start;
-            justify-content: space-between;
         }
 
         .investment-left {
             flex: 0 0 auto;
-            max-width: 400px;
+            width: 400px;
         }
 
         .investment-title {
@@ -264,10 +266,8 @@
         }
 
         .investment-right {
-            flex: 0 0 auto;
-            width: calc(100% - 400px - 80px);
+            flex: 1;
             max-width: 635px;
-            margin-left: auto;
         }
 
         .investment-paragraph {
@@ -327,14 +327,17 @@
 
             .investment-section {
                 padding: 60px 40px;
-                flex-direction: column;
-                gap: 60px;
                 background-size: cover;
                 background-position: center;
             }
+
+            .investment-container {
+                flex-direction: column;
+                gap: 60px;
+            }
             
             .investment-left {
-                max-width: 100%;
+                width: 100%;
             }
 
             .investment-title {
@@ -404,9 +407,12 @@
 
             .investment-section {
                 padding: 40px 24px;
-                gap: 40px;
                 background-size: cover;
                 background-position: center;
+            }
+
+            .investment-container {
+                gap: 40px;
             }
 
             .investment-title {
@@ -494,29 +500,31 @@
 
     <!-- Investment Strategy Section -->
     <section class="investment-section" id="investment-strategies">
-        <div class="investment-left">
-            <h2 class="investment-title">Investment Strategy</h2>
-            <h3 class="investment-subtitle">Aequitas Capital Partners - Investment Strategy Overview</h3>
-        </div>
-        
-        <div class="investment-right">
-            <div class="investment-paragraph">
-                <p class="investment-text">Aequitas Capital Partners employs a short-only mean reversion strategy targeting NASDAQ and NYSE-listed stocks. We focus on equities experiencing significant pre-market price gaps—often driven by promotional news releases preceding the issuance of dilutive instruments. By analysing SEC filings and historical price patterns, we identify overvalued stocks likely to revert to fundamental levels, allowing us to capture rapid price corrections with controlled risk exposure.</p>
-                <div class="investment-divider"></div>
+        <div class="investment-container">
+            <div class="investment-left">
+                <h2 class="investment-title">Investment Strategy</h2>
+                <h3 class="investment-subtitle">Aequitas Capital Partners - Investment Strategy Overview</h3>
             </div>
             
-            <div class="investment-paragraph">
-                <p class="investment-text">Our approach is refined by monitoring institutional ownership to avoid crowded trades and enhance liquidity alignment. Proprietary algorithms integrated with NASDAQ APIs enable real-time analysis and adaptive trade execution, maintaining strict risk/reward thresholds.</p>
-                <div class="investment-divider"></div>
-            </div>
-            
-            <div class="investment-paragraph">
-                <p class="investment-text">We ensure capital efficiency by trading only a portion of AUM on margin, while allocating unused capital to short-term, fixed-rate instruments such as Treasury bonds. This dual strategy generates passive yield and supports portfolio resilience.</p>
-                <div class="investment-divider"></div>
-            </div>
-            
-            <div class="investment-paragraph">
-                <p class="investment-text">A robust risk management framework underpins all operations, including automated stop-losses, statistical confidence models, and real-time monitoring. This disciplined structure enables consistent, risk-adjusted returns while mitigating drawdowns across varying market conditions.</p>
+            <div class="investment-right">
+                <div class="investment-paragraph">
+                    <p class="investment-text">Aequitas Capital Partners employs a short-only mean reversion strategy targeting NASDAQ and NYSE-listed stocks. We focus on equities experiencing significant pre-market price gaps—often driven by promotional news releases preceding the issuance of dilutive instruments. By analysing SEC filings and historical price patterns, we identify overvalued stocks likely to revert to fundamental levels, allowing us to capture rapid price corrections with controlled risk exposure.</p>
+                    <div class="investment-divider"></div>
+                </div>
+                
+                <div class="investment-paragraph">
+                    <p class="investment-text">Our approach is refined by monitoring institutional ownership to avoid crowded trades and enhance liquidity alignment. Proprietary algorithms integrated with NASDAQ APIs enable real-time analysis and adaptive trade execution, maintaining strict risk/reward thresholds.</p>
+                    <div class="investment-divider"></div>
+                </div>
+                
+                <div class="investment-paragraph">
+                    <p class="investment-text">We ensure capital efficiency by trading only a portion of AUM on margin, while allocating unused capital to short-term, fixed-rate instruments such as Treasury bonds. This dual strategy generates passive yield and supports portfolio resilience.</p>
+                    <div class="investment-divider"></div>
+                </div>
+                
+                <div class="investment-paragraph">
+                    <p class="investment-text">A robust risk management framework underpins all operations, including automated stop-losses, statistical confidence models, and real-time monitoring. This disciplined structure enables consistent, risk-adjusted returns while mitigating drawdowns across varying market conditions.</p>
+                </div>
             </div>
         </div>
     </section>
