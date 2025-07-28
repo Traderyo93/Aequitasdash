@@ -30,7 +30,7 @@ module.exports = async function handler(req, res) {
     // Get user from database with ALL required fields
     const result = await sql`
       SELECT 
-        id, email, password_hash, role, first_name, last_name, 
+        id, email, password_hash, role, status, first_name, last_name, 
         account_value, starting_balance, setup_status, setup_step, 
         password_must_change, created_at, last_login,
         two_factor_enabled, two_factor_setup_required, two_factor_secret, backup_codes
@@ -44,7 +44,7 @@ module.exports = async function handler(req, res) {
     }
 
     const user = result.rows[0];
-    console.log('👤 User found:', email, 'Role:', user.role, 'Password must change:', user.password_must_change, '2FA enabled:', user.two_factor_enabled);
+    console.log('👤 User found:', email, 'Role:', user.role, 'Status:', user.status, 'Password must change:', user.password_must_change, '2FA enabled:', user.two_factor_enabled);
     
     // Verify current password
     let passwordValid;
@@ -134,15 +134,16 @@ module.exports = async function handler(req, res) {
             id: user.id,
             email: user.email,
             role: user.role,
+            status: user.status, // 🔥 FIXED: Include status
             firstName: user.first_name,
             lastName: user.last_name,
             accountValue: parseFloat(user.account_value || 0),
             startingBalance: parseFloat(user.starting_balance || 0),
             setupStatus: user.setup_status,
             setupStep: user.setup_step,
-            setupRequired: user.setup_status !== 'approved',
-            password_must_change: false, // ✅ NOW FALSE after change
-            two_factor_setup_required: user.two_factor_setup_required // ✅ INCLUDE THIS
+            setupRequired: user.role === 'pending' && user.setup_status !== 'approved', // 🔥 FIXED: Only pending users need setup
+            password_must_change: false,
+            two_factor_setup_required: user.two_factor_setup_required
           },
           message: 'Password changed successfully'
         });
@@ -156,7 +157,7 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    // 🔥 FIXED: CHECK IF PASSWORD CHANGE IS REQUIRED (with complete user data)
+    // 🔥 FIXED: CHECK IF PASSWORD CHANGE IS REQUIRED
     if (user.password_must_change && !newPassword) {
       console.log('⚠️ Password change MANDATORY for user:', email);
       return res.status(200).json({
@@ -167,13 +168,14 @@ module.exports = async function handler(req, res) {
           id: user.id,
           email: user.email,
           role: user.role,
+          status: user.status, // 🔥 FIXED: Include status
           firstName: user.first_name,
           lastName: user.last_name,
           setupStatus: user.setup_status,
           setupStep: user.setup_step,
-          setupRequired: user.setup_status !== 'approved',
-          password_must_change: user.password_must_change, // ✅ FIXED: Include this field!
-          two_factor_setup_required: user.two_factor_setup_required // ✅ FIXED: Include this field!
+          setupRequired: user.role === 'pending' && user.setup_status !== 'approved', // 🔥 FIXED
+          password_must_change: user.password_must_change,
+          two_factor_setup_required: user.two_factor_setup_required
         }
       });
     }
@@ -182,7 +184,7 @@ module.exports = async function handler(req, res) {
     // 2FA CHECKS - ENHANCED VERSION
     // ===================================================================
 
-    // 🔥 FIXED: Check if 2FA setup is required (more explicit check)
+    // 🔥 FIXED: Check if 2FA setup is required
     if (!user.two_factor_enabled && user.two_factor_setup_required === true) {
       console.log('🔐 2FA setup MANDATORY for user:', email);
       
@@ -200,11 +202,12 @@ module.exports = async function handler(req, res) {
           id: user.id, 
           email: user.email, 
           role: user.role,
+          status: user.status, // 🔥 FIXED: Include status
           firstName: user.first_name,
           lastName: user.last_name,
           setupStatus: user.setup_status,
           setupStep: user.setup_step,
-          setupRequired: user.setup_status !== 'approved',
+          setupRequired: user.role === 'pending' && user.setup_status !== 'approved', // 🔥 FIXED
           password_must_change: user.password_must_change,
           two_factor_setup_required: user.two_factor_setup_required
         },
@@ -228,7 +231,7 @@ module.exports = async function handler(req, res) {
     // NORMAL LOGIN FLOW - No 2FA required
     // ===================================================================
     
-    console.log('🔓 Normal login flow for user:', email, '(No 2FA required)');
+    console.log('🔓 Normal login flow for user:', email);
     
     // Update last login timestamp
     try {
@@ -250,9 +253,26 @@ module.exports = async function handler(req, res) {
     );
 
     console.log('🎫 JWT token generated for normal login:', email);
-    console.log('✅ Normal auth successful for:', email, 'Role:', user.role);
+    console.log('✅ Normal auth successful for:', email, 'Role:', user.role, 'Status:', user.status);
 
-    // 🔥 FIXED: Include ALL user fields in normal login response
+    // 🔥 FIXED: Different setupRequired logic for different user types
+    let setupRequired = false;
+    
+    if (user.role === 'pending') {
+      // Pending users need setup if not approved
+      setupRequired = user.setup_status !== 'approved';
+    } else if (user.role === 'client' && user.status === 'active') {
+      // Active clients don't need setup - admin has already verified them
+      setupRequired = false;
+    }
+
+    console.log('🔍 Setup check:', {
+      role: user.role,
+      status: user.status,
+      setup_status: user.setup_status,
+      setupRequired: setupRequired
+    });
+
     return res.status(200).json({
       success: true,
       token: token,
@@ -260,16 +280,17 @@ module.exports = async function handler(req, res) {
         id: user.id,
         email: user.email,
         role: user.role,
+        status: user.status, // 🔥 FIXED: Always include status
         firstName: user.first_name,
         lastName: user.last_name,
         accountValue: parseFloat(user.account_value || 0),
         startingBalance: parseFloat(user.starting_balance || 0),
         setupStatus: user.setup_status,
         setupStep: user.setup_step,
-        setupRequired: user.setup_status !== 'approved',
-        password_must_change: user.password_must_change, // ✅ FIXED: Always include
-        two_factor_setup_required: user.two_factor_setup_required, // ✅ FIXED: Always include
-        two_factor_enabled: user.two_factor_enabled // ✅ FIXED: Always include
+        setupRequired: setupRequired, // 🔥 FIXED: Proper logic
+        password_must_change: user.password_must_change,
+        two_factor_setup_required: user.two_factor_setup_required,
+        two_factor_enabled: user.two_factor_enabled
       }
     });
 
