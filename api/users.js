@@ -94,7 +94,7 @@ module.exports = async function handler(req, res) {
           VALUES (
             ${email}, ${hashedPassword}, 'client', 'active', ${firstName}, ${lastName}, 
             ${phone || ''}, ${address || ''}, ${parseFloat(initialDeposit)}, ${parseFloat(initialDeposit)}, 
-            'approved', 5, true, false, true, true, 3, true
+            'approved', 5, false, false, true, true, 3, true
           )
           RETURNING id, email, first_name, last_name
         `;
@@ -115,7 +115,7 @@ module.exports = async function handler(req, res) {
           user: newUser,
           tempPassword: defaultPassword,
           setupRequirements: {
-            passwordChangeRequired: true,
+            passwordChangeRequired: false, // 🔥 FIXED: No password change needed
             twoFactorSetupRequired: true,
             accountSetupRequired: false, // 🔥 FIXED: No account setup needed
             documentUploadRequired: false // 🔥 FIXED: No documents needed
@@ -125,11 +125,12 @@ ACTIVE CLIENT CREATED: ${email}
 Temporary password: ${defaultPassword}
 
 SIMPLIFIED SETUP FLOW (Admin pre-verified):
-1. Login → Password change required (setup.html)
-2. After password change → 2FA setup required (2fa-setup.html)  
-3. After 2FA → Direct to dashboard (no document upload needed)
+1. Login with email: ${email}
+2. Login with temp password: ${defaultPassword}
+3. 2FA setup required (2fa-setup.html)  
+4. Direct to dashboard (no password change or document upload needed)
 
-User bypasses document upload and approval - admin has already verified them.
+User bypasses password change and document upload - admin has already verified them.
           `
         });
         
