@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aequitas Capital Partners</title>
-    <link href="https://fonts.googleapis.com/css2?family=Karla:wght@400&family=Open+Sans:wght@400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Karla:wght@400;500&family=Open+Sans:wght@400&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -69,6 +69,49 @@
         @keyframes scaleX {
             from { transform: scaleX(0); }
             to { transform: scaleX(1); }
+        }
+
+        /* Scroll Animation Classes */
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+
+        .animate-on-scroll.animated {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .animate-left {
+            opacity: 0;
+            transform: translateX(-50px);
+            transition: all 0.8s ease-out;
+        }
+
+        .animate-left.animated {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .animate-right {
+            opacity: 0;
+            transform: translateX(50px);
+            transition: all 0.8s ease-out;
+        }
+
+        .animate-right.animated {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .animate-scale {
+            transform: scaleX(0);
+            transition: transform 0.8s ease-out;
+        }
+
+        .animate-scale.animated {
+            transform: scaleX(1);
         }
 
         /* Hero Section */
@@ -213,6 +256,14 @@
             width: 100%;
         }
 
+        .hero-description p {
+            margin: 0;
+        }
+
+        .hero-description p + p {
+            margin-top: 20px;
+        }
+
         .button-container {
             align-self: flex-start;
         }
@@ -262,7 +313,6 @@
         .about-section {
             background: #FFFFFF;
             padding: 80px 77px;
-            animation: fadeIn 1s ease-out;
         }
 
         .about-title {
@@ -272,7 +322,6 @@
             font-weight: 400;
             line-height: normal;
             margin-bottom: 40px;
-            animation: slideInLeft 1s ease-out;
         }
 
         .about-divider {
@@ -280,14 +329,11 @@
             height: 1px;
             background: #0D1B28;
             margin-bottom: 60px;
-            transform: scaleX(0);
-            animation: scaleX 1s ease-out 0.3s both;
         }
 
         .about-content {
             display: flex;
             gap: 60px;
-            animation: slideInUp 1s ease-out 0.6s both;
         }
 
         .about-text {
@@ -307,12 +353,10 @@
                 linear-gradient(0deg, rgba(15, 44, 130, 0.59) 0%, rgba(15, 44, 130, 0.59) 100%), 
                 url('assets/images/Blue Background.png') lightgray 50% / cover no-repeat;
             padding: 80px 77px;
-            animation: fadeIn 1s ease-out;
         }
 
         .investment-container {
             display: flex;
-            animation: slideInUp 1s ease-out 0.3s both;
         }
 
         .investment-left {
@@ -327,7 +371,6 @@
             font-weight: 400;
             line-height: normal;
             margin-bottom: 40px;
-            animation: slideInLeft 1s ease-out 0.6s both;
         }
 
         .investment-subtitle {
@@ -336,12 +379,10 @@
             font-size: 32px;
             font-weight: 400;
             line-height: normal;
-            animation: slideInLeft 1s ease-out 0.9s both;
         }
 
         .investment-right {
             flex: 1;
-            animation: slideInRight 1s ease-out 0.6s both;
         }
 
         .investment-paragraph {
@@ -361,8 +402,132 @@
             height: 1px;
             background: rgba(255, 255, 255, 0.50);
             margin-top: 43px;
-            transform: scaleX(0);
-            animation: scaleX 0.8s ease-out 1.2s both;
+        }
+
+        /* Contact Us Section */
+        .contact-section {
+            background: #FFFFFF;
+            padding: 80px 77px;
+        }
+
+        .contact-container {
+            display: flex;
+            gap: 80px;
+            align-items: flex-start;
+        }
+
+        .contact-left {
+            flex: 0 0 400px;
+        }
+
+        .contact-title {
+            color: #0D1B28;
+            font-family: Karla;
+            font-size: 66px;
+            font-weight: 500;
+            line-height: normal;
+            margin-bottom: 40px;
+        }
+
+        .contact-description {
+            width: 479px;
+            color: #A1A1A1;
+            text-align: justify;
+            font-family: "Open Sans";
+            font-size: 16px;
+            font-weight: 400;
+            line-height: normal;
+        }
+
+        .contact-right {
+            flex: 1;
+            max-width: 500px;
+        }
+
+        .contact-form {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-label {
+            color: #A1A1A1;
+            font-family: "Open Sans";
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 20px;
+        }
+
+        .form-input,
+        .form-textarea {
+            border: none;
+            border-bottom: 1px solid #E5E5E5;
+            background: transparent;
+            padding: 8px 0;
+            font-family: "Open Sans";
+            font-size: 16px;
+            color: #0D1B28;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus {
+            border-bottom-color: #0D1B28;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .submit-button {
+            display: flex;
+            width: 114px;
+            height: 32px;
+            padding: 4px 4px 4px 15px;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 100px;
+            border: 0.5px solid #0D1B28;
+            background: transparent;
+            color: #0D1B28;
+            text-align: center;
+            font-family: "Open Sans";
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 150%;
+            letter-spacing: -0.48px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            align-self: flex-start;
+            margin-top: 16px;
+        }
+
+        .submit-button:hover {
+            background: #0D1B28;
+            color: #FFF;
+        }
+
+        .submit-icon {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: rgba(13, 27, 40, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .submit-button:hover .submit-icon {
+            background: rgba(255, 255, 255, 0.2);
         }
 
         /* Responsive Design */
@@ -371,35 +536,31 @@
                 padding: 40px;
             }
             
-            .about-section {
+            .about-section, .investment-section, .contact-section {
                 padding: 60px 40px;
             }
 
-            .about-content {
+            .about-content, .investment-container, .contact-container {
                 flex-direction: column;
                 gap: 40px;
             }
 
-            .investment-section {
-                padding: 60px 40px;
-            }
-
-            .investment-container {
-                flex-direction: column;
-            }
-
-            .investment-left {
+            .investment-left, .contact-left {
                 flex: none;
                 margin-right: 0;
                 margin-bottom: 40px;
             }
 
-            .hero-title, .about-title, .investment-title {
+            .hero-title, .about-title, .investment-title, .contact-title {
                 font-size: 48px;
             }
 
             .investment-subtitle {
                 font-size: 24px;
+            }
+
+            .contact-description {
+                width: 100%;
             }
         }
 
@@ -408,7 +569,7 @@
                 padding: 24px;
             }
 
-            .about-section {
+            .about-section, .investment-section, .contact-section {
                 padding: 40px 24px;
             }
 
@@ -425,22 +586,12 @@
                 height: 38px;
             }
 
-            .hero-title, .about-title, .investment-title {
+            .hero-title, .about-title, .investment-title, .contact-title {
                 font-size: 36px;
             }
 
             .investment-subtitle {
                 font-size: 20px;
-            }
-
-            .investment-section {
-                padding: 40px 24px;
-            }
-
-            .investment-left {
-                flex: none;
-                margin-right: 0;
-                margin-bottom: 40px;
             }
         }
     </style>
@@ -472,7 +623,10 @@
         <div class="divider-line"></div>
         <div class="hero-content">
             <h1 class="hero-title">Stronger Foundations, Greater Heights</h1>
-            <p class="hero-description">Aequitas Capital Partners is an algorithmic trading firm leveraging proprietary software and data-driven insights to generate sustainable capital growth. Our team is comprised of skilled professionals with expertise in trading, risk management, and data analysis, supported by advanced algorithms that optimise performance and control risk effectively.</p>
+            <div class="hero-description">
+                <p>Aequitas Capital Partners is an algorithmic trading firm leveraging proprietary software and data-driven insights to generate sustainable capital growth.</p>
+                <p>Our team is comprised of skilled professionals with expertise in trading, risk management, and data analysis, supported by advanced algorithms that optimise performance and control risk effectively.</p>
+            </div>
             <div class="button-container">
                 <a href="#about" class="start-button">
                     Start now
@@ -489,13 +643,13 @@
 
     <!-- About Us Section -->
     <section id="about" class="about-section">
-        <h2 class="about-title">About Us</h2>
-        <div class="about-divider"></div>
+        <h2 class="about-title animate-on-scroll">About Us</h2>
+        <div class="about-divider animate-scale"></div>
         <div class="about-content">
-            <div class="about-text">
+            <div class="about-text animate-left">
                 Aequitas Capital Partners is an investment management firm specialising in algorithmic trading strategies that seek to deliver consistent, risk-adjusted returns. Our focus is on leveraging data-driven insights and proprietary trading models to capitalise on market inefficiencies, predominantly in equity and fixed-income markets.
             </div>
-            <div class="about-text">
+            <div class="about-text animate-right">
                 Aequitas employs a sophisticated, short-only strategy that combines quantitative models, advanced statistical techniques, and real-time data analysis to generate sustainable capital growth. By utilising machine learning and data-intensive methodologies, we are able to identify price deviations and capitalise on short-term trading opportunities with precision.
             </div>
         </div>
@@ -505,10 +659,10 @@
     <section id="investment" class="investment-section">
         <div class="investment-container">
             <div class="investment-left">
-                <h2 class="investment-title">Investment Strategy</h2>
-                <h3 class="investment-subtitle">Investment Strategy Overview</h3>
+                <h2 class="investment-title animate-left">Investment Strategy</h2>
+                <h3 class="investment-subtitle animate-left">Investment Strategy Overview</h3>
             </div>
-            <div class="investment-right">
+            <div class="investment-right animate-right">
                 <p class="investment-paragraph">
                     Aequitas Capital Partners employs a short-only mean reversion strategy targeting NASDAQ and NYSE-listed stocks. We focus on equities experiencing significant pre-market price gaps—often driven by promotional news releases preceding the issuance of dilutive instruments. By analysing SEC filings and historical price patterns, we identify overvalued stocks likely to revert to fundamental levels, allowing us to capture rapid price corrections with controlled risk exposure.
                 </p>
@@ -521,6 +675,43 @@
                 <p class="investment-paragraph">
                     A robust risk management framework underpins all operations, including automated stop-losses, statistical confidence models, and real-time monitoring. This disciplined structure enables consistent, risk-adjusted returns while mitigating drawdowns across varying market conditions.
                 </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Us Section -->
+    <section id="contact" class="contact-section">
+        <div class="contact-container">
+            <div class="contact-left">
+                <h2 class="contact-title animate-left">Contact Us</h2>
+                <p class="contact-description animate-left">
+                    Aequitas Capital Partners is a private hedge fund available by invitation only. If you're interested in joining the fund or learning more about our approach, please get in touch — a member of our team will be in contact.
+                </p>
+            </div>
+            <div class="contact-right animate-right">
+                <form class="contact-form" action="#" method="POST">
+                    <div class="form-group">
+                        <label class="form-label" for="firstName">First Name</label>
+                        <input type="text" id="firstName" name="firstName" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="email">Email</label>
+                        <input type="email" id="email" name="email" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="message">Message</label>
+                        <textarea id="message" name="message" class="form-textarea" required></textarea>
+                    </div>
+                    <button type="submit" class="submit-button">
+                        Submit
+                        <div class="submit-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                                <path d="M6.8687 9.2414C6.7341 9.2414 6.5996 9.1927 6.4934 9.0884C6.288 8.8867 6.288 8.553 6.4934 8.3513L9.9165 4.4991L6.4934 0.64691C6.288 0.44526 6.288 0.11149 6.4934 -0.09016C6.6987 -0.29181 7.0387 -0.29181 7.244 -0.09016L11.0425 4.1306C11.2478 4.3322 11.2478 4.666 11.0425 4.8676L7.244 9.0884C7.1378 9.1927 7.0032 9.2414 6.8687 9.2414Z" fill="currentColor"/>
+                                <path d="M10.6486 4.931H1.3517C1.05213 4.931 0.803711 4.7356 0.803711 4.5C0.803711 4.2644 1.05213 4.069 1.3517 4.069H10.6486C10.9481 4.069 11.1966 4.2644 11.1966 4.5C11.1966 4.7356 10.9481 4.931 10.6486 4.931Z" fill="currentColor"/>
+                            </svg>
+                        </div>
+                    </button>
+                </form>
             </div>
         </div>
     </section>
@@ -538,6 +729,43 @@
                     });
                 }
             });
+        });
+
+        // Intersection Observer for scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animated');
+                }
+            });
+        }, observerOptions);
+
+        // Observe all elements with animation classes
+        document.querySelectorAll('.animate-on-scroll, .animate-left, .animate-right, .animate-scale').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Contact form submission
+        document.querySelector('.contact-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const data = {
+                firstName: formData.get('firstName'),
+                email: formData.get('email'),
+                message: formData.get('message')
+            };
+
+            // Send email to henry.cohen@aequitascap.com
+            // Note: This requires a backend service to actually send emails
+            // For now, we'll show a success message
+            alert('Thank you for your message! A member of our team will be in contact shortly.');
+            this.reset();
         });
     </script>
 </body>
