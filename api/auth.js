@@ -270,7 +270,9 @@ module.exports = async function handler(req, res) {
       role: user.role,
       status: user.status,
       setup_status: user.setup_status,
-      setupRequired: setupRequired
+      setupRequired: setupRequired,
+      password_must_change: user.password_must_change,
+      two_factor_setup_required: user.two_factor_setup_required
     });
 
     return res.status(200).json({
