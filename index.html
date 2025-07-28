@@ -237,11 +237,6 @@
             padding: 80px 77px;
         }
 
-        .about-container {
-            max-width: 1440px;
-            margin: 0 auto;
-        }
-
         .about-title {
             color: #0C161F;
             font-family: 'Karla', sans-serif;
@@ -263,11 +258,11 @@
             display: flex;
             gap: 60px;
             align-items: flex-start;
+            width: 100%;
         }
 
         .about-text {
             flex: 1;
-            max-width: 519px;
             color: #171717;
             text-align: justify;
             font-family: "Open Sans", sans-serif;
@@ -290,10 +285,6 @@
             .about-content {
                 flex-direction: column;
                 gap: 40px;
-            }
-            
-            .about-text {
-                max-width: 100%;
             }
         }
 
@@ -370,19 +361,17 @@
 
     <!-- About Us Section -->
     <section class="about-section" id="about">
-        <div class="about-container">
-            <h2 class="about-title">About Us</h2>
+        <h2 class="about-title">About Us</h2>
+        
+        <div class="about-divider"></div>
+        
+        <div class="about-content">
+            <div class="about-text">
+                <p>Aequitas Capital Partners is an investment management firm specialising in algorithmic trading strategies that seek to deliver consistent, risk-adjusted returns. Our focus is on leveraging data-driven insights and proprietary trading models to capitalise on market inefficiencies, predominantly in equity and fixed-income markets.</p>
+            </div>
             
-            <div class="about-divider"></div>
-            
-            <div class="about-content">
-                <div class="about-text">
-                    <p>Aequitas Capital Partners is an investment management firm specialising in algorithmic trading strategies that seek to deliver consistent, risk-adjusted returns. Our focus is on leveraging data-driven insights and proprietary trading models to capitalise on market inefficiencies, predominantly in equity and fixed-income markets.</p>
-                </div>
-                
-                <div class="about-text">
-                    <p>Aequitas employs a sophisticated, short-only strategy that combines quantitative models, advanced statistical techniques, and real-time data analysis to generate sustainable capital growth. By utilising machine learning and data-intensive methodologies, we are able to identify price deviations and capitalise on short-term trading opportunities with precision.</p>
-                </div>
+            <div class="about-text">
+                <p>Aequitas employs a sophisticated, short-only strategy that combines quantitative models, advanced statistical techniques, and real-time data analysis to generate sustainable capital growth. By utilising machine learning and data-intensive methodologies, we are able to identify price deviations and capitalise on short-term trading opportunities with precision.</p>
             </div>
         </div>
     </section>
