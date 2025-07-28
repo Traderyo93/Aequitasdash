@@ -749,7 +749,7 @@
                 <p>Our team is comprised of skilled professionals with expertise in trading, risk management, and data analysis, supported by advanced algorithms that optimise performance and control risk effectively.</p>
             </div>
             <div class="button-container">
-                <a href="#about" class="start-button">
+                <a href="#contact" class="start-button">
                     Start now
                     <div class="start-now-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -810,19 +810,20 @@
                 </p>
             </div>
             <div class="contact-right animate-right">
-                <form class="contact-form" id="contactForm">
+                <form class="contact-form" id="contactForm" action="https://formspree.io/f/xrblkqrn" method="POST">
                     <div class="form-group">
                         <label class="form-label" for="firstName">First Name</label>
                         <input type="text" id="firstName" name="firstName" class="form-input" required>
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="email">Email</label>
-                        <input type="email" id="email" name="email" class="form-input" required>
+                        <input type="email" id="email" name="_replyto" class="form-input" required>
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="message">Message</label>
                         <textarea id="message" name="message" class="form-textarea" required></textarea>
                     </div>
+                    <input type="hidden" name="_subject" value="New Contact Form Submission from Aequitas Website">
                     <button type="submit" class="submit-button">
                         Submit
                         <div class="submit-icon">
@@ -870,7 +871,7 @@
     </footer>
 
     <script>
-        // Smooth scrolling for navigation links
+        // Smooth scrolling for navigation links AND start button
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -884,6 +885,21 @@
                 }
             });
         });
+
+        // Extra handler for start button to ensure it works
+        const startButton = document.querySelector('.start-button');
+        if (startButton) {
+            startButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                const contactSection = document.getElementById('contact');
+                if (contactSection) {
+                    contactSection.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        }
 
         // Intersection Observer for scroll animations
         const observerOptions = {
@@ -902,17 +918,6 @@
         // Observe all elements with animation classes
         document.querySelectorAll('.animate-on-scroll, .animate-left, .animate-right, .animate-scale').forEach(el => {
             observer.observe(el);
-        });
-
-        // Contact form submission
-        document.getElementById('contactForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Hide the form and show thank you message
-            this.style.display = 'none';
-            document.getElementById('thankYouMessage').classList.add('show');
-            
-            console.log('Form submitted successfully');
         });
     </script>
 </body>
