@@ -26,11 +26,11 @@
         .hero-section {
             display: flex;
             width: 100%;
-            min-height: 900px;
-            padding: 34px 77px;
+            min-height: 100vh;
+            padding: 34px 77px 60px 77px;
             flex-direction: column;
             align-items: flex-start;
-            gap: 10px;
+            justify-content: space-between;
             background: linear-gradient(0deg, rgba(0, 0, 0, 0.50) 0%, rgba(0, 0, 0, 0.50) 100%), 
                         linear-gradient(0deg, rgba(15, 44, 130, 0.59) 0%, rgba(15, 44, 130, 0.59) 100%), 
                         url('assets/images/Aequitas Background.png') lightgray;
@@ -46,6 +46,7 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 27px;
+            flex-shrink: 0;
         }
 
         .logo-container {
@@ -111,15 +112,20 @@
         /* White divider line */
         .divider-container {
             border-bottom: 1px solid rgba(255, 255, 255, 0.50);
-            margin: 0 0 120px 0;
+            margin: 0 0 60px 0;
             padding: 0;
             width: 100%;
+            flex-shrink: 0;
         }
 
         /* Hero Content */
         .hero-content {
             max-width: 700px;
             z-index: 1;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
         .hero-title {
@@ -129,7 +135,7 @@
             font-size: 66px;
             font-style: normal;
             font-weight: 400;
-            line-height: normal;
+            line-height: 1.1;
             margin-bottom: 32px;
         }
 
@@ -140,7 +146,7 @@
             font-size: 16px;
             font-style: normal;
             font-weight: 400;
-            line-height: normal;
+            line-height: 1.5;
             opacity: 0.6;
             margin-bottom: 48px;
             max-width: 700px;
@@ -160,7 +166,6 @@
             font-size: 14px;
             text-decoration: none;
             transition: all 0.3s ease;
-            margin-bottom: 34px;
         }
 
         .start-now-button:hover {
@@ -177,14 +182,13 @@
         /* Responsive Design */
         @media (max-width: 1024px) {
             .hero-section {
-                padding: 24px 40px;
-                min-height: 600px;
+                padding: 24px 40px 60px 40px;
+                min-height: 100vh;
             }
             
             .hero-title {
                 font-size: 48px;
-                width: 100%;
-                max-width: 500px;
+                max-width: 100%;
             }
             
             .nav-links {
@@ -194,8 +198,8 @@
 
         @media (max-width: 768px) {
             .hero-section {
-                padding: 20px 24px;
-                min-height: 500px;
+                padding: 20px 24px 40px 24px;
+                min-height: 100vh;
             }
             
             .nav-container {
@@ -212,7 +216,7 @@
             
             .hero-title {
                 font-size: 36px;
-                width: 100%;
+                max-width: 100%;
             }
             
             .hero-description {
