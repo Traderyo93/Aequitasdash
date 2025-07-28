@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aequitas Capital Partners - Stronger Foundations, Greater Heights</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Karla:wght@400;500;600;700&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            line-height: 1.6;
+        }
+
+        /* Header Section */
+        .hero-section {
+            display: flex;
+            width: 100%;
+            min-height: 694px;
+            padding: 34px 77px;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+            background: linear-gradient(0deg, rgba(0, 0, 0, 0.50) 0%, rgba(0, 0, 0, 0.50) 100%), 
+                        linear-gradient(0deg, rgba(15, 44, 130, 0.59) 0%, rgba(15, 44, 130, 0.59) 100%), 
+                        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="diagonal" patternUnits="userSpaceOnUse" width="20" height="20" patternTransform="rotate(45)"><rect width="2" height="20" fill="%23ffffff" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="%23D9D9D9"/><rect width="100" height="100" fill="url(%23diagonal)"/></svg>') lightgray;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        /* Navigation */
+        .nav-container {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 60px;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo {
+            width: 112px;
+            height: 35px;
+        }
+
+        .logo-text {
+            color: #FFF;
+            font-family: 'Karla', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .nav-link {
+            color: #FFF;
+            font-family: "Open Sans", sans-serif;
+            font-size: 16px;
+            font-style: normal;
+            font-weight: 400;
+            line-height: 126%;
+            text-decoration: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .nav-link:hover {
+            opacity: 0.8;
+        }
+
+        .login-button {
+            display: flex;
+            width: 114px;
+            height: 32px;
+            padding: 4px 4px 4px 15px;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 100px;
+            border: 0.5px solid #FFF;
+            background: transparent;
+            color: #FFF;
+            text-decoration: none;
+            font-family: "Open Sans", sans-serif;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+
+        .login-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .login-icon {
+            width: 25px;
+            height: 25px;
+            flex-shrink: 0;
+        }
+
+        /* White divider line */
+        .divider-line {
+            width: 100%;
+            max-width: 1280px;
+            height: 4px;
+            margin: 20px 0 80px 0;
+        }
+
+        /* Hero Content */
+        .hero-content {
+            max-width: 597px;
+            z-index: 1;
+        }
+
+        .hero-title {
+            width: 597px;
+            color: #FFF;
+            font-family: 'Karla', sans-serif;
+            font-size: 66px;
+            font-style: normal;
+            font-weight: 400;
+            line-height: normal;
+            margin-bottom: 32px;
+        }
+
+        .hero-description {
+            align-self: stretch;
+            color: #FFF;
+            font-family: "Open Sans", sans-serif;
+            font-size: 16px;
+            font-style: normal;
+            font-weight: 400;
+            line-height: normal;
+            opacity: 0.6;
+            margin-bottom: 40px;
+        }
+
+        .start-now-button {
+            display: inline-flex;
+            padding: 12px 24px;
+            align-items: center;
+            gap: 8px;
+            border-radius: 100px;
+            border: 1px solid #FFF;
+            background: transparent;
+            color: #FFF;
+            font-family: "Open Sans", sans-serif;
+            font-size: 16px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .start-now-button:hover {
+            background: #FFF;
+            color: #0F2C82;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .hero-section {
+                padding: 24px 40px;
+                min-height: 600px;
+            }
+            
+            .hero-title {
+                font-size: 48px;
+                width: 100%;
+                max-width: 500px;
+            }
+            
+            .nav-links {
+                gap: 24px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-section {
+                padding: 20px 24px;
+                min-height: 500px;
+            }
+            
+            .nav-container {
+                flex-direction: column;
+                gap: 20px;
+                margin-bottom: 40px;
+            }
+            
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 16px;
+            }
+            
+            .hero-title {
+                font-size: 36px;
+                width: 100%;
+            }
+            
+            .hero-description {
+                font-size: 14px;
+            }
+            
+            .divider-line {
+                margin: 15px 0 40px 0;
+            }
+        }
+
+        /* Placeholder sections for remaining content */
+        .content-section {
+            padding: 80px 77px;
+            max-width: 1440px;
+            margin: 0 auto;
+        }
+
+        .section-placeholder {
+            background: #f8f9fa;
+            padding: 60px 40px;
+            text-align: center;
+            margin: 40px 0;
+            border-radius: 8px;
+            border: 2px dashed #dee2e6;
+        }
+
+        .section-placeholder h2 {
+            color: #6c757d;
+            font-family: 'Karla', sans-serif;
+            margin-bottom: 16px;
+        }
+
+        .section-placeholder p {
+            color: #6c757d;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <!-- Navigation -->
+        <nav class="nav-container">
+            <div class="logo-container">
+                <svg class="logo" width="112" height="35" viewBox="0 0 112 35" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="-7" y="-7" width="138" height="49" fill="white"/>
+                </svg>
+                <span class="logo-text">AEQUITAS<br><small style="font-size: 10px; font-weight: 400;">CAPITAL PARTNERS</small></span>
+            </div>
+            
+            <div class="nav-links">
+                <a href="#about" class="nav-link">About</a>
+                <a href="#investment-strategies" class="nav-link">Investment Strategies</a>
+                <a href="#contact" class="nav-link">Contact Us</a>
+                
+                <a href="login.html" class="login-button">
+                    Login
+                    <svg class="login-icon" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25" fill="none">
+                        <rect width="25" height="25" rx="12.5" fill="white" fill-opacity="0.2"/>
+                        <path d="M14.3687 17.2414C14.2341 17.2414 14.0996 17.1927 13.9934 17.0884C13.788 16.8867 13.788 16.553 13.9934 16.3513L17.9165 12.4991L13.9934 8.64691C13.788 8.44526 13.788 8.11149 13.9934 7.90984C14.1987 7.70819 14.5387 7.70819 14.744 7.90984L19.0425 12.1306C19.2478 12.3322 19.2478 12.666 19.0425 12.8676L14.744 17.0884C14.6378 17.1927 14.5032 17.2414 14.3687 17.2414Z" fill="white"/>
+                        <path d="M18.6486 12.931H6.3517C6.05213 12.931 5.80371 12.7356 5.80371 12.5C5.80371 12.2644 6.05213 12.069 6.3517 12.069H18.6486C18.9481 12.069 19.1966 12.2644 19.1966 12.5C19.1966 12.7356 18.9481 12.931 18.6486 12.931Z" fill="white"/>
+                    </svg>
+                </a>
+            </div>
+        </nav>
+
+        <!-- White divider line -->
+        <svg class="divider-line" xmlns="http://www.w3.org/2000/svg" width="1281" height="4" viewBox="0 0 1281 4" fill="none">
+            <path d="M1280.18 2.17678C1280.27 2.07915 1280.27 1.92085 1280.18 1.82322L1278.59 0.232233C1278.49 0.134602 1278.33 0.134602 1278.23 0.232233C1278.13 0.329864 1278.13 0.488155 1278.23 0.585786L1279.65 2L1278.23 3.41421C1278.13 3.51184 1278.13 3.67014 1278.23 3.76777C1278.33 3.8654 1278.49 3.8654 1278.59 3.76777L1280.18 2.17678ZM0 2V2.25H1280V2V1.75H0V2Z" fill="#0D1B28"/>
+        </svg>
+
+        <!-- Hero Content -->
+        <div class="hero-content">
+            <h1 class="hero-title">Stronger Foundations Greater Heights</h1>
+            
+            <div class="hero-description">
+                <p style="margin-bottom: 24px;">Aequitas Capital Partners is an algorithmic trading firm leveraging proprietary software an data-driven insights to generate sustainable capital growth.</p>
+                
+                <p>Our team is comprised of skilled professionals with expertise in trading, risk management, and data analysis, supported by advanced algorithms that optimise performance and control risk effectively.</p>
+            </div>
+            
+            <a href="#contact" class="start-now-button">
+                Start now →
+            </a>
+        </div>
+    </section>
+
+    <!-- Placeholder sections for remaining content -->
+    <div class="content-section">
+        <div class="section-placeholder" id="about">
+            <h2>About Us Section</h2>
+            <p>This section will be added next. Please provide the About Us content and styling specifications.</p>
+        </div>
+        
+        <div class="section-placeholder" id="investment-strategies">
+            <h2>Investment Strategies Section</h2>
+            <p>This section will be added next. Please provide the Investment Strategies content and styling specifications.</p>
+        </div>
+        
+        <div class="section-placeholder" id="contact">
+            <h2>Contact Us Section</h2>
+            <p>This section will be added next. Please provide the Contact Us form content and styling specifications.</p>
+        </div>
+    </div>
+</body>
+</html>
