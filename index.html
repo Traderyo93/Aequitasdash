@@ -226,9 +226,11 @@
         /* Investment Strategy Section */
         .investment-section {
             width: 100%;
-            background: url('assets/images/Blue Background.png') #1a365d;
-            background-size: cover;
-            background-position: center;
+            background: linear-gradient(0deg, rgba(15, 44, 130, 0.20) 0%, rgba(15, 44, 130, 0.20) 100%), 
+                        url('assets/images/Blue Background.png') lightgray;
+            background-size: 207.252% 286.345%;
+            background-position: -779.435px -0.148px;
+            background-repeat: no-repeat;
             padding: 80px 77px;
             display: flex;
             gap: 80px;
@@ -237,22 +239,20 @@
 
         .investment-left {
             flex: 0 0 auto;
-            width: 432px;
+            max-width: 400px;
         }
 
         .investment-title {
             color: #FFF;
             font-family: 'Karla', sans-serif;
-            font-size: 32px;
+            font-size: 66px;
             font-style: normal;
             font-weight: 400;
             line-height: normal;
-            align-self: stretch;
-            margin-bottom: 40px;
+            margin-bottom: 60px;
         }
 
         .investment-subtitle {
-            width: 432px;
             color: #FFF;
             font-family: 'Karla', sans-serif;
             font-size: 32px;
@@ -275,7 +275,6 @@
         }
 
         .investment-text {
-            align-self: stretch;
             color: #FFF;
             text-align: justify;
             font-family: "Open Sans", sans-serif;
@@ -287,9 +286,9 @@
         }
 
         .investment-divider {
-            width: 635px;
+            width: 100%;
             height: 1px;
-            background: #FFF;
+            background: rgba(255, 255, 255, 0.50);
             margin-bottom: 43px;
         }
 
@@ -326,14 +325,20 @@
                 padding: 60px 40px;
                 flex-direction: column;
                 gap: 60px;
+                background-size: cover;
+                background-position: center;
             }
             
             .investment-left {
-                width: 100%;
+                max-width: 100%;
+            }
+
+            .investment-title {
+                font-size: 48px;
             }
             
             .investment-subtitle {
-                width: 100%;
+                font-size: 24px;
             }
             
             .investment-right {
@@ -396,11 +401,16 @@
             .investment-section {
                 padding: 40px 24px;
                 gap: 40px;
+                background-size: cover;
+                background-position: center;
+            }
+
+            .investment-title {
+                font-size: 36px;
             }
             
-            .investment-title,
             .investment-subtitle {
-                font-size: 24px;
+                font-size: 20px;
             }
             
             .investment-text {
