@@ -1,7 +1,34 @@
-// api/auth.js - COMPLETE FIXED VERSION
+// api/auth.js - ENHANCED WITH RATE LIMITING
 const { sql } = require('@vercel/postgres');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+
+// Simple in-memory rate limiting (for production, use Redis or similar)
+const rateLimitMap = new Map();
+const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes
+const MAX_ATTEMPTS = 5; // Max 5 attempts per IP per window
+
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const windowStart = now - RATE_LIMIT_WINDOW;
+  
+  if (!rateLimitMap.has(ip)) {
+    rateLimitMap.set(ip, []);
+  }
+  
+  const attempts = rateLimitMap.get(ip);
+  // Remove old attempts outside the window
+  const recentAttempts = attempts.filter(timestamp => timestamp > windowStart);
+  rateLimitMap.set(ip, recentAttempts);
+  
+  return recentAttempts.length < MAX_ATTEMPTS;
+}
+
+function recordAttempt(ip) {
+  const attempts = rateLimitMap.get(ip) || [];
+  attempts.push(Date.now());
+  rateLimitMap.set(ip, attempts);
+}
 
 module.exports = async function handler(req, res) {
   // Set CORS headers first
@@ -18,10 +45,22 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
+  // Rate limiting check
+  const clientIP = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 'unknown';
+  
+  if (!checkRateLimit(clientIP)) {
+    console.log('🚫 Rate limit exceeded for IP:', clientIP);
+    return res.status(429).json({ 
+      success: false, 
+      error: 'Too many login attempts. Please try again in 15 minutes.' 
+    });
+  }
+
   try {
     const { email, password, newPassword } = req.body;
 
     if (!email || !password) {
+      recordAttempt(clientIP);
       return res.status(400).json({ success: false, error: 'Email and password required' });
     }
 
@@ -40,6 +79,7 @@ module.exports = async function handler(req, res) {
 
     if (result.rows.length === 0) {
       console.log('❌ User not found:', email);
+      recordAttempt(clientIP);
       return res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
 
@@ -52,11 +92,13 @@ module.exports = async function handler(req, res) {
       passwordValid = await bcrypt.compare(password, user.password_hash);
     } catch (bcryptError) {
       console.error('💥 Password comparison failed:', bcryptError);
+      recordAttempt(clientIP);
       return res.status(500).json({ success: false, error: 'Authentication error' });
     }
     
     if (!passwordValid) {
       console.log('❌ Invalid password for:', email);
+      recordAttempt(clientIP);
       return res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
 
@@ -134,14 +176,14 @@ module.exports = async function handler(req, res) {
             id: user.id,
             email: user.email,
             role: user.role,
-            status: user.status, // 🔥 FIXED: Include status
+            status: user.status,
             firstName: user.first_name,
             lastName: user.last_name,
             accountValue: parseFloat(user.account_value || 0),
             startingBalance: parseFloat(user.starting_balance || 0),
             setupStatus: user.setup_status,
             setupStep: user.setup_step,
-            setupRequired: user.role === 'pending' && user.setup_status !== 'approved', // 🔥 FIXED: Only pending users need setup
+            setupRequired: user.role === 'pending' && user.setup_status !== 'approved',
             password_must_change: false,
             two_factor_setup_required: user.two_factor_setup_required
           },
@@ -157,7 +199,7 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    // 🔥 FIXED: CHECK IF PASSWORD CHANGE IS REQUIRED
+    // CHECK IF PASSWORD CHANGE IS REQUIRED
     if (user.password_must_change && !newPassword) {
       console.log('⚠️ Password change MANDATORY for user:', email);
       return res.status(200).json({
@@ -168,23 +210,19 @@ module.exports = async function handler(req, res) {
           id: user.id,
           email: user.email,
           role: user.role,
-          status: user.status, // 🔥 FIXED: Include status
+          status: user.status,
           firstName: user.first_name,
           lastName: user.last_name,
           setupStatus: user.setup_status,
           setupStep: user.setup_step,
-          setupRequired: user.role === 'pending' && user.setup_status !== 'approved', // 🔥 FIXED
+          setupRequired: user.role === 'pending' && user.setup_status !== 'approved',
           password_must_change: user.password_must_change,
           two_factor_setup_required: user.two_factor_setup_required
         }
       });
     }
 
-    // ===================================================================
-    // 2FA CHECKS - ENHANCED VERSION
-    // ===================================================================
-
-    // 🔥 FIXED: Check if 2FA setup is required
+    // 2FA CHECKS
     if (!user.two_factor_enabled && user.two_factor_setup_required === true) {
       console.log('🔐 2FA setup MANDATORY for user:', email);
       
@@ -202,12 +240,12 @@ module.exports = async function handler(req, res) {
           id: user.id, 
           email: user.email, 
           role: user.role,
-          status: user.status, // 🔥 FIXED: Include status
+          status: user.status,
           firstName: user.first_name,
           lastName: user.last_name,
           setupStatus: user.setup_status,
           setupStep: user.setup_step,
-          setupRequired: user.role === 'pending' && user.setup_status !== 'approved', // 🔥 FIXED
+          setupRequired: user.role === 'pending' && user.setup_status !== 'approved',
           password_must_change: user.password_must_change,
           two_factor_setup_required: user.two_factor_setup_required
         },
@@ -227,10 +265,7 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // ===================================================================
-    // NORMAL LOGIN FLOW - No 2FA required
-    // ===================================================================
-    
+    // NORMAL LOGIN FLOW
     console.log('🔓 Normal login flow for user:', email);
     
     // Update last login timestamp
@@ -242,7 +277,6 @@ module.exports = async function handler(req, res) {
       `;
     } catch (updateError) {
       console.error('⚠️ Failed to update last login:', updateError);
-      // Don't fail auth for this
     }
 
     // Generate JWT token
@@ -255,14 +289,12 @@ module.exports = async function handler(req, res) {
     console.log('🎫 JWT token generated for normal login:', email);
     console.log('✅ Normal auth successful for:', email, 'Role:', user.role, 'Status:', user.status);
 
-    // 🔥 FIXED: Different setupRequired logic for different user types
+    // Different setupRequired logic for different user types
     let setupRequired = false;
     
     if (user.role === 'pending') {
-      // Pending users need setup if not approved
       setupRequired = user.setup_status !== 'approved';
     } else if (user.role === 'client' && user.status === 'active') {
-      // Active clients don't need setup - admin has already verified them
       setupRequired = false;
     }
 
@@ -282,14 +314,14 @@ module.exports = async function handler(req, res) {
         id: user.id,
         email: user.email,
         role: user.role,
-        status: user.status, // 🔥 FIXED: Always include status
+        status: user.status,
         firstName: user.first_name,
         lastName: user.last_name,
         accountValue: parseFloat(user.account_value || 0),
         startingBalance: parseFloat(user.starting_balance || 0),
         setupStatus: user.setup_status,
         setupStep: user.setup_step,
-        setupRequired: setupRequired, // 🔥 FIXED: Proper logic
+        setupRequired: setupRequired,
         password_must_change: user.password_must_change,
         two_factor_setup_required: user.two_factor_setup_required,
         two_factor_enabled: user.two_factor_enabled
@@ -298,7 +330,7 @@ module.exports = async function handler(req, res) {
 
   } catch (error) {
     console.error('💥 Authentication error:', error);
-    console.error('Error stack:', error.stack);
+    recordAttempt(clientIP);
     
     return res.status(500).json({ 
       success: false, 
