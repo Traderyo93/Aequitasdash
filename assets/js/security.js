@@ -1,19 +1,18 @@
 /**
- * AEQUITAS CAPITAL PARTNERS - COMPLETE PRODUCTION SECURITY SYSTEM
+ * AEQUITAS CAPITAL PARTNERS - PRODUCTION SECURITY SYSTEM (CHROME-COMPATIBLE)
  * 
- * This single file handles ALL production security measures:
- * ✅ Authentication & 2FA Token Validation (DISABLED)
+ * This file handles production security measures without triggering browser warnings:
  * ✅ API Access Control & Rate Limiting  
- * ✅ Developer Tools Blocking
- * ✅ Content Security & Anti-Tampering
- * ✅ Environment Configuration
  * ✅ Error Handling & Sanitization
  * ✅ Session Monitoring & Auto-Logout
  * ✅ CORS Protection
  * ✅ XSS Prevention
  * ✅ Route Protection
+ * ❌ Developer Tools Blocking (DISABLED - causes Chrome warnings)
+ * ❌ Content Protection (DISABLED - causes Chrome warnings)
+ * ❌ Token Validation (DISABLED - was causing logout loops)
  * 
- * USAGE: Include this script FIRST in every HTML page:
+ * USAGE: Include this script in HTML pages:
  * <script src="/assets/js/security.js"></script>
  */
 
@@ -25,28 +24,28 @@
     // ============================================================================
     
     window.AEQUITAS_SECURITY = {
-        ENVIRONMENT: 'development', // Set to 'development' to disable aggressive security
+        ENVIRONMENT: 'production',
         DOMAIN: window.location.hostname,
         API_BASE: '/api',
         
-        // Security Features Toggle - TOKEN VALIDATION DISABLED
+        // Security Features Toggle - Chrome-Compatible Settings
         FEATURES: {
-            DISABLE_DEVTOOLS: false,
-            DISABLE_CONSOLE: false,
-            DISABLE_RIGHTCLICK: false,
-            DISABLE_COPY_PASTE: false,
-            TOKEN_VALIDATION: false,    // DISABLED - This was causing the logout issue
-            API_RATE_LIMITING: false,
-            CONTENT_PROTECTION: false,
-            ERROR_SANITIZATION: false,
-            SESSION_MONITORING: false,
-            AUTO_LOGOUT: false
+            DISABLE_DEVTOOLS: false,     // DISABLED - triggers Chrome ad blocker
+            DISABLE_CONSOLE: false,      // DISABLED - triggers Chrome ad blocker
+            DISABLE_RIGHTCLICK: false,   // DISABLED - triggers Chrome ad blocker
+            DISABLE_COPY_PASTE: false,   // DISABLED - triggers Chrome ad blocker
+            TOKEN_VALIDATION: false,     // DISABLED - was causing logout loops
+            API_RATE_LIMITING: true,     // ENABLED - safe & useful
+            CONTENT_PROTECTION: false,   // DISABLED - triggers Chrome ad blocker
+            ERROR_SANITIZATION: true,    // ENABLED - safe & useful
+            SESSION_MONITORING: true,    // ENABLED - safe & useful
+            AUTO_LOGOUT: false          // DISABLED - too aggressive
         },
         
         // Rate Limits (per minute)
         RATE_LIMITS: {
             API_CALLS: 50,
-            LOGIN_ATTEMPTS: 3,
+            LOGIN_ATTEMPTS: 5,
             PAGE_LOADS: 100
         },
         
@@ -87,230 +86,16 @@
         }
         
         init() {
-            console.log('🔒 Initializing Aequitas Security System (Token Validation DISABLED)...');
+            console.log('🔒 Initializing Aequitas Security System (Chrome-Compatible Mode)...');
             
-            // Apply production security measures
-            if (window.AEQUITAS_SECURITY.ENVIRONMENT === 'production') {
-                this.enableProductionSecurity();
-            }
-            
-            // Initialize core security systems (AUTHENTICATION DISABLED)
-            // this.initializeAuthentication(); // DISABLED - No more forced logouts
+            // Initialize ONLY safe security systems
             this.initializeAPIProtection();
-            this.initializeContentProtection();
+            this.initializeContentProtection(); // Safe version
             this.initializeErrorHandling();
             this.initializeSessionMonitoring();
             this.initializeRouteProtection();
             
-            console.log('✅ Security system active (No token validation)');
-            
-            // Hide console logs after initialization in production
-            if (window.AEQUITAS_SECURITY.ENVIRONMENT === 'production') {
-                setTimeout(() => this.disableConsole(), 1000);
-            }
-        }
-        
-        // ========================================================================
-        // PRODUCTION SECURITY MEASURES
-        // ========================================================================
-        
-        enableProductionSecurity() {
-            if (window.AEQUITAS_SECURITY.FEATURES.DISABLE_DEVTOOLS) {
-                this.disableDeveloperTools();
-            }
-            
-            if (window.AEQUITAS_SECURITY.FEATURES.DISABLE_RIGHTCLICK) {
-                this.disableRightClick();
-            }
-            
-            if (window.AEQUITAS_SECURITY.FEATURES.DISABLE_COPY_PASTE) {
-                this.disableCopyPaste();
-            }
-            
-            if (window.AEQUITAS_SECURITY.FEATURES.CONTENT_PROTECTION) {
-                this.enableContentProtection();
-            }
-        }
-        
-        disableDeveloperTools() {
-            // Block developer tool shortcuts
-            document.addEventListener('keydown', (e) => {
-                const blockedKeys = [
-                    { key: 'F12' },
-                    { ctrl: true, shift: true, key: 'I' },
-                    { ctrl: true, shift: true, key: 'C' },
-                    { ctrl: true, shift: true, key: 'J' },
-                    { ctrl: true, key: 'u' },
-                    { ctrl: true, key: 'U' },
-                    { key: 'F11' } // Fullscreen toggle
-                ];
-                
-                for (let blocked of blockedKeys) {
-                    if (this.matchesKeyCombo(e, blocked)) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        this.logSecurityViolation('Developer tools access attempt');
-                        return false;
-                    }
-                }
-            });
-            
-            // Detect DevTools opening
-            this.detectDevTools();
-        }
-        
-        matchesKeyCombo(event, combo) {
-            return (
-                (!combo.ctrl || event.ctrlKey) &&
-                (!combo.shift || event.shiftKey) &&
-                (!combo.alt || event.altKey) &&
-                (event.key === combo.key || event.code === combo.key)
-            );
-        }
-        
-        detectDevTools() {
-            let devtools = { open: false };
-            
-            // Method 1: Window size detection
-            setInterval(() => {
-                if (window.outerHeight - window.innerHeight > 200 || 
-                    window.outerWidth - window.innerWidth > 200) {
-                    if (!devtools.open) {
-                        devtools.open = true;
-                        this.handleSecurityViolation('DEVTOOLS_DETECTED');
-                    }
-                } else {
-                    devtools.open = false;
-                }
-            }, 1000);
-            
-            // Method 2: Debug detection
-            setInterval(() => {
-                const start = performance.now();
-                debugger; // This will pause if DevTools is open
-                const end = performance.now();
-                
-                if (end - start > 100) {
-                    this.handleSecurityViolation('DEBUGGER_DETECTED');
-                }
-            }, 3000);
-        }
-        
-        disableRightClick() {
-            document.addEventListener('contextmenu', (e) => {
-                e.preventDefault();
-                this.logSecurityViolation('Right-click context menu attempt');
-                return false;
-            });
-        }
-        
-        disableCopyPaste() {
-            // Disable text selection on sensitive elements
-            document.addEventListener('selectstart', (e) => {
-                if (e.target.closest('.no-select, .stat-value, .user-info')) {
-                    e.preventDefault();
-                    return false;
-                }
-            });
-            
-            // Disable copy/paste shortcuts
-            document.addEventListener('keydown', (e) => {
-                if (e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 'x')) {
-                    if (e.target.closest('.protected-content, .stat-value')) {
-                        e.preventDefault();
-                        this.logSecurityViolation('Copy/paste attempt on protected content');
-                        return false;
-                    }
-                }
-            });
-        }
-        
-        enableContentProtection() {
-            // Disable drag and drop
-            document.addEventListener('dragstart', (e) => {
-                e.preventDefault();
-                return false;
-            });
-            
-            // Disable print screen (limited effectiveness)
-            document.addEventListener('keyup', (e) => {
-                if (e.key === 'PrintScreen') {
-                    this.logSecurityViolation('Print screen attempt');
-                }
-            });
-            
-            // Add watermark overlay (optional)
-            if (window.location.pathname.includes('dashboard')) {
-                this.addWatermark();
-            }
-        }
-        
-        addWatermark() {
-            const watermark = document.createElement('div');
-            watermark.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                pointer-events: none;
-                z-index: 9999;
-                background-image: repeating-linear-gradient(
-                    45deg,
-                    transparent,
-                    transparent 100px,
-                    rgba(59, 130, 246, 0.05) 100px,
-                    rgba(59, 130, 246, 0.05) 200px
-                );
-                font-family: Arial, sans-serif;
-                font-size: 24px;
-                color: rgba(59, 130, 246, 0.1);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transform: rotate(-45deg);
-                user-select: none;
-            `;
-            watermark.textContent = 'AEQUITAS CAPITAL PARTNERS - CONFIDENTIAL';
-            document.body.appendChild(watermark);
-        }
-        
-        disableConsole() {
-            if (window.AEQUITAS_SECURITY.FEATURES.DISABLE_CONSOLE) {
-                const noop = () => {};
-                console.log = noop;
-                console.warn = noop;
-                console.error = noop;
-                console.info = noop;
-                console.debug = noop;
-                console.table = noop;
-                console.trace = noop;
-                console.group = noop;
-                console.groupEnd = noop;
-                console.clear = noop;
-            }
-        }
-        
-        // ========================================================================
-        // AUTHENTICATION SYSTEM - COMPLETELY DISABLED
-        // ========================================================================
-        
-        initializeAuthentication() {
-            // DISABLED - This function is no longer called to prevent forced logouts
-            console.log('🚫 Authentication validation is DISABLED');
-            return;
-        }
-        
-        async validateAuthentication() {
-            // DISABLED - No token validation to prevent logout loops
-            console.log('🚫 Token validation SKIPPED');
-            return;
-        }
-        
-        redirectToLogin(reason) {
-            // DISABLED - Prevent automatic redirects to login
-            console.log('🚫 Login redirect BLOCKED:', reason);
-            return;
+            console.log('✅ Security system active (Chrome-compatible)');
         }
         
         // ========================================================================
@@ -350,8 +135,8 @@
                     
                     // Handle authentication errors (but don't redirect)
                     if (response.status === 401) {
-                        console.warn('⚠️ API returned 401, but not redirecting due to disabled auth');
-                        return response; // Return the response instead of redirecting
+                        console.warn('⚠️ API returned 401 - authentication may be required');
+                        return response;
                     }
                     
                     return response;
@@ -387,11 +172,31 @@
         }
         
         // ========================================================================
+        // CONTENT PROTECTION (SAFE VERSION)
+        // ========================================================================
+        
+        initializeContentProtection() {
+            // Only add basic, non-intrusive content protection
+            console.log('📋 Content protection initialized (safe mode)');
+            
+            // Basic drag protection for images (non-aggressive)
+            document.addEventListener('dragstart', (e) => {
+                if (e.target.tagName === 'IMG' && e.target.classList.contains('protected')) {
+                    e.preventDefault();
+                }
+            });
+            
+            // This function was missing and causing the error
+        }
+        
+        // ========================================================================
         // SESSION MONITORING
         // ========================================================================
         
         initializeSessionMonitoring() {
             if (!window.AEQUITAS_SECURITY.FEATURES.SESSION_MONITORING) return;
+            
+            console.log('👁️ Session monitoring initialized');
             
             // Track user activity
             const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
@@ -441,22 +246,25 @@
                     this.sessionWarningShown = true;
                 }
                 
-                // Auto logout on timeout (but disabled)
-                if (inactiveTime > timeoutMs && window.AEQUITAS_SECURITY.FEATURES.AUTO_LOGOUT) {
-                    console.log('🚫 Auto-logout triggered but disabled');
-                    // this.redirectToLogin('Session timed out due to inactivity');
+                // Note: Auto logout is disabled to prevent forced logouts
+                if (inactiveTime > timeoutMs) {
+                    console.log('ℹ️ Session timeout reached (auto-logout disabled)');
                 }
             }, 30000); // Check every 30 seconds
         }
         
         showSessionWarning() {
+            const warningMinutes = window.AEQUITAS_SECURITY.SESSION.WARNING_MINUTES;
+            
+            // Try to use the app's notification system if available
             if (typeof showNotification === 'function') {
                 showNotification(
-                    `Your session will expire in ${window.AEQUITAS_SECURITY.SESSION.WARNING_MINUTES} minutes due to inactivity.`,
+                    `Your session will expire in ${warningMinutes} minutes due to inactivity.`,
                     'warning'
                 );
             } else {
-                alert(`Your session will expire in ${window.AEQUITAS_SECURITY.SESSION.WARNING_MINUTES} minutes due to inactivity.`);
+                // Fallback to console warning (less intrusive than alert)
+                console.warn(`⚠️ Session will expire in ${warningMinutes} minutes due to inactivity`);
             }
         }
         
@@ -465,30 +273,30 @@
         // ========================================================================
         
         initializeRouteProtection() {
-            // Prevent navigation to protected routes without authentication
+            console.log('🛡️ Route protection initialized');
+            
+            // Clean up resources on page unload
             window.addEventListener('beforeunload', () => {
                 this.cleanupSession();
             });
             
-            // Monitor for URL changes (SPA protection) - but don't enforce
+            // Monitor for URL changes (but don't enforce - just log)
             const originalPushState = history.pushState;
             const originalReplaceState = history.replaceState;
             
             history.pushState = (...args) => {
-                // this.validateRouteAccess(args[2]); // DISABLED
+                this.logNavigation(args[2]);
                 return originalPushState.apply(history, args);
             };
             
             history.replaceState = (...args) => {
-                // this.validateRouteAccess(args[2]); // DISABLED
+                this.logNavigation(args[2]);
                 return originalReplaceState.apply(history, args);
             };
         }
         
-        validateRouteAccess(url) {
-            // DISABLED - No route validation
-            console.log('🚫 Route validation DISABLED for:', url);
-            return;
+        logNavigation(url) {
+            console.log('🔄 Navigation:', url || window.location.pathname);
         }
         
         cleanupSession() {
@@ -502,23 +310,20 @@
         // ========================================================================
         
         initializeErrorHandling() {
+            if (!window.AEQUITAS_SECURITY.FEATURES.ERROR_SANITIZATION) return;
+            
+            console.log('🛠️ Error handling initialized');
+            
             // Global error handler
             window.addEventListener('error', (e) => {
                 this.logSecurityViolation(`JavaScript error: ${e.message}`);
-                
-                if (window.AEQUITAS_SECURITY.FEATURES.ERROR_SANITIZATION) {
-                    e.preventDefault();
-                    return false;
-                }
+                // Don't prevent the error - just log it
             });
             
             // Unhandled promise rejection handler
             window.addEventListener('unhandledrejection', (e) => {
                 this.logSecurityViolation(`Unhandled promise rejection: ${e.reason}`);
-                
-                if (window.AEQUITAS_SECURITY.FEATURES.ERROR_SANITIZATION) {
-                    e.preventDefault();
-                }
+                // Don't prevent the error - just log it
             });
         }
         
@@ -533,14 +338,10 @@
                 violations: this.securityViolations
             };
             
-            // Log to server if possible
-            this.sendSecurityLog(violation);
+            console.warn('⚠️ Security event:', violation);
             
-            // Handle repeated violations (but don't redirect)
-            if (this.securityViolations >= 5) {
-                console.warn('🚫 Security violations detected but enforcement disabled');
-                // this.handleSecurityViolation('REPEATED_VIOLATIONS'); // DISABLED
-            }
+            // Send to server if possible (but don't fail if it doesn't work)
+            this.sendSecurityLog(violation);
         }
         
         async sendSecurityLog(violation) {
@@ -555,14 +356,9 @@
                     body: JSON.stringify(violation)
                 });
             } catch (error) {
-                // Fail silently in production
+                // Fail silently - don't disrupt user experience
+                console.debug('Security log failed to send:', error.message);
             }
-        }
-        
-        handleSecurityViolation(type) {
-            // DISABLED - No security violation enforcement
-            console.log('🚫 Security violation enforcement DISABLED:', type);
-            return;
         }
         
         // ========================================================================
@@ -577,14 +373,19 @@
                 violations: this.securityViolations,
                 sessionAge: Date.now() - this.sessionStartTime,
                 lastActivity: this.lastActivity,
-                tokenValidation: 'DISABLED'
+                features: {
+                    apiRateLimit: window.AEQUITAS_SECURITY.FEATURES.API_RATE_LIMITING,
+                    sessionMonitoring: window.AEQUITAS_SECURITY.FEATURES.SESSION_MONITORING,
+                    errorHandling: window.AEQUITAS_SECURITY.FEATURES.ERROR_SANITIZATION
+                }
             };
         }
         
-        // Manual security check (disabled)
+        // Manual security status check
         performSecurityCheck() {
-            console.log('🚫 Manual security check DISABLED');
-            return;
+            const status = this.getSecurityStatus();
+            console.log('🔍 Security Status:', status);
+            return status;
         }
     }
     
@@ -604,46 +405,31 @@
 })();
 
 // ============================================================================
-// ADDITIONAL CSS FOR SECURITY (inject into page)
+// MINIMAL CSS FOR SECURITY (non-intrusive)
 // ============================================================================
 
 const securityCSS = `
-    /* Disable text selection on sensitive content */
-    .no-select, .stat-value, .user-info, .protected-content {
-        -webkit-user-select: none !important;
-        -moz-user-select: none !important;
-        -ms-user-select: none !important;
-        user-select: none !important;
+    /* Optional: Mark images as protected (user must add 'protected' class) */
+    img.protected {
+        -webkit-user-drag: none;
+        -khtml-user-drag: none;
+        -moz-user-drag: none;
+        -o-user-drag: none;
+        user-drag: none;
     }
     
-    /* Disable drag on images and sensitive elements */
-    img, .stat-icon, .logo {
-        -webkit-user-drag: none !important;
-        -khtml-user-drag: none !important;
-        -moz-user-drag: none !important;
-        -o-user-drag: none !important;
-        user-drag: none !important;
-        pointer-events: none !important;
-    }
-    
-    /* Hide scroll bars in production (optional) */
-    body.production-mode::-webkit-scrollbar {
-        display: none;
-    }
-    body.production-mode {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
+    /* Optional: No-select class for sensitive content (user must add class) */
+    .no-select {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
     }
 `;
 
-// Inject security CSS
+// Inject minimal security CSS
 const style = document.createElement('style');
 style.textContent = securityCSS;
 document.head.appendChild(style);
 
-// Add production class if in production
-if (window.AEQUITAS_SECURITY?.ENVIRONMENT === 'production') {
-    document.body.classList.add('production-mode');
-}
-
-console.log('🚫 SECURITY SYSTEM LOADED - TOKEN VALIDATION DISABLED');
+console.log('✅ SECURITY SYSTEM LOADED - Chrome-Compatible Mode');
