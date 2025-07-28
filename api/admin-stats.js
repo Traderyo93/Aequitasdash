@@ -1,4 +1,4 @@
-// api/admin-stats.js - COMPLETE FIXED VERSION - SHOWS ALL DEPOSITS INCLUDING PENDING
+// api/admin-stats.js - COMPLETELY FIXED VERSION
 const { sql } = require('@vercel/postgres');
 const jwt = require('jsonwebtoken');
 
@@ -53,9 +53,9 @@ async function loadCSVData() {
   }
 }
 
-// Calculate account performance using cumulative returns
+// Calculate account performance using cumulative returns - FIXED CALCULATION
 function calculateAccountPerformance(deposits, csvData) {
-  console.log('🧮 Calculating performance with CUMULATIVE returns logic');
+  console.log('🧮 Calculating performance with FIXED CUMULATIVE returns logic');
   
   const endDate = new Date();
   let totalDeposits = 0;
@@ -100,13 +100,18 @@ function calculateAccountPerformance(deposits, csvData) {
       }
     }
     
-    // Calculate performance for this deposit
-    const performanceMultiplier = endCumulative / startCumulative;
+    // ===== FIXED CALCULATION =====
+    // Convert percentages to actual multipliers
+    const depositMultiplier = (100 + startCumulative) / 100;  // e.g., 147.84/100 = 1.4784
+    const currentMultiplier = (100 + endCumulative) / 100;    // e.g., 265.82/100 = 2.6582
+    const performanceMultiplier = currentMultiplier / depositMultiplier; // e.g., 2.6582/1.4784 = 1.798
     const currentDepositValue = depositAmount * performanceMultiplier;
     
     console.log(`💰 Deposit $${depositAmount.toLocaleString()} on ${depositDateStr}:`);
     console.log(`   📊 Cumulative: ${startCumulative.toFixed(2)}% → ${endCumulative.toFixed(2)}%`);
-    console.log(`   📈 Multiplier: ${performanceMultiplier.toFixed(4)}x`);
+    console.log(`   📊 Deposit multiplier: ${depositMultiplier.toFixed(4)}x`);
+    console.log(`   📊 Current multiplier: ${currentMultiplier.toFixed(4)}x`);
+    console.log(`   📈 Performance multiplier: ${performanceMultiplier.toFixed(4)}x`);
     console.log(`   💵 Value: $${currentDepositValue.toLocaleString()}`);
     
     finalBalance += currentDepositValue;
@@ -327,7 +332,7 @@ module.exports = async function handler(req, res) {
       userId: deposit.user_id
     }));
 
-    // Format ONLY ACTIVE CLIENTS for frontend with REAL PERFORMANCE CALCULATION
+    // Format ONLY ACTIVE CLIENTS for frontend with FIXED PERFORMANCE CALCULATION
     const formattedClients = allClientsResult.rows.map(client => {
       // Safe date formatting
       const formatDate = (dateValue) => {
@@ -348,7 +353,7 @@ module.exports = async function handler(req, res) {
 
       const totalDeposits = clientDeposits.reduce((sum, d) => sum + d.amount, 0);
       
-      // Calculate REAL account value using cumulative returns
+      // Calculate REAL account value using FIXED cumulative returns
       let accountValue = totalDeposits; // Default fallback
       if (clientDeposits.length > 0 && Object.keys(csvData).length > 0) {
         try {
@@ -370,7 +375,7 @@ module.exports = async function handler(req, res) {
         status: 'active', // All clients in this list are active
         joinDate: formatDate(client.created_at),
         totalDeposits,
-        accountValue, // REAL calculated value using cumulative returns
+        accountValue, // REAL calculated value using FIXED cumulative returns
         startingBalance: totalDeposits, // Starting balance = total deposits
         lastActive: formatDate(client.last_login) !== 'Unknown' ? formatDate(client.last_login) : formatDate(client.created_at)
       };
