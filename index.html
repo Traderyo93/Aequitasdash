@@ -230,31 +230,86 @@
             }
         }
 
-        /* Placeholder sections for remaining content */
-        .content-section {
-            padding: 80px 77px;
+        /* About Us Section */
+        .about-section {
+            width: 100%;
             max-width: 1440px;
             margin: 0 auto;
+            background: #FFFFFF;
+            padding: 80px 77px;
         }
 
-        .section-placeholder {
-            background: #f8f9fa;
-            padding: 60px 40px;
-            text-align: center;
-            margin: 40px 0;
-            border-radius: 8px;
-            border: 2px dashed #dee2e6;
-        }
-
-        .section-placeholder h2 {
-            color: #6c757d;
+        .about-title {
+            color: #0C161F;
             font-family: 'Karla', sans-serif;
-            margin-bottom: 16px;
+            font-size: 66px;
+            font-style: normal;
+            font-weight: 400;
+            line-height: normal;
+            margin-bottom: 40px;
         }
 
-        .section-placeholder p {
-            color: #6c757d;
-            font-size: 14px;
+        .about-divider {
+            width: 100%;
+            height: 1px;
+            background: #0D1B28;
+            margin-bottom: 60px;
+        }
+
+        .about-content {
+            display: flex;
+            gap: 60px;
+            align-items: flex-start;
+        }
+
+        .about-text {
+            width: 519px;
+            color: #171717;
+            text-align: justify;
+            font-family: "Open Sans", sans-serif;
+            font-size: 16px;
+            font-style: normal;
+            font-weight: 400;
+            line-height: normal;
+        }
+
+        /* Responsive for About Section */
+        @media (max-width: 1024px) {
+            .about-section {
+                padding: 60px 40px;
+            }
+            
+            .about-title {
+                font-size: 48px;
+            }
+            
+            .about-content {
+                flex-direction: column;
+                gap: 40px;
+            }
+            
+            .about-text {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .about-section {
+                padding: 40px 24px;
+            }
+            
+            .about-title {
+                font-size: 36px;
+            }
+            
+            .about-content {
+                gap: 30px;
+            }
+            
+            .about-text {
+                font-size: 14px;
+                text-align: left;
+            }
         }
     </style>
 </head>
@@ -309,22 +364,36 @@
         </div>
     </section>
 
+    <!-- About Us Section -->
+    <section class="about-section" id="about">
+        <h2 class="about-title">About Us</h2>
+        
+        <div class="about-divider"></div>
+        
+        <div class="about-content">
+            <div class="about-text">
+                <p>Aequitas Capital Partners is an investment management firm specialising in algorithmic trading strategies that seek to deliver consistent, risk-adjusted returns. Our focus is on leveraging data-driven insights and proprietary trading models to capitalise on market inefficiencies, predominantly in equity and fixed-income markets.</p>
+            </div>
+            
+            <div class="about-text">
+                <p>Aequitas employs a sophisticated, short-only strategy that combines quantitative models, advanced statistical techniques, and real-time data analysis to generate sustainable capital growth. By utilising machine learning and data-intensive methodologies, we are able to identify price deviations and capitalise on short-term trading opportunities with precision.</p>
+            </div>
+        </div>
+    </section>
+
     <!-- Placeholder sections for remaining content -->
-    <div class="content-section">
-        <div class="section-placeholder" id="about">
-            <h2>About Us Section</h2>
-            <p>This section will be added next. Please provide the About Us content and styling specifications.</p>
+    <div style="padding: 80px 77px; max-width: 1440px; margin: 0 auto;">
+        <div style="background: #f8f9fa; padding: 60px 40px; text-align: center; margin: 40px 0; border-radius: 8px; border: 2px dashed #dee2e6;" id="investment-strategies">
+            <h2 style="color: #6c757d; font-family: 'Karla', sans-serif; margin-bottom: 16px;">Investment Strategies Section</h2>
+            <p style="color: #6c757d; font-size: 14px;">This section will be added next. Please provide the Investment Strategies content and styling specifications.</p>
         </div>
         
-        <div class="section-placeholder" id="investment-strategies">
-            <h2>Investment Strategies Section</h2>
-            <p>This section will be added next. Please provide the Investment Strategies content and styling specifications.</p>
-        </div>
-        
-        <div class="section-placeholder" id="contact">
-            <h2>Contact Us Section</h2>
-            <p>This section will be added next. Please provide the Contact Us form content and styling specifications.</p>
+        <div style="background: #f8f9fa; padding: 60px 40px; text-align: center; margin: 40px 0; border-radius: 8px; border: 2px dashed #dee2e6;" id="contact">
+            <h2 style="color: #6c757d; font-family: 'Karla', sans-serif; margin-bottom: 16px;">Contact Us Section</h2>
+            <p style="color: #6c757d; font-size: 14px;">This section will be added next. Please provide the Contact Us form content and styling specifications.</p>
         </div>
     </div>
+</body>
+</html>
 </body>
 </html>
