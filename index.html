@@ -545,13 +545,115 @@
             display: block;
         }
 
+        /* Footer Section */
+        .footer-section {
+            background: 
+                linear-gradient(0deg, rgba(0, 0, 0, 0.50) 0%, rgba(0, 0, 0, 0.50) 100%), 
+                linear-gradient(0deg, rgba(15, 44, 130, 0.59) 0%, rgba(15, 44, 130, 0.59) 100%), 
+                url('assets/images/Blue Footer.png') lightgray 50% / cover no-repeat;
+            padding: 34px 77px;
+        }
+
+        .footer-nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 27px;
+        }
+
+        .footer-logo {
+            width: 160px;
+            height: 50px;
+        }
+
+        .footer-nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .footer-nav-links {
+            display: flex;
+            gap: 40px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .footer-nav-links a {
+            color: #FFF;
+            font-family: "Open Sans";
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 126%;
+            text-decoration: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .footer-nav-links a:hover {
+            opacity: 0.8;
+        }
+
+        .footer-login-button {
+            display: flex;
+            width: 114px;
+            height: 32px;
+            padding: 4px 4px 4px 15px;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 100px;
+            border: 0.5px solid #FFF;
+            background: transparent;
+            color: #FFF;
+            font-family: "Open Sans";
+            font-size: 14px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .footer-login-button:hover {
+            background: #FFF;
+            color: #0F2C82;
+        }
+
+        .footer-login-icon {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .footer-login-button:hover .footer-login-icon {
+            background: rgba(15, 44, 130, 0.2);
+        }
+
+        .footer-divider {
+            width: 100%;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.50);
+            margin-bottom: 40px;
+        }
+
+        .footer-text {
+            max-width: 652px;
+            color: #FFF;
+            font-family: "Open Sans";
+            font-size: 16px;
+            font-weight: 400;
+            line-height: normal;
+        }
+
         /* Responsive Design */
         @media (max-width: 1024px) {
             .hero-section {
                 padding: 40px;
             }
             
-            .about-section, .investment-section, .contact-section {
+            .about-section, .investment-section, .contact-section, .footer-section {
                 padding: 60px 40px;
             }
 
@@ -577,6 +679,10 @@
             .contact-description {
                 max-width: 100%;
             }
+
+            .footer-nav-links {
+                gap: 24px;
+            }
         }
 
         @media (max-width: 768px) {
@@ -584,8 +690,21 @@
                 padding: 24px;
             }
 
-            .about-section, .investment-section, .contact-section {
+            .about-section, .investment-section, .contact-section, .footer-section {
                 padding: 40px 24px;
+            }
+
+            .footer-nav-links {
+                display: none;
+            }
+
+            .footer-nav-menu {
+                gap: 0;
+            }
+
+            .footer-logo {
+                width: 120px;
+                height: 38px;
             }
 
             .nav-links {
@@ -655,6 +774,35 @@
             </div>
         </div>
     </section>
+
+    <!-- Footer Section -->
+    <footer class="footer-section">
+        <div class="footer-nav-container">
+            <div class="logo-container">
+                <img src="assets/images/Aequitas Logo.png" alt="Aequitas Capital Partners" class="footer-logo">
+            </div>
+            <div class="footer-nav-menu">
+                <ul class="footer-nav-links">
+                    <li><a href="#about">About Us</a></li>
+                    <li><a href="#investment">Investment Strategies</a></li>
+                    <li><a href="#contact">Contact Us</a></li>
+                </ul>
+                <a href="login.html" class="footer-login-button">
+                    Login
+                    <div class="footer-login-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                            <path d="M6.8687 9.2414C6.7341 9.2414 6.5996 9.1927 6.4934 9.0884C6.288 8.8867 6.288 8.553 6.4934 8.3513L9.9165 4.4991L6.4934 0.64691C6.288 0.44526 6.288 0.11149 6.4934 -0.09016C6.6987 -0.29181 7.0387 -0.29181 7.244 -0.09016L11.0425 4.1306C11.2478 4.3322 11.2478 4.666 11.0425 4.8676L7.244 9.0884C7.1378 9.1927 7.0032 9.2414 6.8687 9.2414Z" fill="currentColor"/>
+                            <path d="M10.6486 4.931H1.3517C1.05213 4.931 0.803711 4.7356 0.803711 4.5C0.803711 4.2644 1.05213 4.069 1.3517 4.069H10.6486C10.9481 4.069 11.1966 4.2644 11.1966 4.5C11.1966 4.7356 10.9481 4.931 10.6486 4.931Z" fill="currentColor"/>
+                        </svg>
+                    </div>
+                </a>
+            </div>
+        </div>
+        <div class="footer-divider"></div>
+        <p class="footer-text">
+            Aequitas Capital Partners LLP (Company No. OC457483) is registered in England and Wales with its registered office at 85 Great Portland Street, First Floor, London, W1W 7LT. Aequitas Capital Partners LLP acts as the management entity for the Aequitas Capital Partners sub-fund, a sub-fund of Carbon Capital Fund Usaldusfond, a limited partnership fund registered in Estonia (registry code 16383718). Fund administration services are provided by P11 Management. This website and its contents are intended for informational purposes only and do not constitute an offer to the public or a solicitation to invest.
+        </p>
+    </footer>
 
     <!-- About Us Section -->
     <section id="about" class="about-section">
