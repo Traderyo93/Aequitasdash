@@ -633,6 +633,68 @@
             document.getElementById('successMessage').style.display = 'none';
         }
 
+        // FIXED: Handle different auth scenarios properly
+async function handleAuthResponse(data) {
+    console.log('🔍 Auth response:', data);
+    
+    // Store user data
+    localStorage.setItem('aequitas_user_data', JSON.stringify(data.user));
+    
+    if (data.token) {
+        localStorage.setItem('aequitas_auth_token', data.token);
+    }
+    
+    // Handle different auth scenarios
+    if (data.passwordChangeRequired) {
+        console.log('🔄 Password change required - redirecting to setup');
+        window.location.href = 'setup.html';
+        return;
+    }
+    
+    if (data.twoFactorSetupRequired) {
+        console.log('🔐 2FA setup required - redirecting to 2FA setup');
+        window.location.href = '2fa-setup.html';
+        return;
+    }
+    
+    if (data.twoFactorRequired) {
+        console.log('🔐 2FA verification required - redirecting to 2FA login');
+        window.location.href = '2fa-login.html';
+        return;
+    }
+    
+    // Normal login success - check if setup is needed
+    if (data.user && data.user.setupRequired) {
+        console.log('📋 Account setup required - redirecting to setup');
+        console.log('Setup details:', {
+            role: data.user.role,
+            status: data.user.status,
+            setupStatus: data.user.setupStatus,
+            setupRequired: data.user.setupRequired
+        });
+        window.location.href = 'setup.html';
+        return;
+    }
+    
+    // 🔥 FIXED: Direct to appropriate dashboard based on role and status
+    console.log('✅ Login successful - directing to dashboard');
+    console.log('User details:', {
+        role: data.user.role,
+        status: data.user.status,
+        setupRequired: data.user.setupRequired
+    });
+    
+    if (data.user.role === 'admin') {
+        window.location.href = 'admin.html';
+    } else if (data.user.role === 'client' && data.user.status === 'active') {
+        // Active clients go straight to dashboard
+        window.location.href = 'dashboard.html';
+    } else {
+        // Fallback to dashboard
+        window.location.href = 'dashboard.html';
+    }
+}
+
         function useBackupCode() {
             usingBackupCode = !usingBackupCode;
             const codeInput = document.getElementById('twoFactorCode');
@@ -811,16 +873,19 @@
                     }
                     
                     // No 2FA required - direct login with FIXED REDIRECT
+                    // No 2FA required - direct login
                     console.log('✅ Direct login successful for:', email, 'Role:', data.user.role);
                     
                     credentialsBtn.querySelector('.btn-text').textContent = 'Success!';
                     successMessage.textContent = 'Login successful! Redirecting...';
                     successMessage.style.display = 'block';
                     
-                    // Use the fixed redirect function
+                    // Use the new handleAuthResponse function
+                    // Use the new handleAuthResponse function
                     setTimeout(() => {
-                        redirectUser({
-                            ...data.user,
+                        handleAuthResponse({
+                            success: true,
+                            user: data.user,
                             token: data.token
                         });
                     }, 1000);
