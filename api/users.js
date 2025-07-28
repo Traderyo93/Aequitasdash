@@ -44,10 +44,10 @@ module.exports = async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
-      // Create new user with MANDATORY setup requirements
-      const { firstName, lastName, email, phone, address, initialDeposit = 0 } = req.body;
+      // Create new user - FIXED: Handle active vs pending properly
+      const { firstName, lastName, email, phone, address, status = 'pending', initialDeposit = 0 } = req.body;
       
-      console.log('👤 Creating NEW user with mandatory setup:', { firstName, lastName, email });
+      console.log('👤 Creating user:', { firstName, lastName, email, status });
       
       if (!firstName || !lastName || !email) {
         return res.status(400).json({
@@ -79,60 +79,119 @@ module.exports = async function handler(req, res) {
         });
       }
       
-      // 🔥 FIXED: Create user WITH ALL REQUIRED SETUP FLAGS
-      const insertResult = await sql`
-        INSERT INTO users (
-          email, password_hash, role, first_name, last_name, phone, address,
-          account_value, starting_balance, setup_status, setup_step, 
-          password_must_change, two_factor_enabled, two_factor_setup_required,
-          personal_info_completed, documents_uploaded, legal_agreements_signed
-        )
-        VALUES (
-          ${email}, ${hashedPassword}, 'pending', ${firstName}, ${lastName}, 
-          ${phone || ''}, ${address || ''}, ${parseFloat(initialDeposit)}, ${parseFloat(initialDeposit)}, 
-          'setup_pending', 1, true, false, true, false, 0, false
-        )
-        RETURNING id, email, first_name, last_name
-      `;
-      
-      const newUser = insertResult.rows[0];
-      
-      console.log('✅ NEW USER CREATED with mandatory setup flags:', {
-        id: newUser.id,
-        email: newUser.email,
-        password_must_change: true,
-        two_factor_setup_required: true,
-        setup_status: 'setup_pending'
-      });
-      
-      return res.status(201).json({
-        success: true,
-        message: 'User created - MANDATORY password change and 2FA setup required',
-        user: newUser,
-        tempPassword: defaultPassword,
-        setupRequirements: {
-          passwordChangeRequired: true,
-          twoFactorSetupRequired: true,
-          accountSetupRequired: true
-        },
-        setupInstructions: `
-NEW USER CREATED: ${email}
+      // 🔥 FIXED: Different creation paths for active vs pending users
+      if (status === 'active') {
+        // ACTIVE CLIENT: Admin has all docs, user only needs password + 2FA
+        console.log('✅ Creating ACTIVE client (pre-verified by admin)');
+        
+        const insertResult = await sql`
+          INSERT INTO users (
+            email, password_hash, role, status, first_name, last_name, phone, address,
+            account_value, starting_balance, setup_status, setup_step,
+            password_must_change, two_factor_enabled, two_factor_setup_required,
+            personal_info_completed, documents_uploaded, legal_agreements_signed
+          )
+          VALUES (
+            ${email}, ${hashedPassword}, 'client', 'active', ${firstName}, ${lastName}, 
+            ${phone || ''}, ${address || ''}, ${parseFloat(initialDeposit)}, ${parseFloat(initialDeposit)}, 
+            'approved', 5, true, false, true, true, 3, true
+          )
+          RETURNING id, email, first_name, last_name
+        `;
+        
+        const newUser = insertResult.rows[0];
+        
+        console.log('✅ ACTIVE CLIENT CREATED - only needs password + 2FA:', {
+          id: newUser.id,
+          email: newUser.email,
+          role: 'client',
+          status: 'active',
+          setup_status: 'approved'
+        });
+        
+        return res.status(201).json({
+          success: true,
+          message: 'Active client created - only password change and 2FA setup required',
+          user: newUser,
+          tempPassword: defaultPassword,
+          setupRequirements: {
+            passwordChangeRequired: true,
+            twoFactorSetupRequired: true,
+            accountSetupRequired: false, // 🔥 FIXED: No account setup needed
+            documentUploadRequired: false // 🔥 FIXED: No documents needed
+          },
+          setupInstructions: `
+ACTIVE CLIENT CREATED: ${email}
 Temporary password: ${defaultPassword}
 
-MANDATORY SETUP FLOW:
+SIMPLIFIED SETUP FLOW (Admin pre-verified):
+1. Login → Password change required (setup.html)
+2. After password change → 2FA setup required (2fa-setup.html)  
+3. After 2FA → Direct to dashboard (no document upload needed)
+
+User bypasses document upload and approval - admin has already verified them.
+          `
+        });
+        
+      } else {
+        // PENDING USER: Full setup required including documents
+        console.log('📋 Creating PENDING user (needs full setup)');
+        
+        const insertResult = await sql`
+          INSERT INTO users (
+            email, password_hash, role, status, first_name, last_name, phone, address,
+            account_value, starting_balance, setup_status, setup_step, 
+            password_must_change, two_factor_enabled, two_factor_setup_required,
+            personal_info_completed, documents_uploaded, legal_agreements_signed
+          )
+          VALUES (
+            ${email}, ${hashedPassword}, 'pending', 'setup_pending', ${firstName}, ${lastName}, 
+            ${phone || ''}, ${address || ''}, ${parseFloat(initialDeposit)}, ${parseFloat(initialDeposit)}, 
+            'setup_pending', 1, true, false, true, false, 0, false
+          )
+          RETURNING id, email, first_name, last_name
+        `;
+        
+        const newUser = insertResult.rows[0];
+        
+        console.log('✅ PENDING USER CREATED - needs full setup:', {
+          id: newUser.id,
+          email: newUser.email,
+          role: 'pending',
+          status: 'setup_pending'
+        });
+        
+        return res.status(201).json({
+          success: true,
+          message: 'Pending user created - full setup flow required',
+          user: newUser,
+          tempPassword: defaultPassword,
+          setupRequirements: {
+            passwordChangeRequired: true,
+            twoFactorSetupRequired: true,
+            accountSetupRequired: true, // Full setup needed
+            documentUploadRequired: true // Documents needed
+          },
+          setupInstructions: `
+PENDING USER CREATED: ${email}
+Temporary password: ${defaultPassword}
+
+FULL SETUP FLOW:
 1. Login → Password change required (setup.html)
 2. After password change → 2FA setup required (2fa-setup.html)  
 3. After 2FA → Complete account setup (setup.html)
-4. Admin approval required
+4. Upload required documents
+5. Admin approval required
 
-User CANNOT skip any steps in this flow.
-        `
-      });
+User must complete ALL steps in this flow.
+          `
+        });
+      }
     }
     
     if (req.method === 'PUT') {
       // Update existing user
-      const { userId, firstName, lastName, phone, address, accountValue } = req.body;
+      const { userId, firstName, lastName, phone, address, accountValue, status } = req.body;
       
       if (!userId) {
         return res.status(400).json({
@@ -149,9 +208,10 @@ User CANNOT skip any steps in this flow.
           phone = ${phone || ''},
           address = ${address || ''},
           account_value = ${parseFloat(accountValue || 0)},
+          status = ${status || 'active'},
           updated_at = NOW()
         WHERE id = ${userId}
-        RETURNING id, email, first_name, last_name, phone, address, account_value
+        RETURNING id, email, first_name, last_name, phone, address, account_value, status
       `;
       
       if (updateResult.rows.length === 0) {
