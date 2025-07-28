@@ -66,6 +66,11 @@
             }
         }
 
+        @keyframes scaleX {
+            from { transform: scaleX(0); }
+            to { transform: scaleX(1); }
+        }
+
         /* Hero Section */
         .hero-section {
             min-height: 100vh;
@@ -173,6 +178,8 @@
             height: 1px;
             background: rgba(255, 255, 255, 0.50);
             margin-bottom: 60px;
+            transform: scaleX(0);
+            animation: scaleX 1s ease-out 1s both;
         }
 
         .hero-content {
@@ -255,7 +262,6 @@
         .about-section {
             background: #FFFFFF;
             padding: 80px 77px;
-            animation: fadeIn 1s ease-out;
         }
 
         .about-title {
@@ -265,7 +271,6 @@
             font-weight: 400;
             line-height: normal;
             margin-bottom: 40px;
-            animation: slideInLeft 1s ease-out;
         }
 
         .about-divider {
@@ -273,19 +278,11 @@
             height: 1px;
             background: #0D1B28;
             margin-bottom: 60px;
-            transform: scaleX(0);
-            animation: scaleX 1s ease-out 0.3s both;
-        }
-
-        @keyframes scaleX {
-            from { transform: scaleX(0); }
-            to { transform: scaleX(1); }
         }
 
         .about-content {
             display: flex;
             gap: 60px;
-            animation: slideInUp 1s ease-out 0.6s both;
         }
 
         .about-text {
@@ -301,16 +298,17 @@
 
         /* Investment Strategy Section */
         .investment-section {
-            background: url('assets/images/Blue Background.png') lightgray 50% / cover no-repeat;
+            background: 
+                linear-gradient(0deg, rgba(0, 0, 0, 0.50) 0%, rgba(0, 0, 0, 0.50) 100%), 
+                linear-gradient(0deg, rgba(15, 44, 130, 0.59) 0%, rgba(15, 44, 130, 0.59) 100%), 
+                url('assets/images/Blue Background.png') lightgray 50% / cover no-repeat;
             padding: 80px 0;
-            animation: fadeIn 1s ease-out;
         }
 
         .investment-container {
             max-width: 1440px;
             margin: 0 auto;
             display: flex;
-            animation: slideInUp 1s ease-out 0.3s both;
         }
 
         .investment-left {
@@ -326,7 +324,6 @@
             font-weight: 400;
             line-height: normal;
             margin-bottom: 40px;
-            animation: slideInLeft 1s ease-out 0.6s both;
         }
 
         .investment-subtitle {
@@ -335,13 +332,11 @@
             font-size: 32px;
             font-weight: 400;
             line-height: normal;
-            animation: slideInLeft 1s ease-out 0.9s both;
         }
 
         .investment-right {
             flex: 1;
             padding-right: 77px;
-            animation: slideInRight 1s ease-out 0.6s both;
         }
 
         .investment-paragraph {
@@ -361,8 +356,6 @@
             height: 1px;
             background: rgba(255, 255, 255, 0.50);
             margin-top: 43px;
-            transform: scaleX(0);
-            animation: scaleX 0.8s ease-out 1.2s both;
         }
 
         /* Responsive Design */
@@ -434,18 +427,6 @@
             .investment-left, .investment-right {
                 padding: 0 24px;
             }
-        }
-
-        /* Scroll animations */
-        .animate-on-scroll {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.8s ease-out;
-        }
-
-        .animate-on-scroll.animated {
-            opacity: 1;
-            transform: translateY(0);
         }
     </style>
 </head>
@@ -542,34 +523,6 @@
                     });
                 }
             });
-        });
-
-        // Intersection Observer for scroll animations
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('animated');
-                }
-            });
-        }, observerOptions);
-
-        // Observe elements with scroll animation
-        document.querySelectorAll('.animate-on-scroll').forEach(el => {
-            observer.observe(el);
-        });
-
-        // Add parallax effect to hero background
-        window.addEventListener('scroll', () => {
-            const scrolled = window.pageYOffset;
-            const hero = document.querySelector('.hero-section');
-            if (hero) {
-                hero.style.transform = `translateY(${scrolled * 0.5}px)`;
-            }
         });
     </script>
 </body>
