@@ -441,23 +441,6 @@
 
         .contact-right {
             flex: 1;
-            max-width: 500px;
-        }
-
-        .thank-you-message {
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            padding: 20px;
-            margin-top: 20px;
-            color: #0D1B28;
-            font-family: "Open Sans";
-            font-size: 16px;
-            display: none;
-        }
-
-        .thank-you-message.show {
-            display: block;
         }
 
         .contact-form {
@@ -546,6 +529,22 @@
             background: rgba(255, 255, 255, 0.2);
         }
 
+        .thank-you-message {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            color: #0D1B28;
+            font-family: "Open Sans";
+            font-size: 16px;
+            display: none;
+        }
+
+        .thank-you-message.show {
+            display: block;
+        }
+
         /* Responsive Design */
         @media (max-width: 1024px) {
             .hero-section {
@@ -576,7 +575,7 @@
             }
 
             .contact-description {
-                width: 100%;
+                max-width: 100%;
             }
         }
 
@@ -705,7 +704,7 @@
                 </p>
             </div>
             <div class="contact-right animate-right">
-                <form class="contact-form" action="#" method="POST">
+                <form class="contact-form" id="contactForm">
                     <div class="form-group">
                         <label class="form-label" for="firstName">First Name</label>
                         <input type="text" id="firstName" name="firstName" class="form-input" required>
@@ -728,6 +727,9 @@
                         </div>
                     </button>
                 </form>
+                <div class="thank-you-message" id="thankYouMessage">
+                    Thank you! A member of our team will be in contact.
+                </div>
             </div>
         </div>
     </section>
@@ -767,19 +769,14 @@
         });
 
         // Contact form submission
-        document.querySelector('.contact-form').addEventListener('submit', function(e) {
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const formData = new FormData(this);
-            const data = {
-                firstName: formData.get('firstName'),
-                email: formData.get('email'),
-                message: formData.get('message')
-            };
-
             // Hide the form and show thank you message
             this.style.display = 'none';
             document.getElementById('thankYouMessage').classList.add('show');
+            
+            console.log('Form submitted successfully');
         });
     </script>
 </body>
