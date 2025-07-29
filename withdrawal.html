@@ -1328,20 +1328,36 @@
                 const hasCurrentEligibleProfit = eligibility.totalEligibleProfit > 0;
                 const hasCurrentlyEligible = hasCurrentEligibleDeposits || hasCurrentEligibleProfit;
                 
-                // Calculate what will be eligible at next window
-                let nextWindowEligibleDeposits = 0;
-                let nextWindowEligibleProfit = 0;
+            // FIXED: Calculate what will be eligible at next window using PROPORTIONAL logic
+            let nextWindowEligibleDeposits = 0;
+            let nextWindowProfitEligibleDepositAmount = 0; // Track deposits eligible for profit
+            let totalDepositAmount = 0; // Track total deposits
+            
+            eligibility.eligibleDeposits.forEach(item => {
+                totalDepositAmount += item.depositAmount;
                 
-                eligibility.eligibleDeposits.forEach(item => {
-                    if (item.depositTimeEligibleByNextWindow) {
-                        nextWindowEligibleDeposits += item.depositAmount;
-                    }
-                    if (item.profitTimeEligibleByNextWindow && item.profit > 0) {
-                        nextWindowEligibleProfit += item.profit;
-                    }
-                });
+                if (item.depositTimeEligibleByNextWindow) {
+                    nextWindowEligibleDeposits += item.depositAmount;
+                }
+                if (item.profitTimeEligibleByNextWindow) {
+                    nextWindowProfitEligibleDepositAmount += item.depositAmount;
+                }
+            });
+            
+            // FIXED: Calculate next window eligible profit proportionally
+            let nextWindowEligibleProfit = 0;
+            if (nextWindowProfitEligibleDepositAmount > 0 && eligibility.actualTotalProfit > 0) {
+                const nextWindowProfitRatio = nextWindowProfitEligibleDepositAmount / totalDepositAmount;
+                nextWindowEligibleProfit = Math.min(
+                    eligibility.actualTotalProfit * nextWindowProfitRatio, 
+                    eligibility.actualTotalProfit
+                );
                 
-                const nextWindowTotal = nextWindowEligibleDeposits + nextWindowEligibleProfit;
+                console.log(`🔮 Next window profit calculation: ${nextWindowProfitEligibleDepositAmount.toLocaleString()} / ${totalDepositAmount.toLocaleString()} = ${(nextWindowProfitRatio * 100).toFixed(1)}%`);
+                console.log(`🔮 Next window eligible profit: ${eligibility.actualTotalProfit.toLocaleString()} * ${nextWindowProfitRatio.toFixed(4)} = ${nextWindowEligibleProfit.toLocaleString()}`);
+            }
+            
+            const nextWindowTotal = nextWindowEligibleDeposits + nextWindowEligibleProfit;
                 
                 if (windowOpen && hasCurrentlyEligible) {
                     statusContent.innerHTML = `
