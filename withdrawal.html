@@ -1136,7 +1136,7 @@
 
         // Check if current date is in withdrawal window
         function isWithdrawalWindowOpen() {
-            const now = new Date();
+            const now = isWithdrawalWindowOpen() ? new Date() : nextWindow.date;
             const currentYear = now.getFullYear();
 
             // Summer window (June 24 - July 7)
