@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -815,7 +816,7 @@
         }
     </style>
 </head>
-<body>
+    <body>
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -925,39 +926,39 @@
                 </div>
             </div>
 
-        <!-- Account Summary -->
-                    <div class="card">
-                        <div class="card-header">
-                            <span class="icon icon-money card-icon"></span>
-                            <h3 class="card-title">Account Summary</h3>
-                        </div>
-        
-                        <div class="account-summary">
-                            <div class="summary-item">
-                                <div class="summary-value" id="accountValue">$0</div>
-                                <div class="summary-label">Current Account Value</div>
-                            </div>
-                            <div class="summary-item">
-                                <div class="summary-value" id="totalProfit">$0</div>
-                                <div class="summary-label">Total Profit</div>
-                            </div>
-                            <div class="summary-item">
-                                <div class="summary-value" id="totalDeposits">$0</div>
-                                <div class="summary-label">Total Deposits</div>
-                            </div>
-                        </div>
-        
-                        <!-- Fund Performance Fee Notice -->
-                        <div style="margin-top: 20px; padding: 16px; background: rgba(245, 158, 11, 0.1); border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.3);">
-                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                                <span class="icon icon-warning" style="width: 16px; height: 16px; color: var(--warning);"></span>
-                                <div style="font-size: 14px; color: var(--warning); font-weight: 600;">Important: Fund Performance Fees</div>
-                            </div>
-                            <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.4;">
-                                The profit shown above is <strong>before fund performance fees</strong>. Applicable performance fees will be automatically deducted from your profit portion when processing any withdrawal request. Your deposit amount remains fee-free and can be withdrawn in full after the required holding period.
-                            </div>
-                        </div>
+            <!-- Account Summary -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="icon icon-money card-icon"></span>
+                    <h3 class="card-title">Account Summary</h3>
+                </div>
+
+                <div class="account-summary">
+                    <div class="summary-item">
+                        <div class="summary-value" id="accountValue">$0</div>
+                        <div class="summary-label">Current Account Value</div>
                     </div>
+                    <div class="summary-item">
+                        <div class="summary-value" id="totalProfit">$0</div>
+                        <div class="summary-label">Total Profit</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value" id="totalDeposits">$0</div>
+                        <div class="summary-label">Total Deposits</div>
+                    </div>
+                </div>
+
+                <!-- Fund Performance Fee Notice -->
+                <div style="margin-top: 20px; padding: 16px; background: rgba(245, 158, 11, 0.1); border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.3);">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                        <span class="icon icon-warning" style="width: 16px; height: 16px; color: var(--warning);"></span>
+                        <div style="font-size: 14px; color: var(--warning); font-weight: 600;">Important: Fund Performance Fees</div>
+                    </div>
+                    <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.4;">
+                        The profit shown above is <strong>before fund performance fees</strong>. Applicable performance fees will be automatically deducted from your profit portion when processing any withdrawal request. Your deposit amount remains fee-free and can be withdrawn in full after the required holding period.
+                    </div>
+                </div>
+            </div>
 
             <!-- Withdrawal Form -->
             <div class="card withdrawal-form" id="withdrawalForm">
@@ -1066,8 +1067,7 @@
             </div>
         </div>
     </div>
-
-    <script>
+        <script>
         let currentTheme = 'light';
         let userData = {};
         let withdrawalData = {};
@@ -1169,15 +1169,20 @@
             }
         }
 
-        // Calculate eligible deposits and profit for withdrawal
+        // FIXED: Calculate eligible deposits and profit for withdrawal
         function calculateWithdrawalEligibility(deposits, csvData) {
             const now = new Date();
             const windowOpen = isWithdrawalWindowOpen();
             const nextWindow = getNextWithdrawalWindow();
             
+            // FIRST: Calculate actual total profit using dashboard logic
+            const dashboardResult = calculateDashboardPerformance(deposits, csvData);
+            const actualTotalProfit = dashboardResult.currentBalance - dashboardResult.totalDeposits;
+            
             let eligibleDeposits = [];
             let totalEligibleDepositAmount = 0;
-            let totalEligibleProfit = 0;
+            let eligibleProfitDepositAmount = 0; // Track deposits eligible for profit withdrawal
+            let totalDepositAmount = 0; // Track total deposits for ratio calculation
             
             // Filter valid deposits
             const validDeposits = deposits.filter(deposit => {
@@ -1191,6 +1196,8 @@
                 const depositAmount = parseFloat(deposit.amount);
                 const depositDate = new Date(deposit.deposit_date || deposit.date);
                 const depositDateStr = depositDate.toISOString().split('T')[0];
+                
+                totalDepositAmount += depositAmount;
                 
                 // Calculate milestone dates
                 const oneYearAfterDeposit = new Date(depositDate);
@@ -1211,10 +1218,10 @@
                 const depositCurrentlyEligible = depositTimeEligible && windowOpen;
                 const profitCurrentlyEligible = profitTimeEligible && windowOpen;
                 
-                // Calculate current value and profit using CSV data
+                // Calculate individual deposit performance for display purposes only
                 const startCumulative = csvData[depositDateStr];
                 let currentValue = depositAmount;
-                let profit = 0;
+                let individualProfit = 0;
                 
                 if (startCumulative) {
                     // Get latest cumulative return
@@ -1230,19 +1237,17 @@
                     }
                     
                     if (endCumulative && startCumulative) {
-                        // FIXED: Proper percentage-based calculation
-                        // If CSV shows 100% at start and 162.13% now, the growth is 62.13%
                         const returnPercentage = endCumulative - startCumulative;
                         const multiplier = 1 + (returnPercentage / 100);
                         
                         currentValue = depositAmount * multiplier;
-                        profit = currentValue - depositAmount;
+                        individualProfit = currentValue - depositAmount;
                         
                         console.log(`💰 Deposit $${depositAmount.toLocaleString()} from ${depositDateStr}:`);
                         console.log(`   📊 Start: ${startCumulative.toFixed(2)}%`);
                         console.log(`   📊 End: ${endCumulative.toFixed(2)}%`);
                         console.log(`   📈 Return: ${returnPercentage.toFixed(2)}% (${multiplier.toFixed(4)}x)`);
-                        console.log(`   💵 Value: $${currentValue.toLocaleString()}, Profit: $${profit.toLocaleString()}`);
+                        console.log(`   💵 Value: $${currentValue.toLocaleString()}, Profit: $${individualProfit.toLocaleString()}`);
                     }
                 }
                 
@@ -1255,7 +1260,7 @@
                     depositAmount: depositAmount,
                     depositDate: depositDate,
                     currentValue: currentValue,
-                    profit: profit,
+                    profit: individualProfit, // For display only
                     
                     // Current eligibility
                     depositCurrentlyEligible: depositCurrentlyEligible,
@@ -1277,28 +1282,37 @@
                 
                 eligibleDeposits.push(eligibilityInfo);
                 
-                // Add to CURRENT eligibility totals (what's available right now)
+                // Add to CURRENT eligibility totals
                 if (depositCurrentlyEligible) {
                     totalEligibleDepositAmount += depositAmount;
                 }
-                if (profitCurrentlyEligible && profit > 0) {
-                    totalEligibleProfit += profit;
+                if (profitCurrentlyEligible) {
+                    eligibleProfitDepositAmount += depositAmount;
                 }
                 
                 console.log(`📅 Deposit: Currently eligible: ${depositCurrentlyEligible}, By next window: ${depositTimeEligibleByNextWindow}`);
                 console.log(`📈 Profit: Currently eligible: ${profitCurrentlyEligible}, By next window: ${profitTimeEligibleByNextWindow}`);
             }
             
+            // FIXED: Calculate eligible profit based on proportion of deposits eligible for profit withdrawal
+            let totalEligibleProfit = 0;
+            if (eligibleProfitDepositAmount > 0 && actualTotalProfit > 0) {
+                const profitRatio = eligibleProfitDepositAmount / totalDepositAmount;
+                totalEligibleProfit = Math.min(actualTotalProfit * profitRatio, actualTotalProfit);
+                
+                console.log(`💡 Profit calculation: ${eligibleProfitDepositAmount.toLocaleString()} / ${totalDepositAmount.toLocaleString()} = ${(profitRatio * 100).toFixed(1)}%`);
+                console.log(`💡 Eligible profit: ${actualTotalProfit.toLocaleString()} * ${profitRatio.toFixed(4)} = ${totalEligibleProfit.toLocaleString()}`);
+            }
+            
             return {
                 eligibleDeposits: eligibleDeposits,
                 totalEligibleDeposits: totalEligibleDepositAmount,
-                totalEligibleProfit: totalEligibleProfit,
-                totalEligibleAmount: totalEligibleDepositAmount + totalEligibleProfit
+                totalEligibleProfit: totalEligibleProfit, // Now properly calculated
+                totalEligibleAmount: totalEligibleDepositAmount + totalEligibleProfit,
+                actualTotalProfit: actualTotalProfit // Include for verification
             };
         }
-
-
-        // Enhanced withdrawal status update
+            // Enhanced withdrawal status update
         function updateWithdrawalStatus() {
             const statusContent = document.getElementById('withdrawalStatusContent');
             const nextWindowContent = document.getElementById('nextWindowContent');
@@ -1546,11 +1560,10 @@
                 currentBalance: finalBalance
             };
         }
-
-        // Enhanced account data loading with withdrawal eligibility
+            // ENHANCED: Account data loading with FIXED withdrawal eligibility
         async function loadAccountData() {
             try {
-                console.log('📊 Loading REAL account data with withdrawal eligibility...');
+                console.log('📊 Loading REAL account data with FIXED withdrawal eligibility...');
                 
                 const authToken = localStorage.getItem('aequitas_auth_token');
                 if (!authToken) {
@@ -1589,16 +1602,22 @@
                     return;
                 }
                 
-                // Calculate real performance using same logic as dashboard
+                // Calculate real performance using dashboard logic
                 const performanceResult = calculateDashboardPerformance(userDeposits, csvData);
                 
                 const accountValue = performanceResult.currentBalance;
                 const totalDeposits = performanceResult.totalDeposits;
                 const profit = accountValue - totalDeposits;
                 
-                // Calculate withdrawal eligibility
+                // Calculate withdrawal eligibility with FIXED logic
                 const withdrawalEligibility = calculateWithdrawalEligibility(userDeposits, csvData);
                 window.withdrawalEligibility = withdrawalEligibility; // Store globally
+                
+                // VERIFICATION: Log the comparison
+                console.log('🔍 PROFIT VERIFICATION:');
+                console.log(`   Dashboard Profit: $${profit.toLocaleString()}`);
+                console.log(`   Eligible Profit: $${withdrawalEligibility.totalEligibleProfit.toLocaleString()}`);
+                console.log(`   ✅ Eligible ≤ Total: ${withdrawalEligibility.totalEligibleProfit <= profit}`);
                 
                 // Update account summary with REAL calculated values
                 updateAccountSummary({
@@ -1613,7 +1632,7 @@
                 // Display detailed eligibility information
                 displayWithdrawalEligibilityDetails(withdrawalEligibility);
                 
-                console.log('✅ Real account data loaded with withdrawal eligibility:', {
+                console.log('✅ Real account data loaded with FIXED withdrawal eligibility:', {
                     balance: accountValue.toLocaleString(),
                     deposits: totalDeposits.toLocaleString(),
                     profit: profit.toLocaleString(),
@@ -1780,6 +1799,7 @@
                 ` : ''}
             `;
         }
+
         // Fallback account data when real data unavailable
         function loadFallbackAccountData() {
             console.log('📊 Using fallback account data');
@@ -1929,8 +1949,7 @@
                 submitBtn.innerHTML = originalText;
             }
         });
-
-        // Load withdrawal history from API
+            // Load withdrawal history from API
         async function loadWithdrawalHistory() {
             try {
                 console.log('📋 Loading withdrawal history...');
@@ -2126,7 +2145,7 @@
             // Load user data and initialize page
             loadUserData().then(() => {
                 updateWithdrawalStatus();
-                loadAccountData(); // Now uses REAL CSV + deposits calculation with eligibility
+                loadAccountData(); // Now uses REAL CSV + deposits calculation with FIXED eligibility
                 loadWithdrawalHistory();
                 
                 // Show admin section if user is admin
@@ -2135,7 +2154,7 @@
                     if (adminSection) adminSection.style.display = 'block';
                 }
                 
-                console.log('✅ Withdrawal page initialized with enhanced eligibility logic');
+                console.log('✅ Withdrawal page initialized with FIXED eligibility logic');
             });
         }
 
@@ -2144,5 +2163,6 @@
     </script>
 </body>
 </html>
-</body>
-</html>
+            
+            
+            
