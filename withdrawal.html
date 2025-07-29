@@ -1134,11 +1134,11 @@
             }
         }
 
-        // Check if current date is in withdrawal window
-        function isWithdrawalWindowOpen() {
-            const now = isWithdrawalWindowOpen() ? new Date() : nextWindow.date;
-            const currentYear = now.getFullYear();
-
+            // Check if current date is in withdrawal window
+            function isWithdrawalWindowOpen() {
+                const now = new Date();
+                const currentYear = now.getFullYear();
+                
             // Summer window (June 24 - July 7)
             const summerStart = new Date(currentYear, 5, 24); // June 24
             const summerEnd = new Date(currentYear, 6, 7);   // July 7
@@ -1171,9 +1171,9 @@
 
         // FIXED: Calculate eligible deposits and profit for withdrawal
         function calculateWithdrawalEligibility(deposits, csvData) {
-            const now = new Date();
-            const windowOpen = isWithdrawalWindowOpen();
             const nextWindow = getNextWithdrawalWindow();
+            const now = isWithdrawalWindowOpen() ? new Date() : nextWindow.date;
+            const windowOpen = isWithdrawalWindowOpen();
             
             // FIRST: Calculate actual total profit using dashboard logic
             const dashboardResult = calculateDashboardPerformance(deposits, csvData);
