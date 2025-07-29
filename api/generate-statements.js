@@ -118,10 +118,13 @@ function calculateClientPerformance(deposits, csvData, periodStart, periodEnd) {
     }
     
     // Calculate balance at period start
+    // Calculate balance at period start - FIXED
     if (depositDate <= periodStart) {
       const periodStartCumulative = csvData[periodStartStr];
       if (periodStartCumulative) {
-        const multiplier = periodStartCumulative / startCumulative;
+        const depositMultiplier = (100 + startCumulative) / 100;
+        const periodStartMultiplier = (100 + periodStartCumulative) / 100;
+        const multiplier = periodStartMultiplier / depositMultiplier;
         startBalance += depositAmount * multiplier;
       } else {
         startBalance += depositAmount;
@@ -129,8 +132,11 @@ function calculateClientPerformance(deposits, csvData, periodStart, periodEnd) {
     }
     
     // Calculate balance at period end
+    // Calculate balance at period end - FIXED
     if (endCumulative) {
-      const multiplier = endCumulative / startCumulative;
+      const depositMultiplier = (100 + startCumulative) / 100;
+      const currentMultiplier = (100 + endCumulative) / 100;
+      const multiplier = currentMultiplier / depositMultiplier;
       endBalance += depositAmount * multiplier;
     }
     
