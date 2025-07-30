@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 // Load CSV data with cumulative returns (NO CACHE)
 async function loadCSVData() {
   try {
-    const response = await fetch(`/data/daily_returns_simple.csv?v=${Date.now()}`);
+    const response = await fetch(`https://aequitasdash.vercel.app/data/daily_returns_simple.csv?v=${Date.now()}`);
     if (!response.ok) {
       throw new Error('CSV file not accessible');
     }
