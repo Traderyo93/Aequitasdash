@@ -15,7 +15,7 @@ async function loadCSVData() {
   }
 
   try {
-    const response = await fetch('https://aequitasdash.vercel.app/data/daily_returns_simple.csv');
+    const response = await fetch('/data/daily_returns_simple.csv');
     if (!response.ok) {
       throw new Error('CSV file not accessible');
     }
