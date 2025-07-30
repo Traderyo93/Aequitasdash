@@ -170,7 +170,7 @@ async function loadCSVData() {
         } else {
             // Try to fetch from public URL (for Vercel deployment)
             console.log('📊 CSV not found locally, trying public URL...');
-            const response = await fetch(`${process.env.VERCEL_URL || 'http://localhost:3000'}/data/daily_returns_simple.csv`);
+            const response = await fetch(`/data/daily_returns_simple.csv?v=${Date.now()}`);
             
             if (response.ok) {
                 csvContent = await response.text();
