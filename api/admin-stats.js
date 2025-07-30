@@ -1,19 +1,9 @@
-// api/admin-stats.js - COMPLETELY FIXED VERSION
+// api/admin-stats.js - COMPLETELY FIXED VERSION (NO CACHE)
 const { sql } = require('@vercel/postgres');
 const jwt = require('jsonwebtoken');
 
-// CSV Data Cache
-let csvCache = null;
-let csvCacheTime = null;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-
-// Load CSV data with cumulative returns
+// Load CSV data with cumulative returns (NO CACHE)
 async function loadCSVData() {
-  // Check cache first
-  if (csvCache && csvCacheTime && Date.now() - csvCacheTime < CACHE_DURATION) {
-    return csvCache;
-  }
-
   try {
     const response = await fetch(`/data/daily_returns_simple.csv?v=${Date.now()}`);
     if (!response.ok) {
@@ -41,10 +31,6 @@ async function loadCSVData() {
     }
     
     console.log(`📊 Loaded ${Object.keys(csvData).length} trading days from CSV (cumulative returns)`);
-    
-    // Update cache
-    csvCache = csvData;
-    csvCacheTime = Date.now();
     
     return csvData;
   } catch (error) {
