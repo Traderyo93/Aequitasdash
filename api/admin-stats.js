@@ -64,7 +64,7 @@ function calculateAccountPerformance(deposits, csvData) {
     
     // Get cumulative return at deposit date (baseline)
     const startCumulative = csvData[depositDateStr];
-    if (!startCumulative) {
+    if (startCumulative === undefined) {  // FIXED: Was "if (!startCumulative)" which failed for 0%
       console.log(`⚠️ No CSV data for deposit date ${depositDateStr}, using deposit amount as-is`);
       finalBalance += depositAmount;
       continue;
@@ -75,7 +75,7 @@ function calculateAccountPerformance(deposits, csvData) {
     let endCumulative = csvData[endDateStr];
     
     // If no data for exact end date, find the latest available date
-    if (!endCumulative) {
+    if (endCumulative === undefined) {  // FIXED: Was "if (!endCumulative)" which failed for 0%
       const availableDates = Object.keys(csvData).sort().reverse();
       const latestDate = availableDates.find(date => date <= endDateStr);
       if (latestDate) {
