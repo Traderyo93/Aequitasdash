@@ -346,7 +346,7 @@ async function loadCSVData() {
     console.log('📊 Loading CSV data for performance calculation...');
     
     // Always use the public URL for consistency in Vercel
-    const csvUrl = 'https://aequitasdash.vercel.app/data/daily_returns_simple.csv';
+    const csvUrl = `/data/daily_returns_simple.csv?v=${Date.now()}`;
     
     const response = await fetch(csvUrl);
     if (!response.ok) {
