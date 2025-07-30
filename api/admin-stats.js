@@ -15,7 +15,7 @@ async function loadCSVData() {
   }
 
   try {
-    const response = await fetch('/data/daily_returns_simple.csv');
+    const response = await fetch(`/data/daily_returns_simple.csv?v=${Date.now()}`);
     if (!response.ok) {
       throw new Error('CSV file not accessible');
     }
