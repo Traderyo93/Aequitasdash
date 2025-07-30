@@ -1043,7 +1043,9 @@
                 }
                 
                 // Calculate performance for this deposit using cumulative returns
-                const performanceMultiplier = latestCumulativeReturn / startCumulative;
+                const depositMultiplier = (100 + startCumulative) / 100;
+                const currentMultiplier = (100 + latestCumulativeReturn) / 100;
+                const performanceMultiplier = currentMultiplier / depositMultiplier;
                 const currentDepositValue = depositAmount * performanceMultiplier;
                 
                 console.log(`💰 Deposit $${depositAmount.toLocaleString()} on ${depositDateStr}:`);
@@ -1296,7 +1298,10 @@
                     const currentCumulative = csvData[dateStr];
                     
                     // Calculate deposit value as of current date
-                    const performanceMultiplier = currentCumulative / depositCumulative;
+                    // Calculate deposit value as of current date - FIXED
+                    const depositMultiplier = (100 + depositCumulative) / 100;
+                    const currentMultiplier = (100 + currentCumulative) / 100;
+                    const performanceMultiplier = currentMultiplier / depositMultiplier;
                     const depositValue = depositAmount * performanceMultiplier;
                     
                     totalValue += depositValue;

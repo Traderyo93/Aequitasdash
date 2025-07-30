@@ -1363,7 +1363,10 @@
                 }
                 
                 // Calculate performance for this deposit
-                const performanceMultiplier = endCumulative / startCumulative;
+                // Calculate performance for this deposit - FIXED
+                const depositMultiplier = (100 + startCumulative) / 100;
+                const currentMultiplier = (100 + endCumulative) / 100;
+                const performanceMultiplier = currentMultiplier / depositMultiplier;
                 const currentDepositValue = depositAmount * performanceMultiplier;
                 
                 console.log(`💰 Deposit $${depositAmount.toLocaleString()} on ${depositDateStr}:`);
