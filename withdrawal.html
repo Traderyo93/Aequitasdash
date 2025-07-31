@@ -1169,6 +1169,27 @@
             }
         }
 
+        // FIXED: Check eligibility during the ENTIRE window period, not just the start date
+        function getNextWithdrawalWindowPeriod() {
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            
+            const summerStart = new Date(currentYear, 5, 24); // June 24
+            const summerEnd = new Date(currentYear, 6, 7);   // July 7
+            const winterStart = new Date(currentYear, 11, 24); // Dec 24
+            const winterEnd = new Date(currentYear + 1, 0, 7); // Jan 7 next year
+            const nextYearSummer = new Date(currentYear + 1, 5, 24);
+            const nextYearSummerEnd = new Date(currentYear + 1, 6, 7);
+            
+            if (now < summerStart) {
+                return { start: summerStart, end: summerEnd, type: 'Summer' };
+            } else if (now < winterStart) {
+                return { start: winterStart, end: winterEnd, type: 'Winter' };
+            } else {
+                return { start: nextYearSummer, end: nextYearSummerEnd, type: 'Summer' };
+            }
+        }
+
         // FIXED: Calculate eligible deposits and profit for withdrawal
         function calculateWithdrawalEligibility(deposits, csvData) {
             const nextWindow = getNextWithdrawalWindow();
@@ -1210,9 +1231,10 @@
                 const depositTimeEligible = now >= oneYearAfterDeposit;
                 const profitTimeEligible = now >= sixMonthsAfterDeposit;
                 
-                // For next window - check if time requirements will be met by next window
-                const depositTimeEligibleByNextWindow = nextWindow.date >= oneYearAfterDeposit;
-                const profitTimeEligibleByNextWindow = nextWindow.date >= sixMonthsAfterDeposit;
+// FIXED: For next window - check if time requirements will be met during the entire window period
+                const nextWindowPeriod = getNextWithdrawalWindowPeriod();
+                const depositTimeEligibleByNextWindow = oneYearAfterDeposit <= nextWindowPeriod.end;
+                const profitTimeEligibleByNextWindow = sixMonthsAfterDeposit <= nextWindowPeriod.end;
                 
                 // Current eligibility (time + window open)
                 const depositCurrentlyEligible = depositTimeEligible && windowOpen;
