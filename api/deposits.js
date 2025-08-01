@@ -447,10 +447,11 @@ function calculateUserPerformance(deposits, csvData) {
     }
     
     // Calculate performance using cumulative returns
-    // Performance = (latest_cumulative - deposit_cumulative) / 100
-    const performancePercent = latestCumulativeReturn - depositCumulativeReturn;
-    const performanceMultiplier = 1 + (performancePercent / 100);
-    const currentDepositValue = depositAmount * performanceMultiplier;
+  // Calculate performance for this deposit using cumulative returns - FIXED
+  const depositMultiplier = (100 + depositCumulativeReturn) / 100;
+  const currentMultiplier = (100 + latestCumulativeReturn) / 100;
+  const performanceMultiplier = currentMultiplier / depositMultiplier;
+  const currentDepositValue = depositAmount * performanceMultiplier;
     
     console.log(`   📊 Deposit date cumulative: ${depositCumulativeReturn.toFixed(2)}%`);
     console.log(`   📊 Latest cumulative: ${latestCumulativeReturn.toFixed(2)}%`);
