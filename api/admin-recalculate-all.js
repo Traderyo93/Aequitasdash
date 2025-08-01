@@ -185,6 +185,7 @@ async function loadCSVData() {
         const csvData = {};
         
         // Skip header row, parse date and CUMULATIVE return (column 3)
+        // Skip header row, parse date and DAILY return (column 2)
         for (let i = 1; i < lines.length; i++) {
             const line = lines[i].trim();
             if (!line) continue;
@@ -192,15 +193,15 @@ async function loadCSVData() {
             const values = line.split(',');
             if (values.length >= 3) {
                 const date = values[0].trim();
-                const cumulativeReturn = parseFloat(values[2].trim()); // Column 3: Cumulative return
+                const dailyReturn = parseFloat(values[1].trim()); // Column 2: Daily return
                 
-                if (!isNaN(cumulativeReturn)) {
-                    csvData[date] = cumulativeReturn; // Store as percentage, not decimal
+                if (!isNaN(dailyReturn)) {
+                    csvData[date] = dailyReturn; // Store DAILY return for compounding
                 }
             }
         }
-        
-        console.log(`📊 Parsed ${Object.keys(csvData).length} trading days from CSV (cumulative returns)`);
+                
+        console.log(`📊 Parsed ${Object.keys(csvData).length} trading days from CSV (daily returns)`);
         
         // Show sample data for verification
         const sampleDates = ['2025-01-01', '2025-02-14', '2025-07-15'];
@@ -220,13 +221,14 @@ async function loadCSVData() {
 }
 
 // ===== CALCULATE USER PERFORMANCE FUNCTION (FIXED) =====
+// ===== CALCULATE USER PERFORMANCE USING DAILY COMPOUNDING =====
 function calculateUserPerformance(deposits, csvData) {
-    console.log('🧮 Calculating user performance from deposits + CSV data (FIXED VERSION)');
+    console.log('🧮 Calculating user performance with DAILY COMPOUNDING');
     
     let totalBalance = 0;
     let totalDeposits = 0;
     
-    // Filter out deposits with null dates and only use completed ones
+    // Filter out deposits with null dates
     const validDeposits = deposits.filter(deposit => {
         const hasValidDate = deposit.deposit_date && deposit.deposit_date !== null;
         if (!hasValidDate) {
@@ -235,19 +237,15 @@ function calculateUserPerformance(deposits, csvData) {
         return hasValidDate;
     });
     
-    console.log(`📊 Processing ${validDeposits.length} valid deposits (filtered from ${deposits.length} total)`);
+    console.log(`📊 Processing ${validDeposits.length} valid deposits`);
     
     // Sort deposits by date
     const sortedDeposits = validDeposits.sort((a, b) => new Date(a.deposit_date) - new Date(b.deposit_date));
     
-    // Get the latest date in CSV for "end" calculation
-    const csvDates = Object.keys(csvData).sort();
-    const latestCsvDate = csvDates[csvDates.length - 1];
-    const latestCumulativeReturn = csvData[latestCsvDate];
+    // Get all CSV dates in order
+    const allDates = Object.keys(csvData).sort();
     
-    console.log(`📅 Using latest CSV date: ${latestCsvDate} (${latestCumulativeReturn?.toFixed(2)}% cumulative)`);
-    
-    // Process each deposit
+    // Process each deposit with DAILY COMPOUNDING
     for (const deposit of sortedDeposits) {
         const depositAmount = parseFloat(deposit.amount);
         const depositDate = new Date(deposit.deposit_date);
@@ -257,35 +255,43 @@ function calculateUserPerformance(deposits, csvData) {
         
         totalDeposits += depositAmount;
         
-        // Get cumulative return at deposit date
-        const depositCumulativeReturn = csvData[depositDateStr];
+        // Find deposit date in CSV
+        const depositDateIndex = allDates.indexOf(depositDateStr);
         
-        if (!depositCumulativeReturn) {
+        if (depositDateIndex === -1) {
             console.log(`⚠️ No CSV data for deposit date ${depositDateStr}, using deposit amount as-is`);
             totalBalance += depositAmount;
             continue;
         }
         
-        // ===== FIXED CALCULATION =====
-        // Convert percentages to actual multipliers
-        const depositMultiplier = (100 + depositCumulativeReturn) / 100;  // e.g., 147.84/100 = 1.4784
-        const currentMultiplier = (100 + latestCumulativeReturn) / 100;   // e.g., 265.82/100 = 2.6582
-        const performanceMultiplier = currentMultiplier / depositMultiplier; // e.g., 2.6582/1.4784 = 1.798
-        const currentDepositValue = depositAmount * performanceMultiplier;
+        // START DAILY COMPOUNDING from day AFTER deposit
+        let currentBalance = depositAmount;
+        let tradingDays = 0;
         
-        console.log(`   📊 Deposit date cumulative: ${depositCumulativeReturn.toFixed(2)}%`);
-        console.log(`   📊 Latest cumulative: ${latestCumulativeReturn.toFixed(2)}%`);
-        console.log(`   📊 Deposit multiplier: ${depositMultiplier.toFixed(4)}x`);
-        console.log(`   📊 Current multiplier: ${currentMultiplier.toFixed(4)}x`);
-        console.log(`   📊 Performance multiplier: ${performanceMultiplier.toFixed(4)}x`);
-        console.log(`   💰 Current value: $${currentDepositValue.toLocaleString()}`);
+        for (let i = depositDateIndex + 1; i < allDates.length; i++) {
+            const tradingDate = allDates[i];
+            const dailyReturn = csvData[tradingDate]; // This is now DAILY return from column 2
+            
+            if (dailyReturn !== undefined && !isNaN(dailyReturn)) {
+                const dailyGain = currentBalance * (dailyReturn / 100);
+                currentBalance += dailyGain; // Compound the gain
+                tradingDays++;
+            }
+        }
         
-        totalBalance += currentDepositValue;
+        const profit = currentBalance - depositAmount;
+        const returnPercent = ((currentBalance / depositAmount) - 1) * 100;
+        
+        console.log(`   📈 Compounded over ${tradingDays} days`);
+        console.log(`   💰 Final value: $${currentBalance.toLocaleString()}`);
+        console.log(`   📊 Profit: $${profit.toLocaleString()} (${returnPercent.toFixed(2)}%)`);
+        
+        totalBalance += currentBalance;
     }
     
     const totalReturnPercent = totalDeposits > 0 ? ((totalBalance - totalDeposits) / totalDeposits) * 100 : 0;
     
-    console.log(`✅ FINAL CALCULATION:`);
+    console.log(`✅ FINAL CALCULATION (DAILY COMPOUNDING):`);
     console.log(`   💰 Total deposits: $${totalDeposits.toLocaleString()}`);
     console.log(`   💰 Total balance: $${totalBalance.toLocaleString()}`);
     console.log(`   📈 Total return: ${totalReturnPercent.toFixed(2)}%`);
