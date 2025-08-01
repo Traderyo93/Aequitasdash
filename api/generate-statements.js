@@ -21,21 +21,21 @@ async function loadCSVData() {
     const lines = csvContent.split('\n');
     const csvData = {};
     
+    // Skip header row, parse date and DAILY return (column 2)
     for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
-      
-      const values = line.split(',');
-      if (values.length >= 3) {
-        const date = values[0].trim();
-        const cumulativeReturn = parseFloat(values[2].trim());
+        const line = lines[i].trim();
+        if (!line) continue;
         
-        if (!isNaN(cumulativeReturn)) {
-          csvData[date] = cumulativeReturn;
+        const values = line.split(',');
+        if (values.length >= 3) {
+            const date = values[0].trim();
+            const dailyReturn = parseFloat(values[1].trim()); // Column 2: Daily return
+            
+            if (!isNaN(dailyReturn)) {
+                csvData[date] = dailyReturn; // Store DAILY return for compounding
+            }
         }
-      }
     }
-    
     csvCache = csvData;
     csvCacheTime = Date.now();
     console.log(`✅ CSV loaded with ${Object.keys(csvData).length} data points`);
@@ -47,118 +47,137 @@ async function loadCSVData() {
 }
 
 // Calculate client performance for a specific period
+// Calculate client performance for a specific period using DAILY COMPOUNDING
 function calculateClientPerformance(deposits, csvData, periodStart, periodEnd) {
-  console.log('🧮 Calculating statement performance for period:', periodStart.toISOString().split('T')[0], 'to', periodEnd.toISOString().split('T')[0]);
-  
-  // Filter valid deposits up to period end
-  const validDeposits = deposits.filter(deposit => {
-    const depositDate = deposit.deposit_date || deposit.created_at;
-    if (!depositDate || depositDate === null || depositDate === 'null' || depositDate === '') {
-      return false;
+    console.log('🧮 Calculating statement performance with DAILY COMPOUNDING for period:', periodStart.toISOString().split('T')[0], 'to', periodEnd.toISOString().split('T')[0]);
+    
+    // Filter valid deposits up to period end
+    const validDeposits = deposits.filter(deposit => {
+        const depositDate = deposit.deposit_date || deposit.created_at;
+        if (!depositDate || depositDate === null || depositDate === 'null' || depositDate === '') {
+            return false;
+        }
+        const depDate = new Date(depositDate);
+        return depDate >= new Date(2020, 0, 1) && depDate <= periodEnd;
+    });
+    
+    console.log(`📊 Found ${validDeposits.length} valid deposits up to period end`);
+    
+    // FALLBACK: If no valid deposits, return some test data
+    if (validDeposits.length === 0) {
+        console.log('⚠️ No valid deposits found, using fallback data');
+        return {
+            totalDeposits: 100000,
+            startBalance: 100000,
+            endBalance: 175000,
+            newDeposits: 0,
+            totalGain: 75000,
+            returnPercent: 75.0,
+            totalReturnPercent: 75.0
+        };
     }
-    const depDate = new Date(depositDate);
-    return depDate >= new Date(2020, 0, 1) && depDate <= periodEnd;
-  });
-  
-  console.log(`📊 Found ${validDeposits.length} valid deposits up to period end`);
-  
-  // FALLBACK: If no valid deposits, return some test data
-  if (validDeposits.length === 0) {
-    console.log('⚠️ No valid deposits found, using fallback data');
+    
+    // Sort deposits chronologically
+    const sortedDeposits = validDeposits.sort((a, b) => {
+        const dateA = new Date(a.deposit_date || a.created_at);
+        const dateB = new Date(b.deposit_date || b.created_at);
+        return dateA - dateB;
+    });
+    
+    let totalDeposits = 0;
+    let startBalance = 0;
+    let endBalance = 0;
+    let newDeposits = 0;
+    
+    const periodStartStr = periodStart.toISOString().split('T')[0];
+    const periodEndStr = periodEnd.toISOString().split('T')[0];
+    
+    // Get all CSV dates in order
+    const allDates = Object.keys(csvData).sort();
+    
+    for (const deposit of sortedDeposits) {
+        const depositAmount = parseFloat(deposit.amount);
+        const depositDate = new Date(deposit.deposit_date || deposit.created_at);
+        const depositDateStr = depositDate.toISOString().split('T')[0];
+        
+        totalDeposits += depositAmount;
+        
+        // Find deposit date in CSV
+        const depositDateIndex = allDates.indexOf(depositDateStr);
+        
+        if (depositDateIndex === -1) {
+            console.log(`⚠️ No CSV data for deposit date ${depositDateStr}, using deposit amount as-is`);
+            endBalance += depositAmount;
+            if (depositDate <= periodStart) {
+                startBalance += depositAmount;
+            }
+            continue;
+        }
+        
+        // Calculate balance at period start using DAILY COMPOUNDING
+        if (depositDate <= periodStart) {
+            let tempBalance = depositAmount;
+            const periodStartIndex = allDates.indexOf(periodStartStr);
+            
+            if (periodStartIndex > depositDateIndex) {
+                // Compound from deposit date to period start
+                for (let i = depositDateIndex + 1; i <= periodStartIndex && i < allDates.length; i++) {
+                    const tradingDate = allDates[i];
+                    const dailyReturn = csvData[tradingDate];
+                    
+                    if (dailyReturn !== undefined && !isNaN(dailyReturn)) {
+                        const dailyGain = tempBalance * (dailyReturn / 100);
+                        tempBalance += dailyGain;
+                    }
+                }
+            }
+            startBalance += tempBalance;
+        }
+        
+        // Calculate balance at period end using DAILY COMPOUNDING
+        let endTempBalance = depositAmount;
+        const periodEndIndex = allDates.indexOf(periodEndStr);
+        
+        if (periodEndIndex > depositDateIndex) {
+            // Compound from deposit date to period end
+            for (let i = depositDateIndex + 1; i <= periodEndIndex && i < allDates.length; i++) {
+                const tradingDate = allDates[i];
+                const dailyReturn = csvData[tradingDate];
+                
+                if (dailyReturn !== undefined && !isNaN(dailyReturn)) {
+                    const dailyGain = endTempBalance * (dailyReturn / 100);
+                    endTempBalance += dailyGain;
+                }
+            }
+        }
+        endBalance += endTempBalance;
+        
+        // Track new deposits during period
+        if (depositDate > periodStart && depositDate <= periodEnd) {
+            newDeposits += depositAmount;
+        }
+    }
+    
+    const totalGain = endBalance - startBalance - newDeposits;
+    const returnPercent = (startBalance + newDeposits) > 0 ? ((totalGain / (startBalance + newDeposits)) * 100) : 0;
+    const totalReturnPercent = returnPercent;
+    
+    console.log(`✅ Statement calculation (DAILY COMPOUNDING):`);
+    console.log(`   📊 Start Balance: $${startBalance.toLocaleString()}`);
+    console.log(`   💵 New Deposits: $${newDeposits.toLocaleString()}`);
+    console.log(`   📈 Total Gain: $${totalGain.toLocaleString()}`);
+    console.log(`   💰 End Balance: $${endBalance.toLocaleString()}`);
+    console.log(`   📊 Return: ${returnPercent.toFixed(2)}%`);
+    
     return {
-      totalDeposits: 100000,
-      startBalance: 100000,
-      endBalance: 175000,
-      newDeposits: 0,
-      totalGain: 75000,
-      returnPercent: 75.0,
-      totalReturnPercent: 75.0
+        totalDeposits,
+        startBalance,
+        endBalance,
+        newDeposits,
+        totalGain,
+        returnPercent,
+        totalReturnPercent
     };
-  }
-  
-  // Sort deposits chronologically
-  const sortedDeposits = validDeposits.sort((a, b) => {
-    const dateA = new Date(a.deposit_date || a.created_at);
-    const dateB = new Date(b.deposit_date || b.created_at);
-    return dateA - dateB;
-  });
-  
-  let totalDeposits = 0;
-  let startBalance = 0;
-  let endBalance = 0;
-  let newDeposits = 0;
-  
-  const periodStartStr = periodStart.toISOString().split('T')[0];
-  const periodEndStr = periodEnd.toISOString().split('T')[0];
-  
-  // Get latest available CSV data if exact period end not found
-  let endCumulative = csvData[periodEndStr];
-  if (!endCumulative) {
-    const availableDates = Object.keys(csvData).sort().reverse();
-    const latestDate = availableDates.find(date => date <= periodEndStr);
-    if (latestDate) {
-      endCumulative = csvData[latestDate];
-      console.log(`📅 Using latest available date ${latestDate} for period end`);
-    }
-  }
-  
-  for (const deposit of sortedDeposits) {
-    const depositAmount = parseFloat(deposit.amount);
-    const depositDate = new Date(deposit.deposit_date || deposit.created_at);
-    const depositDateStr = depositDate.toISOString().split('T')[0];
-    
-    totalDeposits += depositAmount;
-    
-    // Get cumulative return at deposit date
-    const startCumulative = csvData[depositDateStr];
-    if (!startCumulative) {
-      console.log(`⚠️ No CSV data for deposit date ${depositDateStr}, using deposit amount as-is`);
-      endBalance += depositAmount;
-      continue;
-    }
-    
-    // Calculate balance at period start
-    // Calculate balance at period start - FIXED
-    if (depositDate <= periodStart) {
-      const periodStartCumulative = csvData[periodStartStr];
-      if (periodStartCumulative) {
-        const depositMultiplier = (100 + startCumulative) / 100;
-        const periodStartMultiplier = (100 + periodStartCumulative) / 100;
-        const multiplier = periodStartMultiplier / depositMultiplier;
-        startBalance += depositAmount * multiplier;
-      } else {
-        startBalance += depositAmount;
-      }
-    }
-    
-    // Calculate balance at period end
-    // Calculate balance at period end - FIXED
-    if (endCumulative) {
-      const depositMultiplier = (100 + startCumulative) / 100;
-      const currentMultiplier = (100 + endCumulative) / 100;
-      const multiplier = currentMultiplier / depositMultiplier;
-      endBalance += depositAmount * multiplier;
-    }
-    
-    // Track new deposits during period
-    if (depositDate > periodStart && depositDate <= periodEnd) {
-      newDeposits += depositAmount;
-    }
-  }
-  
-  const totalGain = endBalance - startBalance - newDeposits;
-  const returnPercent = (startBalance + newDeposits) > 0 ? ((totalGain / (startBalance + newDeposits)) * 100) : 0;
-  const totalReturnPercent = returnPercent;
-  
-  return {
-    totalDeposits,
-    startBalance,
-    endBalance,
-    newDeposits,
-    totalGain,
-    returnPercent,
-    totalReturnPercent
-  };
 }
 
 // Generate HTML statement content - FIXED LAYOUT
