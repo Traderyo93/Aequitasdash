@@ -22,15 +22,15 @@ async function loadCSVData() {
       const values = line.split(',');
       if (values.length >= 3) {
         const date = values[0].trim();
-        const cumulativeReturn = parseFloat(values[2].trim()); // Column 3: Cumulative_Return_Percent
+        const dailyReturn = parseFloat(values[1].trim()); // Column 2: Daily return
         
-        if (!isNaN(cumulativeReturn)) {
-          csvData[date] = cumulativeReturn; // Store as percentage
+        if (!isNaN(dailyReturn)) {
+          csvData[date] = dailyReturn; // Store DAILY return for compounding
         }
       }
     }
     
-    console.log(`📊 Loaded ${Object.keys(csvData).length} trading days from CSV (cumulative returns)`);
+    console.log(`📊 Loaded ${Object.keys(csvData).length} trading days from CSV (daily returns)`);
     
     return csvData;
   } catch (error) {
@@ -40,72 +40,88 @@ async function loadCSVData() {
 }
 
 // Calculate account performance using cumulative returns - FIXED CALCULATION
+// Calculate account performance using DAILY COMPOUNDING
 function calculateAccountPerformance(deposits, csvData) {
-  console.log('🧮 Calculating performance with FIXED CUMULATIVE returns logic');
+  console.log('🧮 Calculating performance with DAILY COMPOUNDING');
   
-  const endDate = new Date();
+  let totalBalance = 0;
   let totalDeposits = 0;
-  let finalBalance = 0;
   
-  // Sort deposits chronologically
-  const sortedDeposits = deposits.sort((a, b) => {
+  // Filter out deposits with null dates
+  const validDeposits = deposits.filter(deposit => {
+    const hasValidDate = deposit.deposit_date && deposit.deposit_date !== null;
+    if (!hasValidDate) {
+      console.log(`⚠️ Skipping deposit with null date: $${deposit.amount}`);
+    }
+    return hasValidDate;
+  });
+  
+  console.log(`📊 Processing ${validDeposits.length} valid deposits`);
+  
+  // Sort deposits by date
+  const sortedDeposits = validDeposits.sort((a, b) => {
     const dateA = new Date(a.deposit_date || a.created_at);
     const dateB = new Date(b.deposit_date || b.created_at);
     return dateA - dateB;
   });
   
-  // Process each deposit separately
+  // Get all CSV dates in order
+  const allDates = Object.keys(csvData).sort();
+  
+  // Process each deposit with DAILY COMPOUNDING
   for (const deposit of sortedDeposits) {
     const depositAmount = parseFloat(deposit.amount);
     const depositDate = new Date(deposit.deposit_date || deposit.created_at);
     const depositDateStr = depositDate.toISOString().split('T')[0];
     
+    console.log(`💵 Processing deposit: $${depositAmount.toLocaleString()} on ${depositDateStr}`);
+    
     totalDeposits += depositAmount;
     
-    // Get cumulative return at deposit date (baseline)
-    const startCumulative = csvData[depositDateStr];
-    if (startCumulative === undefined) {  // FIXED: Was "if (!startCumulative)" which failed for 0%
+    // Find deposit date in CSV
+    const depositDateIndex = allDates.indexOf(depositDateStr);
+    
+    if (depositDateIndex === -1) {
       console.log(`⚠️ No CSV data for deposit date ${depositDateStr}, using deposit amount as-is`);
-      finalBalance += depositAmount;
+      totalBalance += depositAmount;
       continue;
     }
     
-    // Get cumulative return at end date
-    const endDateStr = endDate.toISOString().split('T')[0];
-    let endCumulative = csvData[endDateStr];
+    // START DAILY COMPOUNDING from day AFTER deposit
+    let currentBalance = depositAmount;
+    let tradingDays = 0;
     
-    // If no data for exact end date, find the latest available date
-    if (endCumulative === undefined) {  // FIXED: Was "if (!endCumulative)" which failed for 0%
-      const availableDates = Object.keys(csvData).sort().reverse();
-      const latestDate = availableDates.find(date => date <= endDateStr);
-      if (latestDate) {
-        endCumulative = csvData[latestDate];
-        console.log(`📅 Using latest available date ${latestDate} for end calculation`);
-      } else {
-        endCumulative = startCumulative; // No growth if no data
+    for (let i = depositDateIndex + 1; i < allDates.length; i++) {
+      const tradingDate = allDates[i];
+      const dailyReturn = csvData[tradingDate]; // This is now DAILY return from column 2
+      
+      if (dailyReturn !== undefined && !isNaN(dailyReturn)) {
+        const dailyGain = currentBalance * (dailyReturn / 100);
+        currentBalance += dailyGain; // Compound the gain
+        tradingDays++;
       }
     }
     
-    // ===== FIXED CALCULATION =====
-    // Convert percentages to actual multipliers
-    const depositMultiplier = (100 + startCumulative) / 100;  // e.g., 147.84/100 = 1.4784
-    const currentMultiplier = (100 + endCumulative) / 100;    // e.g., 265.82/100 = 2.6582
-    const performanceMultiplier = currentMultiplier / depositMultiplier; // e.g., 2.6582/1.4784 = 1.798
-    const currentDepositValue = depositAmount * performanceMultiplier;
+    const profit = currentBalance - depositAmount;
+    const returnPercent = ((currentBalance / depositAmount) - 1) * 100;
     
-    console.log(`💰 Deposit $${depositAmount.toLocaleString()} on ${depositDateStr}:`);
-    console.log(`   📊 Cumulative: ${startCumulative.toFixed(2)}% → ${endCumulative.toFixed(2)}%`);
-    console.log(`   📊 Deposit multiplier: ${depositMultiplier.toFixed(4)}x`);
-    console.log(`   📊 Current multiplier: ${currentMultiplier.toFixed(4)}x`);
-    console.log(`   📈 Performance multiplier: ${performanceMultiplier.toFixed(4)}x`);
-    console.log(`   💵 Value: $${currentDepositValue.toLocaleString()}`);
+    console.log(`   📈 Compounded over ${tradingDays} days`);
+    console.log(`   💰 Final value: $${currentBalance.toLocaleString()}`);
+    console.log(`   📊 Profit: $${profit.toLocaleString()} (${returnPercent.toFixed(2)}%)`);
     
-    finalBalance += currentDepositValue;
+    totalBalance += currentBalance;
   }
+  
+  const totalReturnPercent = totalDeposits > 0 ? ((totalBalance - totalDeposits) / totalDeposits) * 100 : 0;
+  
+  console.log(`✅ FINAL CALCULATION (DAILY COMPOUNDING):`);
+  console.log(`   💰 Total deposits: $${totalDeposits.toLocaleString()}`);
+  console.log(`   💰 Total balance: $${totalBalance.toLocaleString()}`);
+  console.log(`   📈 Total return: ${totalReturnPercent.toFixed(2)}%`);
   
   return {
     totalDeposits,
-    currentBalance: finalBalance
+    currentBalance: totalBalance
   };
 }
 
