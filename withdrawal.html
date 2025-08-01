@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -521,7 +520,6 @@
             cursor: not-allowed;
             opacity: 0.6;
         }
-
         /* File Upload */
         .file-upload {
             position: relative;
@@ -1134,11 +1132,11 @@
             }
         }
 
-            // Check if current date is in withdrawal window
-            function isWithdrawalWindowOpen() {
-                const now = new Date();
-                const currentYear = now.getFullYear();
-                
+        // Check if current date is in withdrawal window
+        function isWithdrawalWindowOpen() {
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            
             // Summer window (June 24 - July 7)
             const summerStart = new Date(currentYear, 5, 24); // June 24
             const summerEnd = new Date(currentYear, 6, 7);   // July 7
@@ -1169,7 +1167,7 @@
             }
         }
 
-        // FIXED: Check eligibility during the ENTIRE window period, not just the start date
+        // Get next withdrawal window period with end date
         function getNextWithdrawalWindowPeriod() {
             const now = new Date();
             const currentYear = now.getFullYear();
@@ -1189,21 +1187,21 @@
                 return { start: nextYearSummer, end: nextYearSummerEnd, type: 'Summer' };
             }
         }
-
-        // FIXED: Calculate eligible deposits and profit for withdrawal
+            // SIMPLIFIED: Calculate withdrawal eligibility - show eligible/ineligible based on next window
         function calculateWithdrawalEligibility(deposits, csvData) {
             const nextWindow = getNextWithdrawalWindow();
-            const now = isWithdrawalWindowOpen() ? new Date() : nextWindow.date;
             const windowOpen = isWithdrawalWindowOpen();
             
-            // FIRST: Calculate actual total profit using dashboard logic
+            // Calculate actual total profit using dashboard logic
             const dashboardResult = calculateDashboardPerformance(deposits, csvData);
             const actualTotalProfit = dashboardResult.currentBalance - dashboardResult.totalDeposits;
             
             let eligibleDeposits = [];
-            let totalEligibleDepositAmount = 0;
-            let eligibleProfitDepositAmount = 0; // Track deposits eligible for profit withdrawal
-            let totalDepositAmount = 0; // Track total deposits for ratio calculation
+            let currentEligibleDepositAmount = 0;
+            let currentEligibleProfitDepositAmount = 0;
+            let nextWindowEligibleDepositAmount = 0;
+            let nextWindowEligibleProfitDepositAmount = 0;
+            let totalDepositAmount = 0;
             
             // Filter valid deposits
             const validDeposits = deposits.filter(deposit => {
@@ -1227,30 +1225,25 @@
                 const sixMonthsAfterDeposit = new Date(depositDate);
                 sixMonthsAfterDeposit.setMonth(depositDate.getMonth() + 6);
                 
-                // Check if time requirements are met
-                const depositTimeEligible = now >= oneYearAfterDeposit;
-                const profitTimeEligible = now >= sixMonthsAfterDeposit;
+                // Check current eligibility (if window is open AND time requirements met)
+                const now = new Date();
+                const depositCurrentlyEligible = windowOpen && now >= oneYearAfterDeposit;
+                const profitCurrentlyEligible = windowOpen && now >= sixMonthsAfterDeposit;
                 
-// FIXED: For next window - check if time requirements will be met during the entire window period
+                // SIMPLIFIED: Check if requirements will be met by next window
                 const nextWindowPeriod = getNextWithdrawalWindowPeriod();
-                const depositTimeEligibleByNextWindow = oneYearAfterDeposit <= nextWindowPeriod.end;
-                const profitTimeEligibleByNextWindow = sixMonthsAfterDeposit <= nextWindowPeriod.end;
+                const depositEligibleByNextWindow = oneYearAfterDeposit <= nextWindowPeriod.end;
+                const profitEligibleByNextWindow = sixMonthsAfterDeposit <= nextWindowPeriod.end;
                 
-                // Current eligibility (time + window open)
-                const depositCurrentlyEligible = depositTimeEligible && windowOpen;
-                const profitCurrentlyEligible = profitTimeEligible && windowOpen;
-                
-                // Calculate individual deposit performance for display purposes only
-                // Calculate individual deposit performance using DAILY COMPOUNDING
+                // Calculate individual deposit performance for display
                 let currentValue = depositAmount;
                 let individualProfit = 0;
                 
-                // Find deposit date in CSV
+                // Find deposit date in CSV and calculate value using daily compounding
                 const allDates = Object.keys(csvData).sort();
                 const depositDateIndex = allDates.indexOf(depositDateStr);
                 
                 if (depositDateIndex !== -1) {
-                    // Calculate value using daily compounding
                     let tempBalance = depositAmount;
                     
                     for (let i = depositDateIndex + 1; i < allDates.length; i++) {
@@ -1265,74 +1258,81 @@
                     
                     currentValue = tempBalance;
                     individualProfit = currentValue - depositAmount;
-                    
-                    console.log(`💰 Deposit $${depositAmount.toLocaleString()} from ${depositDateStr}:`);
-                    console.log(`   📈 Compounded to: $${currentValue.toLocaleString()}`);
-                    console.log(`   💵 Profit: $${individualProfit.toLocaleString()}`);
                 }
-                
-                // Calculate days remaining
-                const daysUntilDepositEligible = Math.ceil((oneYearAfterDeposit - now) / (1000 * 60 * 60 * 24));
-                const daysUntilProfitEligible = Math.ceil((sixMonthsAfterDeposit - now) / (1000 * 60 * 60 * 24));
                 
                 const eligibilityInfo = {
                     deposit: deposit,
                     depositAmount: depositAmount,
                     depositDate: depositDate,
                     currentValue: currentValue,
-                    profit: individualProfit, // For display only
+                    profit: individualProfit,
                     
-                    // Current eligibility
+                    // Current eligibility (window open + time met)
                     depositCurrentlyEligible: depositCurrentlyEligible,
                     profitCurrentlyEligible: profitCurrentlyEligible,
                     
-                    // Time-based eligibility
-                    depositTimeEligible: depositTimeEligible,
-                    profitTimeEligible: profitTimeEligible,
+                    // SIMPLIFIED: Next window eligibility (just true/false)
+                    depositEligibleByNextWindow: depositEligibleByNextWindow,
+                    profitEligibleByNextWindow: profitEligibleByNextWindow,
                     
-                    // Next window eligibility
-                    depositTimeEligibleByNextWindow: depositTimeEligibleByNextWindow,
-                    profitTimeEligibleByNextWindow: profitTimeEligibleByNextWindow,
-                    
+                    // Keep milestone dates for reference
                     oneYearDate: oneYearAfterDeposit,
-                    sixMonthsDate: sixMonthsAfterDeposit,
-                    daysUntilDepositEligible: daysUntilDepositEligible,
-                    daysUntilProfitEligible: daysUntilProfitEligible
+                    sixMonthsDate: sixMonthsAfterDeposit
                 };
                 
                 eligibleDeposits.push(eligibilityInfo);
                 
-                // Add to CURRENT eligibility totals
+                // Add to current eligibility totals
                 if (depositCurrentlyEligible) {
-                    totalEligibleDepositAmount += depositAmount;
+                    currentEligibleDepositAmount += depositAmount;
                 }
                 if (profitCurrentlyEligible) {
-                    eligibleProfitDepositAmount += depositAmount;
+                    currentEligibleProfitDepositAmount += depositAmount;
                 }
                 
-                console.log(`📅 Deposit: Currently eligible: ${depositCurrentlyEligible}, By next window: ${depositTimeEligibleByNextWindow}`);
-                console.log(`📈 Profit: Currently eligible: ${profitCurrentlyEligible}, By next window: ${profitTimeEligibleByNextWindow}`);
+                // Add to next window eligibility totals
+                if (depositEligibleByNextWindow) {
+                    nextWindowEligibleDepositAmount += depositAmount;
+                }
+                if (profitEligibleByNextWindow) {
+                    nextWindowEligibleProfitDepositAmount += depositAmount;
+                }
+                
+                console.log(`📅 ${depositDateStr}: Deposit eligible by next window: ${depositEligibleByNextWindow}, Profit eligible by next window: ${profitEligibleByNextWindow}`);
             }
             
-            // FIXED: Calculate eligible profit based on proportion of deposits eligible for profit withdrawal
-            let totalEligibleProfit = 0;
-            if (eligibleProfitDepositAmount > 0 && actualTotalProfit > 0) {
-                const profitRatio = eligibleProfitDepositAmount / totalDepositAmount;
-                totalEligibleProfit = Math.min(actualTotalProfit * profitRatio, actualTotalProfit);
-                
-                console.log(`💡 Profit calculation: ${eligibleProfitDepositAmount.toLocaleString()} / ${totalDepositAmount.toLocaleString()} = ${(profitRatio * 100).toFixed(1)}%`);
-                console.log(`💡 Eligible profit: ${actualTotalProfit.toLocaleString()} * ${profitRatio.toFixed(4)} = ${totalEligibleProfit.toLocaleString()}`);
+            // Calculate current eligible profit proportionally
+            let currentEligibleProfit = 0;
+            if (currentEligibleProfitDepositAmount > 0 && actualTotalProfit > 0) {
+                const currentProfitRatio = currentEligibleProfitDepositAmount / totalDepositAmount;
+                currentEligibleProfit = Math.min(actualTotalProfit * currentProfitRatio, actualTotalProfit);
+            }
+            
+            // Calculate next window eligible profit proportionally
+            let nextWindowEligibleProfit = 0;
+            if (nextWindowEligibleProfitDepositAmount > 0 && actualTotalProfit > 0) {
+                const nextWindowProfitRatio = nextWindowEligibleProfitDepositAmount / totalDepositAmount;
+                nextWindowEligibleProfit = Math.min(actualTotalProfit * nextWindowProfitRatio, actualTotalProfit);
             }
             
             return {
                 eligibleDeposits: eligibleDeposits,
-                totalEligibleDeposits: totalEligibleDepositAmount,
-                totalEligibleProfit: totalEligibleProfit, // Now properly calculated
-                totalEligibleAmount: totalEligibleDepositAmount + totalEligibleProfit,
-                actualTotalProfit: actualTotalProfit // Include for verification
+                
+                // Current eligibility (if window is open)
+                totalEligibleDeposits: currentEligibleDepositAmount,
+                totalEligibleProfit: currentEligibleProfit,
+                totalEligibleAmount: currentEligibleDepositAmount + currentEligibleProfit,
+                
+                // Next window eligibility
+                nextWindowEligibleDeposits: nextWindowEligibleDepositAmount,
+                nextWindowEligibleProfit: nextWindowEligibleProfit,
+                nextWindowEligibleTotal: nextWindowEligibleDepositAmount + nextWindowEligibleProfit,
+                
+                actualTotalProfit: actualTotalProfit
             };
         }
-            // Enhanced withdrawal status update
+
+        // SIMPLIFIED: Update withdrawal status with cleaner logic
         function updateWithdrawalStatus() {
             const statusContent = document.getElementById('withdrawalStatusContent');
             const nextWindowContent = document.getElementById('nextWindowContent');
@@ -1341,56 +1341,26 @@
             const windowOpen = isWithdrawalWindowOpen();
             const nextWindow = getNextWithdrawalWindow();
             
-            // Get withdrawal eligibility
             if (window.withdrawalEligibility) {
                 const eligibility = window.withdrawalEligibility;
-                const hasCurrentEligibleDeposits = eligibility.totalEligibleDeposits > 0;
-                const hasCurrentEligibleProfit = eligibility.totalEligibleProfit > 0;
-                const hasCurrentlyEligible = hasCurrentEligibleDeposits || hasCurrentEligibleProfit;
+                const hasCurrentEligible = eligibility.totalEligibleAmount > 0;
+                const hasNextWindowEligible = eligibility.nextWindowEligibleTotal > 0;
                 
-            // FIXED: Calculate what will be eligible at next window using PROPORTIONAL logic
-            let nextWindowEligibleDeposits = 0;
-            let nextWindowProfitEligibleDepositAmount = 0; // Track deposits eligible for profit
-            let totalDepositAmount = 0; // Track total deposits
-            
-            eligibility.eligibleDeposits.forEach(item => {
-                totalDepositAmount += item.depositAmount;
-                
-                if (item.depositTimeEligibleByNextWindow) {
-                    nextWindowEligibleDeposits += item.depositAmount;
-                }
-                if (item.profitTimeEligibleByNextWindow) {
-                    nextWindowProfitEligibleDepositAmount += item.depositAmount;
-                }
-            });
-            
-            // FIXED: Calculate next window eligible profit proportionally
-            let nextWindowEligibleProfit = 0;
-            if (nextWindowProfitEligibleDepositAmount > 0 && eligibility.actualTotalProfit > 0) {
-                const nextWindowProfitRatio = nextWindowProfitEligibleDepositAmount / totalDepositAmount;
-                nextWindowEligibleProfit = Math.min(
-                    eligibility.actualTotalProfit * nextWindowProfitRatio, 
-                    eligibility.actualTotalProfit
-                );
-                
-                console.log(`🔮 Next window profit calculation: ${nextWindowProfitEligibleDepositAmount.toLocaleString()} / ${totalDepositAmount.toLocaleString()} = ${(nextWindowProfitRatio * 100).toFixed(1)}%`);
-                console.log(`🔮 Next window eligible profit: ${eligibility.actualTotalProfit.toLocaleString()} * ${nextWindowProfitRatio.toFixed(4)} = ${nextWindowEligibleProfit.toLocaleString()}`);
-            }
-            
-            const nextWindowTotal = nextWindowEligibleDeposits + nextWindowEligibleProfit;
-                
-                if (windowOpen && hasCurrentlyEligible) {
+                if (windowOpen && hasCurrentEligible) {
+                    // Window open with eligible funds
                     statusContent.innerHTML = `
                         <div class="status-badge status-open">
                             <span class="icon icon-unlock"></span>
                             <span>Window Open - Withdrawals Available</span>
                         </div>
                         <div style="margin-top: 16px; padding: 16px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.3);">
-                            <div style="font-size: 14px; color: var(--success); font-weight: 600; margin-bottom: 8px;">Currently Available for Withdrawal:</div>
-                            ${hasCurrentEligibleDeposits ? `<div style="font-size: 13px; color: var(--text-secondary);">• Eligible Deposits: <strong>${formatCurrency(eligibility.totalEligibleDeposits)}</strong></div>` : ''}
-                            ${hasCurrentEligibleProfit ? `<div style="font-size: 13px; color: var(--text-secondary);">• Eligible Profit: <strong>${formatCurrency(eligibility.totalEligibleProfit)}</strong></div>` : ''}
-                            <div style="font-size: 14px; color: var(--success); font-weight: 600; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(16, 185, 129, 0.2);">
-                                Total Available Now: <strong>${formatCurrency(eligibility.totalEligibleAmount)}</strong>
+                            <div style="font-size: 14px; color: var(--success); font-weight: 600; margin-bottom: 8px;">Available Now:</div>
+                            <div style="font-size: 13px; color: var(--text-secondary);">
+                                • Deposits: <strong>${formatCurrency(eligibility.totalEligibleDeposits)}</strong><br>
+                                • Profit: <strong>${formatCurrency(eligibility.totalEligibleProfit)}</strong>
+                            </div>
+                            <div style="font-size: 16px; color: var(--success); font-weight: 700; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(16, 185, 129, 0.2);">
+                                Total: ${formatCurrency(eligibility.totalEligibleAmount)}
                             </div>
                         </div>
                     `;
@@ -1403,22 +1373,22 @@
                         amountInput.placeholder = `Max: ${formatCurrency(eligibility.totalEligibleAmount)}`;
                     }
                     
-                } else if (windowOpen && !hasCurrentlyEligible) {
+                } else if (windowOpen && !hasCurrentEligible) {
+                    // Window open but no eligible funds
                     statusContent.innerHTML = `
                         <div class="status-badge status-first-year">
                             <span class="icon icon-warning"></span>
                             <span>Window Open - No Eligible Funds</span>
                         </div>
                         <div style="margin-top: 16px; padding: 16px; background: rgba(245, 158, 11, 0.1); border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.3);">
-                            <div style="font-size: 14px; color: var(--warning); font-weight: 600; margin-bottom: 8px;">Currently No Eligible Funds</div>
+                            <div style="font-size: 14px; color: var(--warning); font-weight: 600; margin-bottom: 8px;">No Funds Currently Eligible</div>
                             <div style="font-size: 13px; color: var(--text-secondary);">
-                                • Deposits: Must wait 1 year after each deposit<br>
-                                • Profit: Must wait 6 months after each deposit
+                                Your deposits haven't met the minimum holding periods yet.
                             </div>
-                            ${nextWindowTotal > 0 ? `
+                            ${hasNextWindowEligible ? `
                                 <div style="margin-top: 12px; padding-top: 8px; border-top: 1px solid rgba(245, 158, 11, 0.2);">
                                     <div style="font-size: 13px; color: var(--text-secondary);">
-                                        <strong>Next ${nextWindow.type} Window:</strong> ${formatCurrency(nextWindowTotal)} will be available
+                                        <strong>Next ${nextWindow.type} Window:</strong> ${formatCurrency(eligibility.nextWindowEligibleTotal)} will be available
                                     </div>
                                 </div>
                             ` : ''}
@@ -1427,31 +1397,27 @@
                     withdrawalForm.classList.add('locked');
                     
                 } else {
+                    // Window closed
                     statusContent.innerHTML = `
                         <div class="status-badge status-locked">
                             <span class="icon icon-lock"></span>
                             <span>Window Closed</span>
                         </div>
                         <div style="margin-top: 16px; padding: 16px; background: rgba(245, 158, 11, 0.1); border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.3);">
-                            <div style="font-size: 14px; color: var(--warning); font-weight: 600; margin-bottom: 8px;">Next ${nextWindow.type} Window Available:</div>
+                            <div style="font-size: 14px; color: var(--warning); font-weight: 600; margin-bottom: 8px;">Next ${nextWindow.type} Window:</div>
                             <div style="font-size: 13px; color: var(--text-secondary);">
-                                ${nextWindowTotal > 0 ? `
-                                    • Eligible Deposits: <strong>${formatCurrency(nextWindowEligibleDeposits)}</strong><br>
-                                    • Eligible Profit: <strong>${formatCurrency(nextWindowEligibleProfit)}</strong><br>
-                                    • <strong>Total: ${formatCurrency(nextWindowTotal)}</strong>
+                                ${hasNextWindowEligible ? `
+                                    • Deposits: <strong>${formatCurrency(eligibility.nextWindowEligibleDeposits)}</strong><br>
+                                    • Profit: <strong>${formatCurrency(eligibility.nextWindowEligibleProfit)}</strong><br>
+                                    • <strong>Total: ${formatCurrency(eligibility.nextWindowEligibleTotal)}</strong>
                                 ` : 'No funds will be eligible at the next window'}
                             </div>
                         </div>
-                        <p style="margin-top: 12px; color: var(--text-secondary); font-size: 14px;">
-                            Withdrawal requests can only be submitted during designated windows:
-                            <br><strong>Summer:</strong> June 24 - July 7
-                            <br><strong>Winter:</strong> December 24 - January 7
-                        </p>
                     `;
                     withdrawalForm.classList.add('locked');
                 }
             } else {
-                // Fallback when eligibility data isn't loaded yet
+                // Loading state
                 statusContent.innerHTML = `
                     <div class="status-badge ${windowOpen ? 'status-open' : 'status-locked'}">
                         <span class="icon icon-${windowOpen ? 'unlock' : 'lock'}"></span>
@@ -1464,7 +1430,7 @@
                 withdrawalForm.classList.add('locked');
             }
             
-            // Update next window (unchanged)
+            // Update next window countdown
             nextWindowContent.innerHTML = `
                 <div style="text-align: center; padding: 20px;">
                     <div style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px;">
@@ -1480,8 +1446,6 @@
             `;
         }
 
-        // ===== REAL CSV DATA FUNCTIONS - SAME AS DASHBOARD =====
-        
         // Load CSV trading data from server
         async function loadCSVData() {
             try {
@@ -1492,24 +1456,23 @@
                 const lines = csvContent.split('\n');
                 const csvData = {};
                 
-                // Skip header row, parse date and CUMULATIVE return
-            // Skip header row, parse date and DAILY return
-            for (let i = 1; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (!line) continue;
-                
-                const values = line.split(',');
-                if (values.length >= 3) {
-                    const date = values[0].trim();
-                    const dailyReturn = parseFloat(values[1].trim()); // Column 2: Daily return
+                // Skip header row, parse date and DAILY return
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
                     
-                    if (!isNaN(dailyReturn)) {
-                        csvData[date] = dailyReturn; // Store DAILY return for compounding
+                    const values = line.split(',');
+                    if (values.length >= 3) {
+                        const date = values[0].trim();
+                        const dailyReturn = parseFloat(values[1].trim()); // Column 2: Daily return
+                        
+                        if (!isNaN(dailyReturn)) {
+                            csvData[date] = dailyReturn; // Store DAILY return for compounding
+                        }
                     }
                 }
-            }
-            
-            console.log(`📊 Loaded ${Object.keys(csvData).length} trading days from CSV (daily returns)`);
+                
+                console.log(`📊 Loaded ${Object.keys(csvData).length} trading days from CSV (daily returns)`);
                 return csvData;
                 
             } catch (error) {
@@ -1518,7 +1481,6 @@
             }
         }
 
-        // Calculate real dashboard performance using deposits and CSV returns
         // Calculate real dashboard performance using DAILY COMPOUNDING
         function calculateDashboardPerformance(deposits, csvData) {
             console.log('🧮 Calculating performance with DAILY COMPOUNDING');
@@ -1595,10 +1557,135 @@
                 currentBalance: totalBalance
             };
         }
-            // ENHANCED: Account data loading with FIXED withdrawal eligibility
+
+        // SIMPLIFIED: Display eligibility details with cleaner logic
+        function displayWithdrawalEligibilityDetails(eligibility) {
+            let eligibilityCard = document.getElementById('eligibilityDetailsCard');
+            if (!eligibilityCard) {
+                eligibilityCard = document.createElement('div');
+                eligibilityCard.id = 'eligibilityDetailsCard';
+                eligibilityCard.className = 'card';
+                
+                const accountSummaryCard = document.querySelector('.account-summary').parentElement;
+                accountSummaryCard.parentNode.insertBefore(eligibilityCard, accountSummaryCard.nextSibling);
+            }
+            
+            const windowOpen = isWithdrawalWindowOpen();
+            const nextWindow = getNextWithdrawalWindow();
+            
+            eligibilityCard.innerHTML = `
+                <div class="card-header">
+                    <span class="icon icon-calendar card-icon"></span>
+                    <h3 class="card-title">Withdrawal Eligibility</h3>
+                </div>
+                
+                ${windowOpen ? `
+                    <div style="margin-bottom: 24px;">
+                        <h4 style="font-size: 16px; font-weight: 600; color: var(--success); margin-bottom: 12px;">Currently Available (Window Open):</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                            <div class="summary-item">
+                                <div class="summary-value">${formatCurrency(eligibility.totalEligibleDeposits)}</div>
+                                <div class="summary-label">Eligible Deposits</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-value">${formatCurrency(eligibility.totalEligibleProfit)}</div>
+                                <div class="summary-label">Eligible Profit</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-value">${formatCurrency(eligibility.totalEligibleAmount)}</div>
+                                <div class="summary-label">Total Available Now</div>
+                            </div>
+                        </div>
+                    </div>
+                ` : ''}
+                
+                <div style="margin-bottom: 24px;">
+                    <h4 style="font-size: 16px; font-weight: 600; color: var(--accent); margin-bottom: 12px;">Next ${nextWindow.type} Window (${nextWindow.date.toLocaleDateString()}):</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                        <div class="summary-item">
+                            <div class="summary-value">${formatCurrency(eligibility.nextWindowEligibleDeposits)}</div>
+                            <div class="summary-label">Eligible Deposits</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-value">${formatCurrency(eligibility.nextWindowEligibleProfit)}</div>
+                            <div class="summary-label">Eligible Profit</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-value">${formatCurrency(eligibility.nextWindowEligibleTotal)}</div>
+                            <div class="summary-label">Total Available</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 16px;">
+                    <h4 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px;">Deposit Breakdown:</h4>
+                </div>
+                
+                <div style="display: grid; gap: 16px;">
+                    ${eligibility.eligibleDeposits.map(item => {
+                        // SIMPLIFIED: Show status for next window (not current)
+                        const depositStatus = item.depositEligibleByNextWindow ? 'Eligible' : 'Not Eligible';
+                        const profitStatus = item.profitEligibleByNextWindow ? 'Eligible' : 'Not Eligible';
+                        
+                        const depositStatusColor = item.depositEligibleByNextWindow ? 'var(--success)' : 'var(--error)';
+                        const profitStatusColor = item.profitEligibleByNextWindow ? 'var(--success)' : 'var(--error)';
+                        
+                        return `
+                            <div style="padding: 16px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                    <div style="font-weight: 600; color: var(--text-primary);">
+                                        ${formatCurrency(item.depositAmount)} deposited ${item.depositDate.toLocaleDateString()}
+                                    </div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">
+                                        Current Value: ${formatCurrency(item.currentValue)} 
+                                        <span style="color: ${item.profit >= 0 ? 'var(--success)' : 'var(--error)'};">
+                                            (${item.profit >= 0 ? '+' : ''}${formatCurrency(item.profit)})
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                    <div style="padding: 12px; background: var(--bg-primary); border-radius: 6px; text-align: center;">
+                                        <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Deposit Withdrawal</div>
+                                        <div style="font-weight: 600; color: ${depositStatusColor}; font-size: 14px;">
+                                            ${depositStatus}
+                                        </div>
+                                        <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">
+                                            Required: ${item.oneYearDate.toLocaleDateString()}
+                                        </div>
+                                    </div>
+                                    
+                                    <div style="padding: 12px; background: var(--bg-primary); border-radius: 6px; text-align: center;">
+                                        <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Profit Withdrawal</div>
+                                        <div style="font-weight: 600; color: ${profitStatusColor}; font-size: 14px;">
+                                            ${profitStatus}
+                                        </div>
+                                        <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">
+                                            Required: ${item.sixMonthsDate.toLocaleDateString()}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+                
+                <div style="margin-top: 16px; padding: 12px; background: rgba(59, 130, 246, 0.1); border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.3);">
+                    <div style="font-size: 14px; color: var(--accent); font-weight: 600; margin-bottom: 4px;">
+                        💡 Withdrawal Windows
+                    </div>
+                    <div style="font-size: 13px; color: var(--text-secondary);">
+                        • <strong>Summer:</strong> June 24 - July 7<br>
+                        • <strong>Winter:</strong> December 24 - January 7<br>
+                        • Deposits must age 1 year, profits must age 6 months
+                    </div>
+                </div>
+            `;
+        }
+            // Account data loading with SIMPLIFIED withdrawal eligibility
         async function loadAccountData() {
             try {
-                console.log('📊 Loading REAL account data with FIXED withdrawal eligibility...');
+                console.log('📊 Loading REAL account data with SIMPLIFIED withdrawal eligibility...');
                 
                 const authToken = localStorage.getItem('aequitas_auth_token');
                 if (!authToken) {
@@ -1644,15 +1731,9 @@
                 const totalDeposits = performanceResult.totalDeposits;
                 const profit = accountValue - totalDeposits;
                 
-                // Calculate withdrawal eligibility with FIXED logic
+                // Calculate withdrawal eligibility with SIMPLIFIED logic
                 const withdrawalEligibility = calculateWithdrawalEligibility(userDeposits, csvData);
                 window.withdrawalEligibility = withdrawalEligibility; // Store globally
-                
-                // VERIFICATION: Log the comparison
-                console.log('🔍 PROFIT VERIFICATION:');
-                console.log(`   Dashboard Profit: $${profit.toLocaleString()}`);
-                console.log(`   Eligible Profit: $${withdrawalEligibility.totalEligibleProfit.toLocaleString()}`);
-                console.log(`   ✅ Eligible ≤ Total: ${withdrawalEligibility.totalEligibleProfit <= profit}`);
                 
                 // Update account summary with REAL calculated values
                 updateAccountSummary({
@@ -1667,7 +1748,7 @@
                 // Display detailed eligibility information
                 displayWithdrawalEligibilityDetails(withdrawalEligibility);
                 
-                console.log('✅ Real account data loaded with FIXED withdrawal eligibility:', {
+                console.log('✅ Real account data loaded with SIMPLIFIED withdrawal eligibility:', {
                     balance: accountValue.toLocaleString(),
                     deposits: totalDeposits.toLocaleString(),
                     profit: profit.toLocaleString(),
@@ -1679,160 +1760,6 @@
                 console.error('💥 Failed to load real account data:', error);
                 loadFallbackAccountData();
             }
-        }
-
-        // Display detailed withdrawal eligibility information
-        function displayWithdrawalEligibilityDetails(eligibility) {
-            // Create or update eligibility details card
-            let eligibilityCard = document.getElementById('eligibilityDetailsCard');
-            if (!eligibilityCard) {
-                eligibilityCard = document.createElement('div');
-                eligibilityCard.id = 'eligibilityDetailsCard';
-                eligibilityCard.className = 'card';
-                
-                // Insert after account summary
-                const accountSummaryCard = document.querySelector('.account-summary').parentElement;
-                accountSummaryCard.parentNode.insertBefore(eligibilityCard, accountSummaryCard.nextSibling);
-            }
-            
-            const windowOpen = isWithdrawalWindowOpen();
-            const nextWindow = getNextWithdrawalWindow();
-            
-            // Calculate totals for next window
-            let nextWindowEligibleDeposits = 0;
-            let nextWindowEligibleProfit = 0;
-            
-            eligibility.eligibleDeposits.forEach(item => {
-                if (item.depositTimeEligibleByNextWindow) {
-                    nextWindowEligibleDeposits += item.depositAmount;
-                }
-                if (item.profitTimeEligibleByNextWindow && item.profit > 0) {
-                    nextWindowEligibleProfit += item.profit;
-                }
-            });
-            
-            const nextWindowTotal = nextWindowEligibleDeposits + nextWindowEligibleProfit;
-            
-            eligibilityCard.innerHTML = `
-                <div class="card-header">
-                    <span class="icon icon-calendar card-icon"></span>
-                    <h3 class="card-title">Withdrawal Eligibility Details</h3>
-                </div>
-                
-                <div style="margin-bottom: 24px;">
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-                        <div class="summary-item">
-                            <div class="summary-value">${formatCurrency(eligibility.totalEligibleDeposits)}</div>
-                            <div class="summary-label">Currently Eligible Deposits</div>
-                        </div>
-                        <div class="summary-item">
-                            <div class="summary-value">${formatCurrency(eligibility.totalEligibleProfit)}</div>
-                            <div class="summary-label">Currently Eligible Profit</div>
-                        </div>
-                        <div class="summary-item">
-                            <div class="summary-value">${formatCurrency(eligibility.totalEligibleAmount)}</div>
-                            <div class="summary-label">Total Available Now</div>
-                        </div>
-                    </div>
-                </div>
-                
-                ${!windowOpen && nextWindowTotal > 0 ? `
-                    <div style="margin-bottom: 24px; padding: 16px; background: rgba(59, 130, 246, 0.1); border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.3);">
-                        <div style="font-size: 14px; color: var(--accent); font-weight: 600; margin-bottom: 8px;">Next ${nextWindow.type} Window (${nextWindow.date.toLocaleDateString()}):</div>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
-                            <div style="text-align: center;">
-                                <div style="font-size: 16px; font-weight: 600; color: var(--text-primary);">${formatCurrency(nextWindowEligibleDeposits)}</div>
-                                <div style="font-size: 12px; color: var(--text-secondary);">Eligible Deposits</div>
-                            </div>
-                            <div style="text-align: center;">
-                                <div style="font-size: 16px; font-weight: 600; color: var(--text-primary);">${formatCurrency(nextWindowEligibleProfit)}</div>
-                                <div style="font-size: 12px; color: var(--text-secondary);">Eligible Profit</div>
-                            </div>
-                            <div style="text-align: center;">
-                                <div style="font-size: 16px; font-weight: 600; color: var(--accent);">${formatCurrency(nextWindowTotal)}</div>
-                                <div style="font-size: 12px; color: var(--text-secondary);">Total Available</div>
-                            </div>
-                        </div>
-                    </div>
-                ` : ''}
-                
-                <div style="margin-bottom: 16px;">
-                    <h4 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px;">Per-Deposit Breakdown:</h4>
-                </div>
-                
-                <div style="display: grid; gap: 16px;">
-                    ${eligibility.eligibleDeposits.map(item => {
-                        // Format deposit status
-                        let depositStatus = '';
-                        if (item.depositCurrentlyEligible) {
-                            depositStatus = `✅ Available (${formatCurrency(item.depositAmount)})`;
-                        } else if (!item.depositTimeEligible) {
-                            depositStatus = `⏳ ${Math.max(0, item.daysUntilDepositEligible)} days until eligible`;
-                        } else {
-                            depositStatus = `⏳ Window closed`;
-                        }
-                        
-                        // Format profit status
-                        let profitStatus = '';
-                        if (item.profitCurrentlyEligible) {
-                            profitStatus = `✅ Available (${formatCurrency(Math.max(0, item.profit))})`;
-                        } else if (!item.profitTimeEligible) {
-                            profitStatus = `⏳ ${Math.max(0, item.daysUntilProfitEligible)} days until eligible`;
-                        } else {
-                            profitStatus = `⏳ Window closed`;
-                        }
-                        
-                        return `
-                            <div style="padding: 16px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color);">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                    <div style="font-weight: 600; color: var(--text-primary);">
-                                        ${formatCurrency(item.depositAmount)} deposited ${item.depositDate.toLocaleDateString()}
-                                    </div>
-                                    <div style="font-size: 12px; color: var(--text-secondary);">
-                                        Current Value: ${formatCurrency(item.currentValue)} 
-                                        <span style="color: ${item.profit >= 0 ? 'var(--success)' : 'var(--error)'};">
-                                            (${item.profit >= 0 ? '+' : ''}${formatCurrency(item.profit)})
-                                        </span>
-                                    </div>
-                                </div>
-                                
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px;">
-                                    <div style="padding: 8px 12px; background: var(--bg-primary); border-radius: 6px; border: 1px solid ${item.depositCurrentlyEligible ? 'rgba(16, 185, 129, 0.3)' : 'rgba(245, 158, 11, 0.3)'};">
-                                        <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Deposit Withdrawal</div>
-                                        <div style="font-weight: 600; color: ${item.depositCurrentlyEligible ? 'var(--success)' : 'var(--warning)'}; font-size: 13px;">
-                                            ${depositStatus}
-                                        </div>
-                                        <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 2px;">
-                                            Eligible: ${item.oneYearDate.toLocaleDateString()}
-                                        </div>
-                                    </div>
-                                    
-                                    <div style="padding: 8px 12px; background: var(--bg-primary); border-radius: 6px; border: 1px solid ${item.profitCurrentlyEligible ? 'rgba(16, 185, 129, 0.3)' : 'rgba(245, 158, 11, 0.3)'};">
-                                        <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Profit Withdrawal</div>
-                                        <div style="font-weight: 600; color: ${item.profitCurrentlyEligible ? 'var(--success)' : 'var(--warning)'}; font-size: 13px;">
-                                            ${profitStatus}
-                                        </div>
-                                        <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 2px;">
-                                            Eligible: ${item.sixMonthsDate.toLocaleDateString()}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-                
-                ${!windowOpen ? `
-                    <div style="margin-top: 16px; padding: 12px; background: rgba(245, 158, 11, 0.1); border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.3);">
-                        <div style="font-size: 14px; color: var(--warning); font-weight: 600;">
-                            ⚠️ Withdrawal window is currently closed
-                        </div>
-                        <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
-                            Even eligible funds can only be withdrawn during designated windows.
-                        </div>
-                    </div>
-                ` : ''}
-            `;
         }
 
         // Fallback account data when real data unavailable
@@ -1984,7 +1911,8 @@
                 submitBtn.innerHTML = originalText;
             }
         });
-            // Load withdrawal history from API
+
+        // Load withdrawal history from API
         async function loadWithdrawalHistory() {
             try {
                 console.log('📋 Loading withdrawal history...');
@@ -2180,7 +2108,7 @@
             // Load user data and initialize page
             loadUserData().then(() => {
                 updateWithdrawalStatus();
-                loadAccountData(); // Now uses REAL CSV + deposits calculation with FIXED eligibility
+                loadAccountData(); // Now uses REAL CSV + deposits calculation with SIMPLIFIED eligibility
                 loadWithdrawalHistory();
                 
                 // Show admin section if user is admin
@@ -2189,7 +2117,7 @@
                     if (adminSection) adminSection.style.display = 'block';
                 }
                 
-                console.log('✅ Withdrawal page initialized with FIXED eligibility logic');
+                console.log('✅ Withdrawal page initialized with SIMPLIFIED eligibility logic');
             });
         }
 
@@ -2200,4 +2128,4 @@
 </html>
             
             
-            
+        
